@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob c5954a06ea4c7f7c58434d7a569cda18962d4417 -->
+<!-- source: docs/en/README.md blob 8545be23d6d77425886de4b23623b8d05d6caf9d -->
 [English](../en/README.md) | 日本語 · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -14,3 +14,4 @@
 | [Requirements](../working/REQUIREMENTS.md)（英語のみ） | 目的、範囲、機能要件と非機能要件、技術選定。 |
 | [Decisions](../working/DECISIONS.md)（英語のみ） | 設計判断の記録（ADR）。 |
 | [Phase 0 plan](../working/PHASE0_PLAN.md)（英語のみ） | リポジトリの土台と試作：解析、描画、書き出し、同期。 |
+| [Phase 0 results](../working/PHASE0_RESULTS.md)（英語のみ） | Phase 0 の測定結果：描画ライブラリ、速度、同期、キーイング。 |

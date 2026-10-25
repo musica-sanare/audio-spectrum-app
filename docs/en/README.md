@@ -11,3 +11,4 @@ How the offline audio spectrum video renderer is specified, designed and develop
 | [Requirements](../working/REQUIREMENTS.md) | Purpose, scope, functional and non-functional requirements, technology choices. |
 | [Decisions](../working/DECISIONS.md) | Architecture decision log (ADRs). |
 | [Phase 0 plan](../working/PHASE0_PLAN.md) | Repository foundation and spike: analysis, rendering, encoding and sync. |
+| [Phase 0 results](../working/PHASE0_RESULTS.md) | Phase 0 measurements: rendering library, speed, sync and keying. |

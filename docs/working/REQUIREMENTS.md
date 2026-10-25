@@ -49,6 +49,8 @@ Recorder. That workflow has three problems this app must solve:
   - `default`: the improved look (see 4.3).
   - `unity-classic`: an approximation of the legacy look, kept for comparison.
 - F8. Command-line interface. One command renders one file; a batch mode renders several files with the same preset.
+  The CLI is the stable contract for other tools and apps that embed this one (see N6): machine-readable progress
+  (`--progress json`), documented exit codes, and presets given as file paths.
 - F9. Presets are plain text files (TOML) that the owner can copy and edit.
 
 ### 4.2 Should (after MVP)
@@ -59,8 +61,12 @@ Recorder. That workflow has three problems this app must solve:
 - F12. Frequency axis: logarithmic (default) or linear; adjustable frequency range.
 - F13. More output formats: ProRes 422 (better keying quality, supported by iMovie), HEVC, and ProRes 4444 with alpha
   for editors that support transparency.
-- F14. Local web UI: edit presets and preview the result as still frames or short clips, rendered by the same code as
-  the final output.
+- F14. GUI as a local web UI (`audio-spectrum gui` opens it in the browser): choose the audio file and preset, set
+  background, size, frame rate and output format, adjust FX with previews as still frames or short clips rendered by
+  the same code as the final output, start and cancel renders with progress, and save settings as a preset file. The
+  GUI only exposes what the CLI and core can do; it adds no rendering logic of its own.
+- F15. Optional later: show the same web UI in a native window (pywebview) for a native file dialog, and a Finder
+  quick action that renders the selected audio files with a chosen preset.
 
 ### 4.3 The improved default look
 
@@ -86,6 +92,9 @@ these fixes:
   automated tests that need no real songs (synthetic signals only).
 - N5. Extensibility: analysis, rendering and encoding are separate components. New styles, renderers (for example a
   GPU 3D renderer later) and output formats plug in without reworking the rest.
+- N6. Embeddability: three layers. The core is a Python library with no UI dependencies; the CLI and the GUI are thin
+  entry points on top of it. GUI dependencies are an optional extra (for example `audio-spectrum-app[gui]`), so another
+  app can embed the core and CLI (as a Git submodule or a Git dependency) without them.
 
 ## 6. Technology decisions (proposed)
 
@@ -97,7 +106,7 @@ these fixes:
 | Rendering | CPU 2D drawing (OpenCV or Skia, decided in Phase 0) | No GPU or engine dependency; enough for the target look |
 | Encoding | ffmpeg via a raw-frame pipe (libx264, ProRes, VideoToolbox) | Industry standard; exact frame timing |
 | Presets | TOML, validated by a typed schema | Readable and editable by hand |
-| Interfaces | CLI first; FastAPI local web UI later | Same stack as the owner's other project |
+| Interfaces | CLI first; FastAPI local web UI later, optionally in a pywebview window | Same stack as the owner's other project; one UI for browser and window |
 
 Rejected: browser 3D (Three.js) with headless Chromium, and Remotion (heavy dependencies, slower export, Remotion's
 license terms); Godot or Blender (a new engine dependency); Rust (higher maintenance cost for the owner); wgpu 3D
