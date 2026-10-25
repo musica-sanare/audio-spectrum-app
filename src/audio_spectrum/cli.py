@@ -78,16 +78,23 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("-o", "--output", type=Path, help="output video; only with a single input")
     render.add_argument("--out-dir", type=Path, help="output folder (default: next to each input)")
     render.add_argument("--overwrite", action="store_true", help="replace existing output files")
-    render.add_argument("--preset", default="default", help="built-in preset name or path to a .toml preset file")
-    render.add_argument("--background", type=background_color, help="blue, green or #RRGGBB (default: from the preset)")
-    render.add_argument("--size", type=frame_size, default=SIZES["1080p"], help="720p, 1080p, 1440p, 2160p or WxH")
-    render.add_argument("--fps", type=float, default=30.0)
     render.add_argument(
-        "--codec", choices=sorted(CODECS), default="h264",
-        help="h264 (small .mp4), prores (ProRes 422 .mov) or prores4444 (ProRes 4444 .mov, cleanest keying)",
+        "--preset", default="default", help="built-in preset name or path to a .toml preset file (default: default)"
+    )
+    render.add_argument("--background", type=background_color, help="blue, green or #RRGGBB (default: from the preset)")
+    render.add_argument(
+        "--size", type=frame_size, default=SIZES["1080p"], help="720p, 1080p, 1440p, 2160p or WxH (default: 1080p)"
     )
     render.add_argument(
-        "--crf", type=crf_value, default=EncodeSettings.crf, help="H.264 quality from 0 to 51 (lower is better)"
+        "--fps", type=float, default=30.0, help="frames per second, for example 24, 29.97 or 60 (default: 30)"
+    )
+    render.add_argument(
+        "--codec", choices=sorted(CODECS), default="h264",
+        help="h264 (small .mp4, default), prores (ProRes 422 .mov) or prores4444 (ProRes 4444 .mov, cleanest keying)",
+    )
+    render.add_argument(
+        "--crf", type=crf_value, default=EncodeSettings.crf,
+        help="H.264 quality from 0 to 51, lower is better (default: 14)",
     )
     render.add_argument("--no-audio", action="store_true", help="do not mux the source audio")
     render.add_argument("--workers", type=int, default=0, help="render processes (0: automatic)")

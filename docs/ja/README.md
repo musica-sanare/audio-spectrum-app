@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 9f65a54e67719b4f23bdc4077cd0a9fc4107263d -->
+<!-- source: docs/en/README.md blob 654a166186872dcdcdbc7baca37fbfb32254ffa7 -->
 [English](../en/README.md) | 日本語 · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -6,6 +6,19 @@
 # audio-spectrum-app ドキュメント
 
 オフラインのオーディオスペクトラム動画レンダラーの仕様・設計・開発方法と、各フェーズの記録です。
+
+## ガイド
+
+| 文書 | 説明 |
+|---|---|
+| [ユーザーガイド](USER_GUIDE.md) | セットアップ、普段の使い方、コマンドリファレンス、プリセット、ほかのツールからの利用（JSON イベント、Python API）。 |
+| [開発](DEVELOPMENT.md) | セットアップ、テスト、見た目の確認、規約。 |
+
+## 設計
+
+| 文書 | 説明 |
+|---|---|
+| [アーキテクチャ](ARCHITECTURE.md) | 層構成、データの流れ、守るべき不変条件、性能、拡張ポイント。 |
 
 ## 作業用ドキュメント（英語のみ）
 

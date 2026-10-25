@@ -6,8 +6,8 @@ Renders an audio spectrum video on a solid blue or green background from an audi
 meant to be overlaid on a background video with a chroma key in a video editor. Frames are computed from the audio
 timeline, so audio and video stay in exact sync.
 
-**Status:** Phase 0 (foundation and spike) complete. A working `render` command exists; presets, batch mode and the
-GUI come in later phases. See [Phase 0 results](docs/working/PHASE0_RESULTS.md).
+**Status:** Phase 1 (MVP CLI) in progress. Rendering, batch mode, preset files and the CLI contract for other tools
+work; effects and the GUI come in later phases. See the [Phase 1 plan](docs/working/PHASE1_PLAN.md).
 
 ## Quick start
 
@@ -22,7 +22,8 @@ Run `uv run audio-spectrum render --help` for all options and `uv run pytest` fo
 
 ## Documentation
 
-- [Documentation index](docs/en/README.md): every doc, including requirements, decisions and phase records
+- [User guide](docs/en/USER_GUIDE.md): setup, use, command reference and presets
+- [Documentation index](docs/en/README.md): every doc, including architecture, requirements, decisions and phase records
 
 ## License
 

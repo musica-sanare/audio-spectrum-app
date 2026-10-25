@@ -4,6 +4,19 @@ English | [日本語](../ja/README.md) · [Repository README](../../README.md)
 
 How the offline audio spectrum video renderer is specified, designed and developed, and the records of each phase.
 
+## Guides
+
+| Document | Description |
+|---|---|
+| [User guide](USER_GUIDE.md) | Setup, everyday use, command reference, presets, and use from other tools (JSON events, Python API). |
+| [Development](DEVELOPMENT.md) | Setup, tests, visual checks and conventions. |
+
+## Design
+
+| Document | Description |
+|---|---|
+| [Architecture](ARCHITECTURE.md) | Layers, data flow, invariants to keep, performance and extension points. |
+
 ## Working docs (English only)
 
 | Document | Description |

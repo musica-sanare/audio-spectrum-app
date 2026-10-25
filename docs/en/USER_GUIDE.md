@@ -1,0 +1,225 @@
+English | [日本語](../ja/USER_GUIDE.md) · [Docs index](README.md)
+
+# User guide
+
+audio-spectrum-app turns an audio file into a spectrum video on a solid blue or green background, ready to be keyed
+over a background video in an editor such as iMovie. Everything runs offline on your Mac.
+
+## 1. Setup
+
+You need macOS (tested on an Apple Silicon M1), [Homebrew](https://brew.sh), `uv` and ffmpeg.
+
+```bash
+brew install uv ffmpeg
+git clone <repository URL> audio-spectrum-app
+cd audio-spectrum-app
+uv sync
+uv run audio-spectrum --version
+```
+
+`uv sync` installs Python 3.13 and the libraries into `.venv/` inside the folder. Nothing else on the system changes.
+
+## 2. Everyday use
+
+Render one song with the default look (1080p, 30 fps, white lines on blue, H.264):
+
+```bash
+uv run audio-spectrum render song.wav
+```
+
+The video is written next to the input as `song_spectrum.mp4`, with the song's audio included. Its length matches the
+audio exactly, so it lines up with the background video when both start at zero.
+
+More examples:
+
+```bash
+uv run audio-spectrum render song.wav --background green           # green back
+uv run audio-spectrum render song.wav --size 2160p --fps 60        # 4K at 60 fps
+uv run audio-spectrum render song.wav --codec prores4444           # cleanest keying, large .mov
+uv run audio-spectrum render *.wav --out-dir ~/Movies/spectrum     # several songs at once
+uv run audio-spectrum render song.wav --preset my-look.toml        # your own preset
+```
+
+### Using the video in iMovie
+
+1. Put the background video on the timeline.
+2. Drag the spectrum video above it, at the same start position.
+3. In the video overlay settings, choose **Blue/Green Screen**.
+
+Effects such as blur or glow can be added in the editor. The app keeps the lines plain so they key cleanly.
+
+### Choosing the output format
+
+| `--codec` | File | Size (4 min, 1080p30) | When to use |
+|---|---|---|---|
+| `h264` (default) | `.mp4` | about 85 MB | Everyday use. Keys well in iMovie. |
+| `prores` | `.mov` (ProRes 422) | about 1 GB | Editors that prefer ProRes. Keying quality is similar to H.264 for thin lines. |
+| `prores4444` | `.mov` (ProRes 4444) | about 2 GB | Exact colors at line edges, for the cleanest key. |
+
+A 4-minute song renders in about 2 minutes at 1080p30 on an M1 Mac.
+
+## 3. Command reference
+
+### `render`
+
+```
+audio-spectrum render AUDIO... [options]
+```
+
+| Option | Default | Meaning |
+|---|---|---|
+| `AUDIO...` | | One or more audio files: WAV, AIFF, FLAC, MP3, or anything ffmpeg can read |
+| `-o, --output FILE` | next to the input | Output file; only with a single input |
+| `--out-dir DIR` | next to each input | Output folder, created if missing. Outputs are named `<input name>_spectrum.mp4` (or `.mov`) |
+| `--overwrite` | off | Replace existing outputs. Without it, an existing output is an error for that file and is left untouched |
+| `--preset NAME_OR_FILE` | `default` | Built-in preset name, or a path to a `.toml` preset file |
+| `--background COLOR` | from the preset | `blue`, `green` or `#RRGGBB` |
+| `--size SIZE` | `1080p` | `720p`, `1080p`, `1440p`, `2160p` or `WIDTHxHEIGHT` (even numbers) |
+| `--fps FPS` | `30` | Frames per second, for example `24`, `29.97`, `60` |
+| `--codec CODEC` | `h264` | `h264`, `prores` or `prores4444` (see above) |
+| `--crf N` | `14` | H.264 quality from 0 to 51; lower is better and larger |
+| `--no-audio` | off | Leave the audio out of the video |
+| `--workers N` | `0` (automatic) | Render processes; `1` renders in a single process |
+| `--progress MODE` | `text` | `text` on stderr, `json` events on stdout, or `none` |
+| `--fail-fast` | off | Stop at the first file that fails; otherwise the remaining files are still rendered |
+
+### `presets`
+
+```
+audio-spectrum presets list          # built-in presets
+audio-spectrum presets show NAME     # print a built-in preset as TOML
+audio-spectrum presets check FILE    # validate a preset file
+```
+
+### Exit codes
+
+| Code | Meaning |
+|---|---|
+| 0 | All files rendered |
+| 1 | At least one file failed; the others were rendered unless `--fail-fast` was given |
+| 2 | Usage error: bad options or an invalid preset. Nothing was rendered |
+| 3 | ffmpeg is not installed. Nothing was rendered |
+| 130 | Interrupted with Ctrl+C or a termination signal |
+
+### Safe output
+
+Each video is written to a hidden temporary file in the output folder (`.<name>.partial-<number>.mp4`) and renamed
+only after ffmpeg succeeds. After a failure or an interruption no output and no temporary file remain, so any file
+with the final name is complete.
+
+## 4. Presets
+
+A preset describes the look: how the audio is analyzed and how the lines are drawn. Output settings (size, frame
+rate, format) are command options, so one preset works for any output.
+
+Built-in presets:
+
+| Name | Look |
+|---|---|
+| `default` | 512 white lines on blue, mirrored around a centered baseline, low to high frequencies left to right |
+| `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
+
+To make your own, start from a built-in one:
+
+```bash
+uv run audio-spectrum presets show default > my-look.toml
+# edit my-look.toml
+uv run audio-spectrum presets check my-look.toml
+uv run audio-spectrum render song.wav --preset my-look.toml
+```
+
+Rules:
+
+- Keys you leave out take the `default` preset's values, so a preset can be as short as `name = "mine"` plus the
+  keys you change.
+- Unknown keys, wrong types and out-of-range values are errors that name the key, for example
+  `analysis.bandz: Extra inputs are not permitted`.
+- `schema_version = 1` marks the file format.
+
+Main keys (the file printed by `presets show default` explains each one):
+
+| Key | Meaning |
+|---|---|
+| `background`, `foreground` | Colors as `"#RRGGBB"` |
+| `analysis.bands` | Number of lines ("wave fineness") |
+| `analysis.min_frequency`, `max_frequency` | Frequency range in Hz |
+| `analysis.frequency_scale` | `"log"` (even spread of low to high) or `"linear"` |
+| `analysis.db_floor` | Level shown as zero height; closer to 0 hides quieter sounds |
+| `analysis.tilt_db_per_octave` | Lifts high frequencies so the right side is not always low |
+| `analysis.channel` | `"mix"`, `"left"` or `"right"` |
+| `analysis.attack_seconds`, `release_seconds` | How fast lines rise and fall |
+| `look.max_height` | Height of a full-scale line on each side, as a fraction of the frame height |
+| `look.baseline_y` | Baseline position from the top, as a fraction of the frame height |
+| `look.mirror` | Grow up and down (`true`) or only up (`false`) |
+| `look.bar_fill` | Line width as a fraction of the space per band |
+| `look.response` | Above 1 keeps quiet bands low and lets peaks stand out |
+
+## 5. Using it from other tools
+
+The CLI and the Python API are the stable interface for scripts and apps that embed this tool.
+
+### JSON progress events
+
+With `--progress json`, the CLI prints one JSON object per line on stdout. Error text still goes to stderr.
+
+| `event` | Fields | When |
+|---|---|---|
+| `start` | `input`, `output`, `frames`, `index`, `count` | A file starts rendering (`index` counts from 1) |
+| `progress` | `input`, `frame`, `frames` | During rendering, at most about four times a second, and at the last frame |
+| `done` | `input`, `output`, `seconds` | A file finished |
+| `error` | `input` (absent for errors before any file), `code`, `message` | A file failed, or the run could not start |
+| `finished` | `succeeded`, `failed` | All files were processed |
+| `interrupted` | | The run was interrupted |
+
+Error codes: `decode_failed`, `encode_failed`, `output_exists`, `worker_failed`, `preset_invalid`,
+`ffmpeg_not_found`.
+
+```json
+{"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
+{"event": "progress", "input": "a.wav", "frame": 3000, "frames": 7644}
+{"event": "done", "input": "a.wav", "output": "a_spectrum.mp4", "seconds": 114.2}
+{"event": "error", "input": "b.wav", "code": "decode_failed", "message": "b.wav: cannot decode audio (...)"}
+{"event": "finished", "succeeded": 1, "failed": 1}
+```
+
+### Python API
+
+The names exported by the `audio_spectrum` package are the public API; everything else may change.
+
+```python
+from pathlib import Path
+
+from audio_spectrum import RenderJob, load_preset, render_video
+
+
+def main() -> None:
+    job = RenderJob(
+        audio_path=Path("song.wav"),
+        output_path=Path("song_spectrum.mp4"),
+        preset=load_preset("default"),   # or a path to a .toml file
+        width=1920, height=1080, fps=30,
+    )
+    result = render_video(job, progress=lambda done, total: None, cancel=lambda: False)
+    print(result.output_path, result.frames, result.seconds)
+
+
+if __name__ == "__main__":  # required, see below
+    main()
+```
+
+- `render_video` raises a subclass of `AudioSpectrumError` on failure: `PresetError`, `DecodeError`, `EncodeError`,
+  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, or `Cancelled` when `cancel` returns true. No output
+  file is left behind in any of these cases.
+- Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API
+  under `if __name__ == "__main__":`. Without it the render fails with a `WorkerError` that says so. Passing
+  `workers=1` avoids extra processes.
+
+## 6. Troubleshooting
+
+| Problem | What to do |
+|---|---|
+| `ffmpeg is not installed` (exit code 3) | `brew install ffmpeg` |
+| `already exists` | Add `--overwrite`, or choose another `--out-dir` |
+| `cannot decode audio` | Check that the file plays; convert it to WAV if needed |
+| A preset error naming a key | Fix that key; `presets check FILE` shows all problems at once |
+| Lines look soft or bluish after keying | Try `--codec prores4444` |

@@ -1,6 +1,6 @@
 [project]
 name = "audio-spectrum-app"
-version = "0.1.0"
+version = "0.2.0"
 description = "Render audio spectrum videos on a chroma-key background, fully offline"
 readme = "README.md"
 license = "MIT"

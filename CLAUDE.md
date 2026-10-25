@@ -8,6 +8,7 @@ fully offline on the owner's Mac. The videos are overlaid on separately made bac
 ## Read first
 Before changing code or docs, read:
 - [docs/en/README.md](docs/en/README.md) (docs index)
+- [docs/en/ARCHITECTURE.md](docs/en/ARCHITECTURE.md) (§3 lists the invariants to keep)
 - [docs/working/REQUIREMENTS.md](docs/working/REQUIREMENTS.md)
 - [docs/working/DECISIONS.md](docs/working/DECISIONS.md)
 - The current phase plan in `docs/working/` (`PHASE<N>_PLAN.md`)
@@ -27,7 +28,10 @@ If any path does not exist, report it rather than silently inventing its content
 
 ## Engineering
 - Python 3.13 managed with `uv`; ffmpeg is an external tool (`brew install ffmpeg`).
-- Tests: `uv run pytest`. Automated tests use generated signals only, never real songs.
+- Tests: `uv run pytest`. Automated tests use generated signals only, never real songs. More:
+  [Development](docs/en/DEVELOPMENT.md).
+- The CLI options, JSON events, exit codes and the names exported by `audio_spectrum` are a public contract for
+  embedding apps ([User guide](docs/en/USER_GUIDE.md) §5). Change them only deliberately and update the guide.
 
 ## Workflow
 - Work in phases: write a plan in `docs/working/PHASE<N>_PLAN.md`, get the owner's approval, then implement, measure and
