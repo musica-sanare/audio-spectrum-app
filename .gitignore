@@ -1,0 +1,29 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local inputs and rendered outputs (songs and videos never enter the repository)
+/work/
+*.wav
+*.aif
+*.aiff
+*.flac
+*.mp3
+*.m4a
+*.mp4
+*.mov
+*.m4v
+*.mkv
+
+# Local configuration and secrets
+.env
+.env.*
+
+# macOS
+.DS_Store
+
+# Local tool configuration
+.claude/
+CLAUDE.local.md
