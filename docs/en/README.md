@@ -26,3 +26,4 @@ How the offline audio spectrum video renderer is specified, designed and develop
 | [Phase 0 plan](../working/PHASE0_PLAN.md) | Repository foundation and spike: analysis, rendering, encoding and sync. |
 | [Phase 0 results](../working/PHASE0_RESULTS.md) | Phase 0 measurements: rendering library, speed, sync and keying. |
 | [Phase 1 plan](../working/PHASE1_PLAN.md) | MVP CLI: preset files, CLI contract (batch, progress, exit codes), public API, stable docs. |
+| [Phase 1 acceptance](../working/PHASE1_ACCEPTANCE.md) | Phase 1 acceptance report: criteria, requirements coverage, measurements, next candidates. |
