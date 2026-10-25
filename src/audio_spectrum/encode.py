@@ -1,0 +1,92 @@
+"""Video encoding with ffmpeg: raw RGB frames in through a pipe, the source audio muxed in unchanged in time."""
+
+import shutil
+import subprocess
+from dataclasses import dataclass
+from fractions import Fraction
+from pathlib import Path
+from typing import Literal
+
+Codec = Literal["h264", "prores"]
+
+
+@dataclass(frozen=True)
+class EncodeSettings:
+    codec: Codec = "h264"
+    crf: int = 14
+    """H.264 quality: lower is better and larger. 14 keeps thin lines clean for chroma keying."""
+    x264_preset: str = "medium"
+    prores_profile: int = 2
+    """ProRes profile: 2 = 422, 3 = 422 HQ, 4 = 4444 (full color resolution, sharpest edges for keying)."""
+    include_audio: bool = True
+
+
+def ffmpeg_fps(fps: float) -> str:
+    """Exact frame rate for ffmpeg, so 29.97 becomes 30000/1001 rather than a rounded decimal."""
+    return str(Fraction(fps).limit_denominator(1001))
+
+
+def build_command(
+    output: Path, width: int, height: int, fps: float, settings: EncodeSettings, audio_path: Path | None
+) -> list[str]:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        raise RuntimeError("ffmpeg is not installed (brew install ffmpeg).")
+    command = [
+        ffmpeg, "-y", "-v", "error",
+        "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{width}x{height}", "-framerate", ffmpeg_fps(fps), "-i", "-",
+    ]
+    if settings.include_audio and audio_path is not None:
+        # Chapters from WAV cue chunks would otherwise become an extra text track.
+        command += ["-i", str(audio_path), "-map", "0:v:0", "-map", "1:a:0", "-map_chapters", "-1"]
+    # Tag BT.709 so editors show the key color as the pure color that was drawn.
+    color = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
+    if settings.codec == "h264":
+        command += [
+            "-vf", "scale=out_color_matrix=bt709:out_range=tv",
+            "-c:v", "libx264", "-preset", settings.x264_preset, "-crf", str(settings.crf),
+            "-pix_fmt", "yuv420p", *color, "-movflags", "+faststart",
+        ]
+        audio_codec = ["-c:a", "aac", "-b:a", "320k"]
+    else:
+        command += [
+            "-vf", "scale=out_color_matrix=bt709:out_range=tv",
+            "-c:v", "prores_ks", "-profile:v", str(settings.prores_profile),
+            "-pix_fmt", "yuv444p10le" if settings.prores_profile >= 4 else "yuv422p10le", *color,
+        ]
+        audio_codec = ["-c:a", "pcm_s24le"]
+    if settings.include_audio and audio_path is not None:
+        command += audio_codec
+    return [*command, str(output)]
+
+
+class VideoWriter:
+    """Context manager that accepts frames as (height, width, 3) uint8 RGB arrays."""
+
+    def __init__(
+        self, output: Path, width: int, height: int, fps: float,
+        settings: EncodeSettings = EncodeSettings(), audio_path: Path | None = None,
+    ):
+        self._command = build_command(output, width, height, fps, settings, audio_path)
+        self._process: subprocess.Popen | None = None
+
+    def __enter__(self) -> "VideoWriter":
+        self._process = subprocess.Popen(self._command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        return self
+
+    def write(self, frame) -> None:
+        try:
+            self._process.stdin.write(frame.tobytes())
+        except BrokenPipeError:
+            self._fail()
+
+    def __exit__(self, exc_type, exc, traceback) -> None:
+        self._process.stdin.close()
+        self._process.wait()
+        if exc_type is None and self._process.returncode != 0:
+            self._fail()
+
+    def _fail(self) -> None:
+        self._process.wait()
+        message = self._process.stderr.read().decode(errors="replace").strip()
+        raise RuntimeError(f"ffmpeg failed: {message}")

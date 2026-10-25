@@ -5,7 +5,11 @@ description = "Render audio spectrum videos on a chroma-key background, fully of
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.13,<3.14"
-dependencies = []
+dependencies = [
+    "numpy>=2.5.4",
+    "skia-python>=144.1",
+    "soundfile>=0.14.0",
+]
 
 [project.scripts]
 audio-spectrum = "audio_spectrum.__main__:main"
@@ -24,3 +28,4 @@ packages = ["src/audio_spectrum"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
