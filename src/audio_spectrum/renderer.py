@@ -8,18 +8,21 @@ from audio_spectrum.raster import RASTERIZERS, Rasterizer
 
 
 class FrameRenderer:
-    def __init__(self, preset: Preset, width: int, height: int, rasterizer: str = "skia"):
+    def __init__(self, preset: Preset, width: int, height: int, rasterizer: str = "skia", transparent: bool = False):
         self.preset = preset
+        self.transparent = transparent
         self.width = width
         self.height = height
         self._rasterizer: Rasterizer = RASTERIZERS[rasterizer](width, height)
         self._gradient = gradient_for(preset.look, preset.fill, width, height)
 
     def render(self, values: np.ndarray) -> np.ndarray:
-        """Render one frame of band values. Returns (height, width, 3) uint8 RGB."""
+        """Render one frame of band values. Returns (height, width, 3) uint8 RGB, or (height, width, 4) RGBA with a
+        transparent background."""
         quads = quads_for(self.preset.look, values, self.width, self.height)
         quads = quads[_visible(quads, self.width, self.height)]
-        return self._rasterizer.draw(quads, self.preset.background, self.preset.foreground, self._gradient)
+        background = None if self.transparent else self.preset.background
+        return self._rasterizer.draw(quads, background, self.preset.foreground, self._gradient)
 
 
 def _visible(quads: np.ndarray, width: int, height: int) -> np.ndarray:

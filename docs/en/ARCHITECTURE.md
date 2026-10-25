@@ -27,7 +27,7 @@ their reasons are in the [decision log](../working/DECISIONS.md).
 audio file ──load_audio──▶ samples ──analyze──▶ band values (frames × bands)
                                                      │
                                   for each frame n:  ▼
-                              geometry (quads) ──raster (Skia)──▶ RGB frame
+                              geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -40,7 +40,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `presets.py` | Preset schema (pydantic), loading of built-in and user TOML files, overrides and keying warnings |
 | `builtin_presets/` | The built-in presets as TOML files |
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) and style (bars, blocks); places fill gradients |
-| `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame, in a solid color or a linear gradient |
+| `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame, in a solid color or a linear gradient; with a transparent background, an RGBA frame with straight alpha |
 | `renderer.py` | Combines geometry and raster for one frame |
 | `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success; `write_png` writes stills the same way |
 | `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills`: single frames for checks |

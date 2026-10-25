@@ -79,18 +79,19 @@ def render_video(job: RenderJob, progress: Progress | None = None, cancel: Cance
 
 
 def render_stills(
-    audio_path: Path, preset: Preset, times: list[float], width: int = 1920, height: int = 1080, fps: float = 30.0
+    audio_path: Path, preset: Preset, times: list[float], width: int = 1920, height: int = 1080, fps: float = 30.0,
+    transparent: bool = False,
 ) -> list[np.ndarray]:
     """Render the frames a video with these settings shows at the given times (seconds), as (height, width, 3) uint8
-    RGB arrays. Each is byte-identical to that video frame before encoding. Raises TimeRangeError for a time outside
-    the audio."""
+    RGB arrays, or (height, width, 4) RGBA with straight alpha when `transparent`. Each is byte-identical to that video
+    frame before encoding. Raises TimeRangeError for a time outside the audio."""
     audio = load_audio(audio_path)
     values = analyze(audio, fps, preset.analysis)
     try:
         indices = [still_frame_index(seconds, fps, audio.duration) for seconds in times]
     except TimeRangeError as error:
         raise TimeRangeError(f"{Path(audio_path).name}: {error}") from None
-    renderer = FrameRenderer(preset, width, height)
+    renderer = FrameRenderer(preset, width, height, transparent=transparent)
     return [renderer.render(values[min(index, len(values) - 1)]) for index in indices]
 
 
@@ -105,14 +106,17 @@ def still_frame_index(seconds: float, fps: float, duration: float) -> int:
 def _frames(job: RenderJob, values: np.ndarray) -> Iterator[np.ndarray]:
     workers = job.workers or max(1, (os.cpu_count() or 2) - 1)
     if workers == 1:
-        renderer = FrameRenderer(job.preset, job.width, job.height)
+        renderer = FrameRenderer(job.preset, job.width, job.height, transparent=job.encode.alpha)
         for row in values:
             yield renderer.render(row)
         return
     chunks = [values[start:start + FRAMES_PER_TASK] for start in range(0, len(values), FRAMES_PER_TASK)]
     # Keep only a few chunks in flight so finished frames never pile up in memory faster than ffmpeg takes them.
     max_pending = workers * 2
-    pool = ProcessPoolExecutor(max_workers=workers, initializer=_init_worker, initargs=(job.preset, job.width, job.height))
+    pool = ProcessPoolExecutor(
+        max_workers=workers, initializer=_init_worker,
+        initargs=(job.preset, job.width, job.height, job.encode.alpha),
+    )
     try:
         pending = deque(pool.submit(_render_chunk, chunk) for chunk in chunks[:max_pending])
         for chunk in chunks[max_pending:]:
@@ -132,11 +136,11 @@ def _frames(job: RenderJob, values: np.ndarray) -> Iterator[np.ndarray]:
 _worker_renderer: FrameRenderer | None = None
 
 
-def _init_worker(preset: Preset, width: int, height: int) -> None:
+def _init_worker(preset: Preset, width: int, height: int, transparent: bool) -> None:
     global _worker_renderer
     # Ctrl+C reaches the whole process group; only the main process handles it.
     signal.signal(signal.SIGINT, signal.SIG_IGN)
-    _worker_renderer = FrameRenderer(preset, width, height)
+    _worker_renderer = FrameRenderer(preset, width, height, transparent=transparent)
 
 
 def _render_chunk(rows: np.ndarray) -> list[np.ndarray]:

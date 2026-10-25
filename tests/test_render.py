@@ -149,3 +149,25 @@ def test_solid_fill_ignores_gradient_colors():
     plain = Preset(name="test", look=FlatLook(margin_x=0.0, bar_fill=1.0))
     values = np.random.default_rng(1).random(64).astype(np.float32)
     assert np.array_equal(FrameRenderer(preset, WIDTH, HEIGHT).render(values), FrameRenderer(plain, WIDTH, HEIGHT).render(values))
+
+
+def test_transparent_frames_have_straight_alpha_and_match_the_opaque_lines():
+    preset = gradient_preset("frequency")
+    values = np.random.default_rng(2).random(32).astype(np.float32)
+    opaque = FrameRenderer(preset, WIDTH, HEIGHT).render(values)
+    clear = FrameRenderer(preset, WIDTH, HEIGHT, transparent=True).render(values)
+    assert clear.shape == (HEIGHT, WIDTH, 4)
+    alpha = clear[:, :, 3]
+    assert np.all(clear[alpha == 0] == 0)
+    covered = alpha == 255
+    assert np.array_equal(clear[covered][:, :3], opaque[covered])
+
+
+
+def test_transparent_edges_keep_the_full_line_color():
+    # Straight alpha: anti-aliased edge pixels are white with partial alpha, not white mixed with a background.
+    preset = Preset(name="test", look=FlatLook(margin_x=0.013, bar_fill=0.37))
+    clear = FrameRenderer(preset, WIDTH, HEIGHT, transparent=True).render(np.full(32, 0.7, np.float32))
+    edges = (clear[:, :, 3] > 0) & (clear[:, :, 3] < 255)
+    assert edges.any()
+    assert np.all(clear[edges][:, :3] == 255)

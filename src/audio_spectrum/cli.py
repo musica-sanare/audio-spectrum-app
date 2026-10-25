@@ -34,17 +34,20 @@ EXIT_INTERRUPTED = 130
 PROGRESS_INTERVAL_SECONDS = 0.25
 
 NAMED_BACKGROUNDS = {"blue": BLUE_BACK, "green": GREEN_BACK}
+TRANSPARENT = "transparent"
 CODECS = {"h264": ("h264", 0), "prores": ("prores", 2), "prores4444": ("prores", 4)}
 SIZES = {"720p": (1280, 720), "1080p": (1920, 1080), "1440p": (2560, 1440), "2160p": (3840, 2160)}
 
 
-def background_color(text: str) -> tuple[int, int, int]:
+def background_color(text: str) -> tuple[int, int, int] | str:
+    if text == TRANSPARENT:
+        return TRANSPARENT
     if text in NAMED_BACKGROUNDS:
         return NAMED_BACKGROUNDS[text]
     try:
         return parse_color(text)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"expected blue, green or #RRGGBB, got {text!r}") from None
+        raise argparse.ArgumentTypeError(f"expected blue, green, #RRGGBB or transparent, got {text!r}") from None
 
 
 def frame_size(text: str) -> tuple[int, int]:
@@ -138,7 +141,10 @@ def add_look_arguments(command: argparse.ArgumentParser) -> None:
         "--set", action="append", default=[], metavar="KEY=VALUE",
         help="override a preset key, for example look.max_height=0.4 (repeatable; values in TOML syntax)",
     )
-    command.add_argument("--background", type=background_color, help="blue, green or #RRGGBB (default: from the preset)")
+    command.add_argument(
+        "--background", type=background_color,
+        help="blue, green, #RRGGBB, or transparent (videos need --codec prores4444) (default: from the preset)",
+    )
     command.add_argument(
         "--size", type=frame_size, default=SIZES["1080p"], help="720p, 1080p, 1440p, 2160p or WxH (default: 1080p)"
     )
@@ -160,7 +166,7 @@ def plan_outputs(args: argparse.Namespace, suffix: str) -> list[Path]:
 def resolve_preset(args: argparse.Namespace) -> Preset:
     """The preset named by --preset, with --set overrides and then --background applied."""
     preset = override_preset(load_preset(args.preset), args.set)
-    if args.background is not None:
+    if args.background not in (None, TRANSPARENT):
         preset = preset.model_copy(update={"background": args.background})
     return preset
 
@@ -173,7 +179,7 @@ def run_render(args: argparse.Namespace, reporter: "Reporter") -> int:
     codec, prores_profile = CODECS[args.codec]
     encode = EncodeSettings(
         codec=codec, crf=args.crf, prores_profile=prores_profile or EncodeSettings.prores_profile,
-        include_audio=not args.no_audio,
+        include_audio=not args.no_audio, alpha=args.background == TRANSPARENT,
     )
     outputs = plan_outputs(args, ".mp4" if codec == "h264" else ".mov")
     if args.out_dir is not None:
@@ -213,7 +219,9 @@ def run_still(args: argparse.Namespace, reporter: "Reporter") -> int:
         return EXIT_FAILED
     width, height = args.size
     try:
-        frames = render_stills(args.audio, preset, args.at, width, height, args.fps)
+        frames = render_stills(
+            args.audio, preset, args.at, width, height, args.fps, transparent=args.background == TRANSPARENT
+        )
     except FfmpegNotFoundError as error:
         reporter.fatal(error)
         return EXIT_FFMPEG_MISSING
@@ -345,6 +353,8 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def check_render_arguments(parser: argparse.ArgumentParser, args: argparse.Namespace) -> None:
+    if args.background == TRANSPARENT and args.codec != "prores4444":
+        parser.error("--background transparent needs --codec prores4444 (the only format here that keeps alpha)")
     if args.output is not None and len(args.audio) > 1:
         parser.error("-o/--output works with a single input; use --out-dir for several")
     if args.output is not None and args.out_dir is not None:

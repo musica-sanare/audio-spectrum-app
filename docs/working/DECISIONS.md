@@ -79,3 +79,15 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
   package.
 - Consequences: One new core dependency (pydantic), which FastAPI needs for the GUI anyway. Error messages name the
   key at fault, and the models can produce a JSON schema for the GUI.
+
+## ADR-010: Transparent output as ProRes 4444 with alpha
+
+- Context: Keyed output mixes soft edges, glow and colored lines with the key color (ADR-005, ADR-007). The owner
+  wants alpha output even though iMovie is the current editor; the app need not be optimized for iMovie alone. Test
+  clips are in [Phase 2 plan](PHASE2_PLAN.md), "Decisions on open questions".
+- Decision: `--background transparent` (CLI) or `EncodeSettings(alpha=True)` (API) draws frames on a transparent
+  background with straight alpha and encodes ProRes 4444 with 8-bit alpha (`yuva444p10le`, `-alpha_bits 8`).
+  Transparency is an output setting, not part of presets. Other codecs refuse it. Keyed H.264 stays the default.
+- Consequences: Clean edges, colors and glow in editors that read alpha. Files are about 1.4 times the size of
+  opaque ProRes 4444; 16-bit alpha was 2.5 times slower to encode and 40 % larger for no visible gain, since frames
+  carry 8-bit alpha.

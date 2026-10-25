@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 757b21a16a142891e020dd798a50fe56f50c4e84 -->
+<!-- source: docs/en/USER_GUIDE.md blob 2b020a3d6384178d34f98dcd4ea8fedc36e4e52b -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -39,6 +39,7 @@ uv run audio-spectrum render song.wav
 uv run audio-spectrum render song.wav --background green           # green back
 uv run audio-spectrum render song.wav --size 2160p --fps 60        # 4K at 60 fps
 uv run audio-spectrum render song.wav --codec prores4444           # cleanest keying, large .mov
+uv run audio-spectrum render song.wav --codec prores4444 --background transparent   # no key color at all
 uv run audio-spectrum render *.wav --out-dir ~/Movies/spectrum     # several songs at once
 uv run audio-spectrum render song.wav --preset my-look.toml        # your own preset
 ```
@@ -73,6 +74,16 @@ uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the 
 
 M1 Mac では、4分の曲を 1080p30 で約2分で書き出せます。
 
+### 透明な背景
+
+`--background transparent --codec prores4444` を付けると、キーの色の代わりにアルファチャンネル(透明度)を持つ動画に
+なります。背景は完全に透明で、線の縁は半透明です。キーイングのエフェクトを使わずに、背景動画の上に重ねてください。
+キーの色と混ざるものがないので、色付きの線もやわらかい縁も描いたとおりに出ます。ProRes 4444 のアルファを読める編集ソフトで
+使ってください。アルファを無視するソフトでは、背景が黒く表示されます。ファイルは不透明な ProRes 4444 より大きくなります
+(1080p30 の 30 秒で約 360 MB、不透明なら約 260 MB)。
+
+`still` でも `--background transparent` を使え、アルファ付きの PNG 画像を書き出します。
+
 ## 3. コマンドリファレンス
 
 ### `render`
@@ -89,7 +100,7 @@ audio-spectrum render AUDIO... [options]
 | `--overwrite` | オフ | 既存の出力を置き換える。付けない場合、既存の出力はそのファイルのエラーとなり、元のファイルは変更されません |
 | `--preset NAME_OR_FILE` | `default` | 組み込みプリセット名、または `.toml` プリセットファイルのパス |
 | `--set KEY=VALUE` | | プリセットの項目を1つ変える。例:`look.max_height=0.4`。複数指定可(4章参照) |
-| `--background COLOR` | プリセットの値 | `blue`、`green`、または `#RRGGBB` |
+| `--background COLOR` | プリセットの値 | `blue`、`green`、`#RRGGBB`、または `transparent`(`--codec prores4444` が必要。2章参照) |
 | `--size SIZE` | `1080p` | `720p`、`1080p`、`1440p`、`2160p`、または `幅x高さ`(偶数) |
 | `--fps FPS` | `30` | 1秒あたりのコマ数。例:`24`、`29.97`、`60` |
 | `--codec CODEC` | `h264` | `h264`、`prores`、`prores4444`(上記参照) |
@@ -283,6 +294,9 @@ if __name__ == "__main__":  # required, see below
 - `render_stills(audio_path, preset, times, width, height, fps)` は、指定した時刻(秒)に表示されるコマを
   `(height, width, 3)` の `uint8` RGB 配列で返します。ファイルは書きません。時刻が音声の範囲外なら `TimeRangeError`
   (コード `time_out_of_range`)を、読み込みの失敗には `render_video` と同じエラーを送出します。描画は呼び出し元のプロセスで行います。
+  `transparent=True` を付けると、ストレートアルファの `(height, width, 4)` RGBA 配列を返します。
+- 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`
+  を指定します。ほかのコーデックで `alpha=True` にすると `ValueError` を送出します。
 - コマは複数のプロセスで描かれ、それらは呼び出し元のスクリプトを読み込み直します。そのため、スクリプトからは
   `if __name__ == "__main__":` の中で API を呼んでください。これがないと、その旨を伝える `WorkerError` で失敗します。
   `workers=1` を指定すれば、追加のプロセスは使いません。

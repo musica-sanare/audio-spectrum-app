@@ -125,3 +125,54 @@ def test_cli_renders_green_back_next_to_the_input(click_track):
     )
     corner = np.frombuffer(result.stdout, np.uint8)[:3]
     assert corner[1] > 240 and corner[0] < 15 and corner[2] < 15
+
+
+def decoded_rgba(path, frame: int) -> np.ndarray:
+    result = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-vf", f"select=eq(n\\,{frame})", "-frames:v", "1",
+         "-f", "rawvideo", "-pix_fmt", "rgba", "-"],
+        capture_output=True, check=True,
+    )
+    return np.frombuffer(result.stdout, np.uint8).reshape(HEIGHT, WIDTH, 4)
+
+
+def test_cli_transparent_background_keeps_alpha_in_prores4444(click_track, tmp_path):
+    output = tmp_path / "out.mov"
+    args = ["render", str(click_track), "-o", str(output), "--size", f"{WIDTH}x{HEIGHT}", "--codec", "prores4444",
+            "--background", "transparent", "--workers", "2"]
+    assert main(args) == 0
+    streams = probe(output)
+    assert streams["video"]["pix_fmt"].startswith("yuva444")
+    assert int(streams["video"]["nb_read_frames"]) == frame_count(3 * SAMPLE_RATE, SAMPLE_RATE, 30)
+    assert "audio" in streams
+    frame = decoded_rgba(output, 15)  # the click at 0.5 s
+    alpha = frame[:, :, 3]
+    assert alpha[0, 0] == 0 and alpha[-1, -1] == 0
+    assert np.any(alpha == 255)
+    assert np.all(frame[alpha == 255][:, :3] >= 250)
+
+
+def test_cli_refuses_a_transparent_background_without_prores4444(click_track, tmp_path):
+    for codec in ("h264", "prores"):
+        with pytest.raises(SystemExit) as exc:
+            main(["render", str(click_track), "-o", str(tmp_path / "out.mov"), "--codec", codec,
+                  "--background", "transparent"])
+        assert exc.value.code == 2
+    assert [path.name for path in tmp_path.iterdir()] == ["clicks.wav"]
+
+
+def test_parallel_rendering_produces_the_same_transparent_frames(click_track):
+    preset = load_preset("default")
+    values = analyze(load_audio(click_track), 30, preset.analysis)
+    alpha = EncodeSettings(codec="prores", prores_profile=4, alpha=True)
+    single = RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, alpha, workers=1)
+    parallel = RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, alpha, workers=2)
+    for one, other in zip(_frames(single, values), _frames(parallel, values), strict=True):
+        assert one.shape == (HEIGHT, WIDTH, 4)
+        assert np.array_equal(one, other)
+
+
+@pytest.mark.parametrize(("codec", "profile"), [("h264", 2), ("prores", 2), ("prores", 3)])
+def test_alpha_needs_prores4444(codec, profile):
+    with pytest.raises(ValueError, match="ProRes 4444"):
+        EncodeSettings(codec=codec, prores_profile=profile, alpha=True)

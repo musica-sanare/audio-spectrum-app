@@ -13,9 +13,10 @@ class Rasterizer(Protocol):
     name: str
 
     def draw(
-        self, quads: np.ndarray, background: Color, foreground: Color, gradient: Gradient | None = None
+        self, quads: np.ndarray, background: Color | None, foreground: Color, gradient: Gradient | None = None
     ) -> np.ndarray:
-        """Return a frame with shape (height, width, 3), uint8 RGB. A gradient, if given, replaces the foreground."""
+        """Return a frame with shape (height, width, 3), uint8 RGB, or (height, width, 4) RGBA with straight alpha
+        when the background is None (transparent). A gradient, if given, replaces the foreground."""
         ...
 
 
@@ -28,7 +29,7 @@ class SkiaRasterizer:
         self._paint = skia.Paint(AntiAlias=True, Style=skia.Paint.kFill_Style)
 
     def draw(
-        self, quads: np.ndarray, background: Color, foreground: Color, gradient: Gradient | None = None
+        self, quads: np.ndarray, background: Color | None, foreground: Color, gradient: Gradient | None = None
     ) -> np.ndarray:
         path = skia.Path()
         for quad in quads.tolist():
@@ -39,8 +40,11 @@ class SkiaRasterizer:
             paint = skia.Paint(self._paint)
             paint.setShader(_shader(gradient))
         with self._surface as canvas:
-            canvas.clear(skia.Color(*background))
+            # The surface stores straight (unpremultiplied) alpha, as ffmpeg's rgba input and PNG expect.
+            canvas.clear(skia.ColorTRANSPARENT if background is None else skia.Color(*background))
             canvas.drawPath(path, paint)
+        if background is None:
+            return self._pixels.copy()
         return self._pixels[:, :, :3].copy()
 
 

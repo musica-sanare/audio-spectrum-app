@@ -36,6 +36,7 @@ More examples:
 uv run audio-spectrum render song.wav --background green           # green back
 uv run audio-spectrum render song.wav --size 2160p --fps 60        # 4K at 60 fps
 uv run audio-spectrum render song.wav --codec prores4444           # cleanest keying, large .mov
+uv run audio-spectrum render song.wav --codec prores4444 --background transparent   # no key color at all
 uv run audio-spectrum render *.wav --out-dir ~/Movies/spectrum     # several songs at once
 uv run audio-spectrum render song.wav --preset my-look.toml        # your own preset
 ```
@@ -71,6 +72,16 @@ Effects such as blur or glow can be added in the editor. The app keeps the lines
 
 A 4-minute song renders in about 2 minutes at 1080p30 on an M1 Mac.
 
+### Transparent background
+
+With `--background transparent --codec prores4444` the video has an alpha channel instead of a key color: the
+background is fully transparent and the edges of the lines are partly transparent. Place it above the background
+video without a keying effect. Nothing mixes with a key color, so colored lines and soft edges come out exactly as
+drawn. Use it with editors that read alpha in ProRes 4444; an editor that ignores alpha shows a black background.
+Files are larger than opaque ProRes 4444 (a 30-second 1080p30 clip: about 360 MB against 260 MB).
+
+`still` accepts `--background transparent` as well and writes PNG images with alpha.
+
 ## 3. Command reference
 
 ### `render`
@@ -87,7 +98,7 @@ audio-spectrum render AUDIO... [options]
 | `--overwrite` | off | Replace existing outputs. Without it, an existing output is an error for that file and is left untouched |
 | `--preset NAME_OR_FILE` | `default` | Built-in preset name, or a path to a `.toml` preset file |
 | `--set KEY=VALUE` | | Change one preset key, for example `look.max_height=0.4`; repeatable (see section 4) |
-| `--background COLOR` | from the preset | `blue`, `green` or `#RRGGBB` |
+| `--background COLOR` | from the preset | `blue`, `green`, `#RRGGBB`, or `transparent` (needs `--codec prores4444`; see section 2) |
 | `--size SIZE` | `1080p` | `720p`, `1080p`, `1440p`, `2160p` or `WIDTHxHEIGHT` (even numbers) |
 | `--fps FPS` | `30` | Frames per second, for example `24`, `29.97`, `60` |
 | `--codec CODEC` | `h264` | `h264`, `prores` or `prores4444` (see above) |
@@ -285,7 +296,9 @@ if __name__ == "__main__":  # required, see below
 - `render_stills(audio_path, preset, times, width, height, fps)` returns the frames shown at the given times (in
   seconds) as `(height, width, 3)` `uint8` RGB arrays, without writing files. It raises `TimeRangeError` (code
   `time_out_of_range`) for a time outside the audio, and the same decoding errors as `render_video`. It draws in the
-  calling process.
+  calling process. With `transparent=True` it returns `(height, width, 4)` RGBA arrays with straight alpha.
+- A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in
+  `RenderJob.encode`. Other codecs with `alpha=True` raise `ValueError`.
 - Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API
   under `if __name__ == "__main__":`. Without it the render fails with a `WorkerError` that says so. Passing
   `workers=1` avoids extra processes.

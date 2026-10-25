@@ -127,3 +127,14 @@ def test_render_command_reports_invalid_overrides_as_usage_errors(tone, tmp_path
     assert code == 2
     assert "look.flat.max_height" in capsys.readouterr().err
     assert not list(tmp_path.glob("*.mp4"))
+
+
+def test_transparent_stills_are_rgba_pngs(tone, tmp_path, capsys):
+    code = main(["still", str(tone), "--at", "1", "--out-dir", str(tmp_path), "--size", "320x180",
+                 "--background", "transparent"])
+    assert code == 0
+    image = skia.Image.MakeFromEncoded(skia.Data.MakeWithCopy((tmp_path / "tone_1s.png").read_bytes()))
+    decoded = image.toarray(colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType)
+    expected = render_stills(tone, load_preset("default"), [1.0], WIDTH, HEIGHT, FPS, transparent=True)[0]
+    assert np.array_equal(decoded, expected)
+    assert decoded[0, 0, 3] == 0

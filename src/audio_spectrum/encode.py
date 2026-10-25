@@ -26,6 +26,12 @@ class EncodeSettings:
     prores_profile: int = 2
     """ProRes profile: 2 = 422, 3 = 422 HQ, 4 = 4444 (full color resolution, sharpest edges for keying)."""
     include_audio: bool = True
+    alpha: bool = False
+    """Transparent background: frames carry straight alpha and the video keeps it. Needs ProRes 4444."""
+
+    def __post_init__(self) -> None:
+        if self.alpha and (self.codec != "prores" or self.prores_profile < 4):
+            raise ValueError("a transparent background needs ProRes 4444 (codec 'prores', prores_profile 4)")
 
 
 def ffmpeg_fps(fps: float) -> str:
@@ -41,7 +47,7 @@ def build_command(
         raise FfmpegNotFoundError("ffmpeg is not installed (brew install ffmpeg)")
     command = [
         ffmpeg, "-y", "-v", "error",
-        "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{width}x{height}", "-framerate", ffmpeg_fps(fps), "-i", "-",
+        "-f", "rawvideo", "-pix_fmt", "rgba" if settings.alpha else "rgb24", "-s", f"{width}x{height}", "-framerate", ffmpeg_fps(fps), "-i", "-",
     ]
     if settings.include_audio and audio_path is not None:
         # Chapters from WAV cue chunks would otherwise become an extra text track.
@@ -59,12 +65,21 @@ def build_command(
         command += [
             "-vf", "scale=out_color_matrix=bt709:out_range=tv",
             "-c:v", "prores_ks", "-profile:v", str(settings.prores_profile),
-            "-pix_fmt", "yuv444p10le" if settings.prores_profile >= 4 else "yuv422p10le", *color,
+            "-pix_fmt", _prores_pixel_format(settings), *color,
         ]
+        if settings.alpha:
+            # Frames carry 8-bit alpha; 16-bit alpha would only make encoding slower and files larger.
+            command += ["-alpha_bits", "8"]
         audio_codec = ["-c:a", "pcm_s24le"]
     if settings.include_audio and audio_path is not None:
         command += audio_codec
     return [*command, str(output)]
+
+
+def _prores_pixel_format(settings: EncodeSettings) -> str:
+    if settings.alpha:
+        return "yuva444p10le"
+    return "yuv444p10le" if settings.prores_profile >= 4 else "yuv422p10le"
 
 
 def partial_path(output: Path) -> Path:
@@ -73,7 +88,8 @@ def partial_path(output: Path) -> Path:
 
 
 class VideoWriter:
-    """Context manager that accepts frames as (height, width, 3) uint8 RGB arrays.
+    """Context manager that accepts frames as (height, width, 3) uint8 RGB arrays, or (height, width, 4) RGBA with
+    straight alpha when the settings ask for alpha.
 
     The video is written to a temporary file next to the output and renamed only after ffmpeg succeeds, so a file
     with the final name is always complete. On any error or interruption the temporary file is removed.
@@ -140,10 +156,14 @@ class VideoWriter:
 
 
 def write_png(path: Path, frame: np.ndarray) -> None:
-    """Write a (height, width, 3) uint8 RGB frame as a lossless PNG, through a temporary file like videos."""
+    """Write a (height, width, 3) uint8 RGB frame, or (height, width, 4) RGBA with straight alpha, as a lossless PNG,
+    through a temporary file like videos."""
     path = Path(path)
-    opaque = np.dstack([frame, np.full(frame.shape[:2], 255, dtype=np.uint8)])
-    image = skia.Image.fromarray(opaque, colorType=skia.kRGBA_8888_ColorType)
+    if frame.shape[2] == 3:
+        frame = np.dstack([frame, np.full(frame.shape[:2], 255, dtype=np.uint8)])
+    image = skia.Image.fromarray(
+        np.ascontiguousarray(frame), colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
+    )
     partial = partial_path(path)
     try:
         partial.write_bytes(bytes(image.encodeToData(skia.kPNG, 100)))

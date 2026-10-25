@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 2832965229040fedad25a1d482657de3c6060bcf -->
+<!-- source: docs/en/ARCHITECTURE.md blob 5e6caae86e63b3f41a81ccb1b45ee15bc64a56a3 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -29,7 +29,7 @@
 audio file ──load_audio──▶ samples ──analyze──▶ band values (frames × bands)
                                                      │
                                   for each frame n:  ▼
-                              geometry (quads) ──raster (Skia)──▶ RGB frame
+                              geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -42,7 +42,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `presets.py` | プリセットの定義(pydantic)、組み込み・ユーザーの TOML ファイルの読み込み、上書き、キーイングの警告 |
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
-| `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る |
+| `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る。透明な背景では、ストレートアルファの RGBA のコマにする |
 | `renderer.py` | 1コマについて geometry と raster を組み合わせる |
 | `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く |
 | `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills`:確認用の1コマ |
