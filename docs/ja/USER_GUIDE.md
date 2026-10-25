@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 73c3b2a299d99360e7ba7ce1ad396ec0a7495012 -->
+<!-- source: docs/en/USER_GUIDE.md blob 757b21a16a142891e020dd798a50fe56f50c4e84 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -127,6 +127,10 @@ audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
 
+`presets check` は、プリセットとしては正しくても、キーイングや書き出しでうまくいかないおそれがある場合に、stderr に警告を
+表示します。対象は、背景に近い線の色、色付きの細い線(4章参照)、帯の数が多すぎるブロックです。警告があっても終了コードは
+変わりません。警告はプリセット自身の背景色に対して判定し、`render` に付けた `--background` は考慮しません。
+
 ### 終了コード
 
 | コード | 意味 |
@@ -199,6 +203,24 @@ uv run audio-spectrum render song.wav --preset my-look.toml
 
 細い線も太い棒も `"bars"` です。`analysis.bands` を減らして `look.bar_fill` を大きくすると太い棒になります
 (例:`--set analysis.bands=64 --set look.bar_fill=0.8`)。ブロックは 32〜96 帯くらいが見やすくなります。
+
+### 色とグラデーション
+
+| 項目 | 意味 |
+|---|---|
+| `fill.mode` | `"solid"`(`foreground` の色)、`"frequency"`(左端から右端へのグラデーション)、`"height"`(基準線から最大音量の先端まで。`look.mirror` なら上下対称) |
+| `fill.colors` | グラデーションの色。2色以上で、均等に並ぶ。例:`["#FFFFFF", "#FF00C8"]` |
+
+```bash
+uv run audio-spectrum still song.wav --at 30 --set fill.mode=frequency --set 'fill.colors=["#FF00C8", "#FFE000"]'
+```
+
+グラデーションは flat の見た目(`unity-classic` 以外の組み込みプリセット)で使えます。キーイングによる制約が2つあります:
+
+- キーの色に近い色相の色(青背景での水色や紫、緑背景での中くらいの緑)は、背景と一緒に抜けてしまいます。
+- 色付きの細い線は、色を 1/4 の解像度で記録する H.264 では色がかなり失われます。`default` の 512 本の線にピンクから黄色の
+  グラデーションをかけたところ、平均で 255 段階中 35 段階ずれ、青みがかりました。白い線や太い棒(`bars` で約 6 段階)は
+  ほとんど影響を受けません。色付きの細い線には、色を正確に保つ `--codec prores4444` を使ってください。
 
 ## 5. ほかのツールから使う
 
@@ -274,3 +296,4 @@ if __name__ == "__main__":  # required, see below
 | `cannot decode audio` | ファイルが再生できるか確認し、必要なら WAV に変換する |
 | 項目名つきのプリセットエラー | その項目を直す。`presets check FILE` ですべての問題を一度に確認できる |
 | キーイング後に線がぼやける・青みがかる | `--codec prores4444` を試す |
+| 色付きの線が色あせる・青みがかる | 細い色付きの線は H.264 で色が失われる。`--codec prores4444` を使うか、帯の数を減らして `look.bar_fill` を大きくする |

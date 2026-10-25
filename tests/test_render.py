@@ -111,3 +111,41 @@ def test_builtin_presets_render_deterministically(name):
     first = renderer.render(values)
     assert np.array_equal(first, renderer.render(values))
     assert np.any(np.all(first == preset.foreground, axis=2))
+
+
+def gradient_preset(mode: str, **look) -> Preset:
+    return Preset(
+        name="test", look=FlatLook(margin_x=0.0, bar_fill=1.0, response=1.0, **look),
+        fill={"mode": mode, "colors": ["#FF0000", "#00FF00"]},
+    )
+
+
+def test_frequency_gradient_runs_from_the_first_color_on_the_left_to_the_last_on_the_right():
+    frame = FrameRenderer(gradient_preset("frequency"), WIDTH, HEIGHT).render(np.ones(32))
+    row = frame[HEIGHT // 2].astype(int)
+    assert row[0, 0] > 240 and row[0, 1] < 15
+    assert row[-1, 1] > 240 and row[-1, 0] < 15
+    assert np.all(np.diff(row[:, 0]) <= 0) and np.all(np.diff(row[:, 1]) >= 0)
+
+
+def test_height_gradient_is_mirrored_around_the_baseline():
+    frame = FrameRenderer(gradient_preset("height", max_height=0.4), WIDTH, HEIGHT).render(np.ones(32))
+    column = frame[:, WIDTH // 2].astype(int)
+    baseline = HEIGHT // 2
+    assert column[baseline, 0] > 240
+    assert column[baseline - int(0.4 * HEIGHT) + 1, 1] > 240
+    np.testing.assert_allclose(column[baseline - 100], column[baseline + 100], atol=3)
+
+
+def test_height_gradient_without_mirror_ends_at_the_baseline_color():
+    frame = FrameRenderer(gradient_preset("height", max_height=0.4, mirror=False), WIDTH, HEIGHT).render(np.ones(32))
+    column = frame[:, WIDTH // 2].astype(int)
+    assert column[HEIGHT // 2 - 1, 0] > 240
+    assert np.all(column[HEIGHT // 2 + 2:] == (0, 0, 255))
+
+
+def test_solid_fill_ignores_gradient_colors():
+    preset = Preset(name="test", look=FlatLook(margin_x=0.0, bar_fill=1.0), fill={"colors": ["#FF0000", "#00FF00"]})
+    plain = Preset(name="test", look=FlatLook(margin_x=0.0, bar_fill=1.0))
+    values = np.random.default_rng(1).random(64).astype(np.float32)
+    assert np.array_equal(FrameRenderer(preset, WIDTH, HEIGHT).render(values), FrameRenderer(plain, WIDTH, HEIGHT).render(values))

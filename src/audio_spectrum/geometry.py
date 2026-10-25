@@ -5,10 +5,22 @@ coordinates, and a raster backend fills them.
 """
 
 import math
+from dataclasses import dataclass
 
 import numpy as np
 
-from audio_spectrum.presets import FlatLook, Look, PerspectiveLook
+from audio_spectrum.presets import Color, Fill, FlatLook, Look, PerspectiveLook
+
+
+@dataclass(frozen=True)
+class Gradient:
+    """A linear gradient in pixel coordinates, independent of the drawing library."""
+
+    start: tuple[float, float]
+    end: tuple[float, float]
+    colors: tuple[Color, ...]
+    mirror: bool = False
+    """Mirror the gradient on the other side of `start` (for bars that grow both ways from the baseline)."""
 
 
 def quads_for(look: Look, values: np.ndarray, width: int, height: int) -> np.ndarray:
@@ -53,6 +65,17 @@ def _blocks(
     if look.mirror:
         quads = np.concatenate([quads, _rectangles(x0[bands], 2 * baseline - near, x1[bands], 2 * baseline - far)])
     return quads
+
+
+def gradient_for(look: Look, fill: Fill, width: int, height: int) -> Gradient | None:
+    """The gradient of a fill on a flat look, or None for a solid fill."""
+    if fill.mode == "solid":
+        return None
+    if fill.mode == "frequency":
+        left = look.margin_x * width
+        return Gradient((left, 0.0), (width - left, 0.0), fill.colors)
+    baseline = look.baseline_y * height
+    return Gradient((0.0, baseline), (0.0, baseline - look.max_height * height), fill.colors, mirror=look.mirror)
 
 
 def perspective_quads(look: PerspectiveLook, values: np.ndarray, width: int, height: int) -> np.ndarray:

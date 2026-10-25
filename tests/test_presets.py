@@ -12,7 +12,9 @@ from audio_spectrum.presets import (
     builtin_preset_names,
     builtin_preset_text,
     load_preset,
+    override_preset,
     parse_preset,
+    preset_warnings,
 )
 
 
@@ -101,3 +103,64 @@ def test_cli_render_with_an_invalid_preset_is_a_usage_error(tmp_path, capsys):
     audio = tmp_path / "missing.wav"
     assert main(["render", str(audio), "--preset", "nonexistent"]) == 2
     assert "unknown preset" in capsys.readouterr().err
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        (["fill.mode=frequency"], "at least two colors"),
+        (["fill.mode=rainbow"], "fill.mode"),
+        (["fill.colors=[\"#FF0000\", \"red\"]"], "fill.colors"),
+    ],
+)
+def test_invalid_fills_are_rejected(overrides, message):
+    with pytest.raises(PresetError, match=message):
+        override_preset(load_preset("default"), overrides)
+
+
+def test_gradients_need_the_flat_look():
+    with pytest.raises(PresetError, match="flat look"):
+        override_preset(load_preset("unity-classic"), ["fill.mode=height", "fill.colors=[\"#FFFFFF\", \"#00FFFF\"]"])
+
+
+@pytest.mark.parametrize("name", builtin_preset_names())
+def test_builtin_presets_have_no_warnings(name):
+    assert preset_warnings(load_preset(name)) == []
+
+
+@pytest.mark.parametrize(
+    ("overrides", "expected"),
+    [
+        (["foreground=#8080FF"], "close to the background #0000FF"),
+        (["foreground=#8000FF"], "close to the background"),
+        (["background=#00FF00", "foreground=#40C040"], "close to the background #00FF00"),
+        (["fill.mode=frequency", "fill.colors=[\"#FFFFFF\", \"#6060FF\"]"], "#6060FF is close"),
+        (["foreground=#FF00C8"], "thin colored lines"),
+        (["look.style=blocks"], "blocks with 512 bands"),
+    ],
+)
+def test_risky_presets_get_warnings(overrides, expected):
+    warnings = preset_warnings(override_preset(load_preset("default"), overrides))
+    assert any(expected in warning for warning in warnings), warnings
+
+
+@pytest.mark.parametrize(
+    "overrides",
+    [
+        ["background=#00FF00"],
+        ["foreground=#FFE000"] + ["analysis.bands=64", "look.bar_fill=0.8"],
+        ["foreground=#00FFFF", "analysis.bands=64"],
+        ["foreground=#C0C0C0"],
+    ],
+)
+def test_safe_presets_get_no_warnings(overrides):
+    assert preset_warnings(override_preset(load_preset("default"), overrides)) == []
+
+
+def test_presets_check_prints_warnings_on_stderr_and_still_succeeds(tmp_path, capsys):
+    path = tmp_path / "pale.toml"
+    path.write_text('name = "pale"\nforeground = "#8080FF"\n')
+    assert main(["presets", "check", str(path)]) == 0
+    captured = capsys.readouterr()
+    assert "valid preset 'pale'" in captured.out
+    assert "warning: line color #8080FF is close to the background #0000FF" in captured.err

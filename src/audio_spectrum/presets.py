@@ -4,13 +4,14 @@ Built-in presets ship as TOML files in `builtin_presets/`. Missing keys take the
 `default` preset's values; unknown keys are errors.
 """
 
+import math
 import tomllib
 from collections.abc import Iterable
 from importlib import resources
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Discriminator, Field, Tag, ValidationError
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Discriminator, Field, Tag, ValidationError, model_validator
 
 from audio_spectrum.analysis import AnalysisSettings
 from audio_spectrum.errors import PresetError
@@ -33,6 +34,7 @@ def parse_color(value: object) -> object:
 
 
 BarStyle = Literal["bars", "blocks"]
+FillMode = Literal["solid", "frequency", "height"]
 
 Channel = Annotated[int, Field(ge=0, le=255)]
 Color = Annotated[tuple[Channel, Channel, Channel], BeforeValidator(parse_color)]
@@ -101,6 +103,16 @@ Look = Annotated[
 ]
 
 
+class Fill(_Settings):
+    """How the lines are colored: the foreground color, or a gradient."""
+
+    mode: FillMode = "solid"
+    """"solid": the foreground color; "frequency": a gradient from the left edge to the right edge; "height": a gradient
+    from the baseline to a full-scale tip (flat look only)."""
+    colors: tuple[Color, ...] = ()
+    """Gradient stops, evenly spaced: at least two colors when the mode is not "solid"."""
+
+
 class Preset(_Settings):
     schema_version: Literal[1] = SCHEMA_VERSION
     name: str
@@ -108,6 +120,68 @@ class Preset(_Settings):
     foreground: Color = WHITE
     analysis: AnalysisSettings = AnalysisSettings()
     look: Look = FlatLook()
+    fill: Fill = Fill()
+
+    @model_validator(mode="after")
+    def _check(self) -> "Preset":
+        if self.fill.mode != "solid":
+            if len(self.fill.colors) < 2:
+                raise ValueError(f"fill.colors needs at least two colors for the {self.fill.mode!r} gradient")
+            if not isinstance(self.look, FlatLook):
+                raise ValueError("fill gradients need the flat look")
+        return self
+
+
+REFERENCE_WIDTH = 1920
+THIN_LINE_PX = 4.0
+MAX_READABLE_BLOCK_BANDS = 128
+
+
+def preset_warnings(preset: Preset) -> list[str]:
+    """Problems that do not make a preset invalid but are likely to key or encode badly. Heuristics, checked against
+    the preset's own background."""
+    warnings = []
+    colors = preset.fill.colors if preset.fill.mode != "solid" else (preset.foreground,)
+    background = _chroma(preset.background)
+    for color in colors:
+        if _close_to_key(_chroma(color), background):
+            warnings.append(
+                f"line color {_hex(color)} is close to the background {_hex(preset.background)}; "
+                "a chroma key may remove it"
+            )
+    look = preset.look
+    if isinstance(look, FlatLook):
+        slot = REFERENCE_WIDTH * (1 - 2 * look.margin_x) / preset.analysis.bands
+        line_width = max(slot * look.bar_fill, look.min_bar_width_px)
+        if line_width < THIN_LINE_PX and any(math.hypot(*_chroma(color)) > 0.1 for color in colors):
+            warnings.append(
+                f"lines are about {line_width:.1f} px wide at 1080p; thin colored lines lose much of their color in "
+                "H.264 (use --codec prores4444, or fewer bands or a larger look.bar_fill)"
+            )
+        if look.style == "blocks" and preset.analysis.bands > MAX_READABLE_BLOCK_BANDS:
+            warnings.append(f"blocks with {preset.analysis.bands} bands are hard to read; 32 to 96 bands work best")
+    return warnings
+
+
+def _chroma(color: tuple[int, int, int]) -> tuple[float, float]:
+    """BT.709 (Cb, Cr) of an RGB color, each in about [-0.5, 0.5]."""
+    red, green, blue = (channel / 255 for channel in color)
+    luma = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+    return (blue - luma) / 1.8556, (red - luma) / 1.5748
+
+
+def _close_to_key(color: tuple[float, float], key: tuple[float, float]) -> bool:
+    """True when a keyer would likely treat the color as the key color: a similar hue with noticeable saturation."""
+    key_strength = math.hypot(*key)
+    strength = math.hypot(*color)
+    if key_strength < 0.2 or strength < 0.2 * key_strength:
+        return False
+    cosine = (color[0] * key[0] + color[1] * key[1]) / (strength * key_strength)
+    return cosine > math.cos(math.radians(45))
+
+
+def _hex(color: tuple[int, int, int]) -> str:
+    return "#" + "".join(f"{channel:02X}" for channel in color)
 
 
 def builtin_preset_names() -> list[str]:

@@ -22,6 +22,7 @@ from audio_spectrum.presets import (
     load_preset,
     override_preset,
     parse_color,
+    preset_warnings,
 )
 
 EXIT_OK = 0
@@ -312,6 +313,8 @@ def run_presets(args: argparse.Namespace) -> int:
     else:
         preset = load_preset(args.file)
         print(f"{args.file}: valid preset {preset.name!r}")
+        for warning in preset_warnings(preset):
+            print(f"warning: {warning}", file=sys.stderr)
     return EXIT_OK
 
 

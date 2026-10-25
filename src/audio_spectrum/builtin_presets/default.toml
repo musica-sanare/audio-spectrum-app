@@ -32,3 +32,7 @@ response = 1.6              # above 1 keeps quiet bands low
 style = "bars"              # "bars" or "blocks" (segmented, like an LED meter)
 block_height_px = 8.0       # blocks: segment height
 block_gap_px = 3.0          # blocks: gap between segments
+
+[fill]
+mode = "solid"              # "solid" (foreground), "frequency" (left to right) or "height" (baseline to tip)
+colors = []                 # gradient stops, at least two, for example ["#FFFFFF", "#FF00C8"]

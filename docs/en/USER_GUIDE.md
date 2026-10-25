@@ -126,6 +126,10 @@ audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
 
+`presets check` also prints warnings on stderr for presets that are valid but likely to key or encode badly: a line
+color close to the background, thin colored lines (see section 4), or blocks with too many bands. Warnings do not
+change the exit code. They are checked against the preset's own background, not a `--background` given to `render`.
+
 ### Exit codes
 
 | Code | Meaning |
@@ -199,6 +203,26 @@ Main keys (the file printed by `presets show default` explains each one):
 
 Thin lines and solid bars are both `"bars"`: fewer `analysis.bands` and a larger `look.bar_fill` give solid bars,
 for example `--set analysis.bands=64 --set look.bar_fill=0.8`. Blocks read best with 32 to 96 bands.
+
+### Colors and gradients
+
+| Key | Meaning |
+|---|---|
+| `fill.mode` | `"solid"` (the `foreground` color), `"frequency"` (a gradient from the left edge to the right edge) or `"height"` (from the baseline to a full-scale tip, mirrored with `look.mirror`) |
+| `fill.colors` | Gradient colors, at least two, evenly spaced, for example `["#FFFFFF", "#FF00C8"]` |
+
+```bash
+uv run audio-spectrum still song.wav --at 30 --set fill.mode=frequency --set 'fill.colors=["#FF00C8", "#FFE000"]'
+```
+
+Gradients work with the flat look (all built-in presets except `unity-classic`). Two limits come from keying:
+
+- A color with a hue close to the key color (light blue or purple on blue back, mid green on green back) is removed
+  with the background.
+- Thin colored lines lose much of their color in H.264, which stores color at a quarter of the resolution: on the
+  512 lines of `default`, a pink-to-yellow gradient came out on average 35 levels (of 255) off and tinted blue. White
+  lines and solid bars (`bars`, about 6 levels) are hardly affected. For colored thin lines use
+  `--codec prores4444`, which keeps them exact.
 
 ## 5. Using it from other tools
 
@@ -275,3 +299,4 @@ if __name__ == "__main__":  # required, see below
 | `cannot decode audio` | Check that the file plays; convert it to WAV if needed |
 | A preset error naming a key | Fix that key; `presets check FILE` shows all problems at once |
 | Lines look soft or bluish after keying | Try `--codec prores4444` |
+| Colored lines look washed out or bluish | Thin colored lines lose color in H.264: use `--codec prores4444`, or fewer bands with a larger `look.bar_fill` |

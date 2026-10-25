@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from audio_spectrum.geometry import quads_for
+from audio_spectrum.geometry import gradient_for, quads_for
 from audio_spectrum.presets import Preset
 from audio_spectrum.raster import RASTERIZERS, Rasterizer
 
@@ -13,12 +13,13 @@ class FrameRenderer:
         self.width = width
         self.height = height
         self._rasterizer: Rasterizer = RASTERIZERS[rasterizer](width, height)
+        self._gradient = gradient_for(preset.look, preset.fill, width, height)
 
     def render(self, values: np.ndarray) -> np.ndarray:
         """Render one frame of band values. Returns (height, width, 3) uint8 RGB."""
         quads = quads_for(self.preset.look, values, self.width, self.height)
         quads = quads[_visible(quads, self.width, self.height)]
-        return self._rasterizer.draw(quads, self.preset.background, self.preset.foreground)
+        return self._rasterizer.draw(quads, self.preset.background, self.preset.foreground, self._gradient)
 
 
 def _visible(quads: np.ndarray, width: int, height: int) -> np.ndarray:
