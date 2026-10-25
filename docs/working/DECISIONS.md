@@ -68,3 +68,14 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
   rejected: heavier dependencies or a second technology stack.
 - Consequences: The CLI needs machine-readable progress, documented exit codes and file-based presets (Phase 1). The
   GUI must not hold rendering logic of its own. See [Requirements](REQUIREMENTS.md) F8, F14, F15 and N6.
+
+## ADR-009: Presets as TOML files validated with pydantic
+
+- Context: Presets must be plain files the owner can copy and edit (F9), with clear errors, and the GUI will later need
+  a machine-readable description of the settings to build its forms.
+- Decision: Presets are TOML files read with the standard library's `tomllib` and validated with pydantic models
+  (`AnalysisSettings`, `FlatLook`, `PerspectiveLook`, `Preset`). Unknown keys are errors; missing keys take the
+  `default` preset's values; each file carries `schema_version = 1`. Built-in presets ship as TOML files in the
+  package.
+- Consequences: One new core dependency (pydantic), which FastAPI needs for the GUI anyway. Error messages name the
+  key at fault, and the models can produce a JSON schema for the GUI.

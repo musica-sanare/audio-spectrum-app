@@ -1,7 +1,7 @@
 import pytest
 
 from audio_spectrum import __version__
-from audio_spectrum.__main__ import main
+from audio_spectrum.cli import main
 
 
 def test_version_flag_prints_version(capsys):

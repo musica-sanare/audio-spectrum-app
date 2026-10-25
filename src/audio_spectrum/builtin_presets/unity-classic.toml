@@ -1,0 +1,31 @@
+# Approximation of the legacy Unity recording scene: 2048 linear-frequency boxes of the left channel, seen through a
+# tilted perspective camera. Kept for comparison.
+schema_version = 1
+name = "unity-classic"
+background = "#0000FF"
+foreground = "#FFFFFF"
+
+[analysis]
+fft_size = 4096
+bands = 2048
+frequency_scale = "linear"
+min_frequency = 0.0
+max_frequency = inf
+magnitude_scale = "linear"
+db_floor = -48.0
+gain = 0.1
+tilt_db_per_octave = 0.0
+channel = "left"
+attack_seconds = 0.0
+release_seconds = 0.0
+
+[look]
+kind = "perspective"
+first_x = -15.0
+spacing = 0.1
+box_size = 0.105
+depth = 10.0
+height_scale = 200.0
+camera_position = [0.0, 6.0, -10.0]
+camera_pitch_degrees = 26.0
+vertical_fov_degrees = 60.0

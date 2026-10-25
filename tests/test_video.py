@@ -9,12 +9,12 @@ import numpy as np
 import pytest
 import soundfile as sf
 
-from audio_spectrum.__main__ import main
+from audio_spectrum.cli import main
 from audio_spectrum.analysis import analyze, frame_count
 from audio_spectrum.audio import load_audio
 from audio_spectrum.encode import EncodeSettings, ffmpeg_fps
 from audio_spectrum.pipeline import RenderJob, _frames, render_video
-from audio_spectrum.presets import PRESETS
+from audio_spectrum.presets import load_preset
 from signals import SAMPLE_RATE, sine
 
 pytestmark = pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
@@ -56,7 +56,7 @@ def decoded_brightness(path) -> np.ndarray:
 @pytest.mark.parametrize("fps", [30.0, 60.0, 30000 / 1001])
 def test_video_has_one_frame_per_frame_time_and_matches_the_audio_length(click_track, tmp_path, fps):
     output = tmp_path / "out.mp4"
-    job = RenderJob(click_track, output, PRESETS["default"], WIDTH, HEIGHT, fps, workers=1)
+    job = RenderJob(click_track, output, load_preset("default"), WIDTH, HEIGHT, fps, workers=1)
     frames = render_video(job)
 
     streams = probe(output)
@@ -73,7 +73,7 @@ def test_video_has_one_frame_per_frame_time_and_matches_the_audio_length(click_t
 def test_clicks_appear_on_the_frames_of_their_time(click_track, tmp_path):
     fps = 30
     output = tmp_path / "out.mp4"
-    render_video(RenderJob(click_track, output, PRESETS["default"], WIDTH, HEIGHT, fps, workers=1))
+    render_video(RenderJob(click_track, output, load_preset("default"), WIDTH, HEIGHT, fps, workers=1))
 
     brightness = decoded_brightness(output)
     quiet = np.median(brightness)
@@ -87,7 +87,7 @@ def test_clicks_appear_on_the_frames_of_their_time(click_track, tmp_path):
 
 
 def test_parallel_rendering_produces_the_same_frames(click_track):
-    preset = PRESETS["default"]
+    preset = load_preset("default")
     values = analyze(load_audio(click_track), 30, preset.analysis)
     single = RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, workers=1)
     parallel = RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, workers=2)
@@ -98,7 +98,7 @@ def test_parallel_rendering_produces_the_same_frames(click_track):
 def test_prores_output_without_audio(click_track, tmp_path):
     output = tmp_path / "out.mov"
     job = RenderJob(
-        click_track, output, PRESETS["default"], WIDTH, HEIGHT, 30,
+        click_track, output, load_preset("default"), WIDTH, HEIGHT, 30,
         EncodeSettings(codec="prores", include_audio=False), workers=1,
     )
     render_video(job)

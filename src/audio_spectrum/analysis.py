@@ -5,10 +5,10 @@ seen matches what is heard. Values are normalized to [0, 1] per band.
 """
 
 import math
-from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from audio_spectrum.audio import Audio, ChannelMode
 
@@ -19,22 +19,38 @@ FRAMES_PER_CHUNK = 512
 TILT_REFERENCE_FREQUENCY = 1000.0
 
 
-@dataclass(frozen=True)
-class AnalysisSettings:
-    fft_size: int = 4096
-    num_bands: int = 128
+class AnalysisSettings(BaseModel):
+    """How audio becomes band values. Defaults are the `default` preset's values."""
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    fft_size: int = Field(4096, ge=256, le=32768)
+    """FFT length in samples, a power of two. Longer resolves low notes better but reacts more slowly."""
+    bands: int = Field(512, ge=1, le=8192)
     frequency_scale: FrequencyScale = "log"
-    min_frequency: float = 30.0
-    max_frequency: float = 16000.0
+    min_frequency: float = Field(30.0, ge=0.0)
+    max_frequency: float = Field(16000.0, gt=0.0)
+    """Upper edge in Hz; limited to the audio's Nyquist frequency (`inf` means up to Nyquist)."""
     magnitude_scale: MagnitudeScale = "db"
-    db_floor: float = -60.0
-    gain: float = 1.0
-    tilt_db_per_octave: float = 0.0
+    db_floor: float = Field(-48.0, lt=0.0)
+    """Level shown as zero height on the dB scale; full scale is 0 dB."""
+    gain: float = Field(1.0, gt=0.0)
+    tilt_db_per_octave: float = Field(3.0, ge=-24.0, le=24.0)
     """Boost per octave above 1 kHz (and cut below it). Music loses energy toward high frequencies, so a positive tilt
     makes the bands look more even."""
     channel: ChannelMode = "mix"
-    attack_seconds: float = 0.01
-    release_seconds: float = 0.15
+    attack_seconds: float = Field(0.01, ge=0.0)
+    release_seconds: float = Field(0.15, ge=0.0)
+
+    @model_validator(mode="after")
+    def _check(self) -> "AnalysisSettings":
+        if self.fft_size & (self.fft_size - 1):
+            raise ValueError(f"fft_size must be a power of two, got {self.fft_size}")
+        if self.max_frequency <= self.min_frequency:
+            raise ValueError("max_frequency must be greater than min_frequency")
+        if self.frequency_scale == "log" and self.min_frequency <= 0:
+            raise ValueError("min_frequency must be above 0 on a log frequency scale")
+        return self
 
 
 def frame_count(num_samples: int, sample_rate: int, fps: float) -> int:
@@ -59,7 +75,7 @@ def analyze(audio: Audio, fps: float, settings: AnalysisSettings = AnalysisSetti
     centers = np.round(np.arange(num_frames) * audio.sample_rate / fps).astype(np.int64)
     offsets = np.arange(settings.fft_size)
 
-    values = np.empty((num_frames, settings.num_bands), dtype=np.float32)
+    values = np.empty((num_frames, settings.bands), dtype=np.float32)
     for start in range(0, num_frames, FRAMES_PER_CHUNK):
         chunk_centers = centers[start:start + FRAMES_PER_CHUNK]
         windows = padded[chunk_centers[:, None] + offsets[None, :]] * window
@@ -85,10 +101,10 @@ class _BandMap:
     def __init__(self, settings: AnalysisSettings, sample_rate: int, max_frequency: float):
         bin_width = sample_rate / settings.fft_size
         if settings.frequency_scale == "log":
-            edges = np.geomspace(settings.min_frequency, max_frequency, settings.num_bands + 1)
+            edges = np.geomspace(settings.min_frequency, max_frequency, settings.bands + 1)
             centers = np.sqrt(edges[:-1] * edges[1:])
         else:
-            edges = np.linspace(settings.min_frequency, max_frequency, settings.num_bands + 1)
+            edges = np.linspace(settings.min_frequency, max_frequency, settings.bands + 1)
             centers = (edges[:-1] + edges[1:]) / 2
         self._low = np.ceil(edges[:-1] / bin_width).astype(np.int64)
         self._high = np.ceil(edges[1:] / bin_width).astype(np.int64)

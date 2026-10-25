@@ -5,7 +5,6 @@ Writes PNG files to the output directory (default: work/render_compare, ignored 
 """
 
 import argparse
-import dataclasses
 import time
 from pathlib import Path
 
@@ -14,7 +13,7 @@ import skia
 
 from audio_spectrum.analysis import analyze
 from audio_spectrum.audio import Audio, load_audio
-from audio_spectrum.presets import PRESETS, Preset
+from audio_spectrum.presets import Preset, load_preset
 from audio_spectrum.renderer import FrameRenderer
 
 FPS = 30
@@ -43,7 +42,7 @@ def render_samples(preset: Preset, audio: Audio, times: list[float], size: tuple
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("song", type=Path)
-    parser.add_argument("--preset", default="default", choices=sorted(PRESETS))
+    parser.add_argument("--preset", default="default", help="built-in preset name or .toml path")
     parser.add_argument("--bands", type=int, nargs="*", default=[], help="also render the preset with these band counts")
     parser.add_argument("--out", type=Path, default=Path("work/render_compare"))
     parser.add_argument("--times", type=float, nargs="+", default=[30.0, 60.0, 90.0])
@@ -53,10 +52,10 @@ def main() -> None:
     args.out.mkdir(parents=True, exist_ok=True)
     audio = load_audio(args.song)
 
-    preset = PRESETS[args.preset]
+    preset = load_preset(args.preset)
     render_samples(preset, audio, args.times, size, args.out, preset.name)
     for bands in args.bands:
-        variant = dataclasses.replace(preset, analysis=dataclasses.replace(preset.analysis, num_bands=bands))
+        variant = preset.model_copy(update={"analysis": preset.analysis.model_copy(update={"bands": bands})})
         render_samples(variant, audio, args.times, size, args.out, f"{preset.name}-{bands}bands")
 
 

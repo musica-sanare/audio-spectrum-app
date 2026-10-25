@@ -4,11 +4,12 @@ import pytest
 from audio_spectrum.analysis import AnalysisSettings, analyze, frame_count
 from signals import SAMPLE_RATE, sine, stereo
 
-UNSMOOTHED = AnalysisSettings(attack_seconds=0, release_seconds=0)
+BASE = dict(bands=128, db_floor=-60.0, tilt_db_per_octave=0.0)
+UNSMOOTHED = AnalysisSettings(**BASE, attack_seconds=0, release_seconds=0)
 
 
 def band_edges(settings: AnalysisSettings) -> np.ndarray:
-    return np.geomspace(settings.min_frequency, settings.max_frequency, settings.num_bands + 1)
+    return np.geomspace(settings.min_frequency, settings.max_frequency, settings.bands + 1)
 
 
 @pytest.mark.parametrize(
@@ -20,7 +21,7 @@ def test_frame_count_covers_the_whole_audio(num_samples, sample_rate, fps, expec
 
 
 def test_one_row_per_frame_and_values_in_range():
-    values = analyze(stereo(sine(1000, 2.0)), fps=30)
+    values = analyze(stereo(sine(1000, 2.0)), fps=30, settings=AnalysisSettings(**BASE))
     assert values.shape == (60, 128)
     assert values.dtype == np.float32
     assert 0.0 <= values.min() and values.max() <= 1.0
@@ -60,8 +61,8 @@ def test_frame_n_shows_the_audio_at_n_over_fps():
 
 def test_channel_setting_selects_the_analyzed_signal():
     audio = stereo(sine(1000, 1.0), np.zeros(SAMPLE_RATE, np.float32))
-    left = AnalysisSettings(channel="left", attack_seconds=0, release_seconds=0)
-    right = AnalysisSettings(channel="right", attack_seconds=0, release_seconds=0)
+    left = AnalysisSettings(**BASE, channel="left", attack_seconds=0, release_seconds=0)
+    right = AnalysisSettings(**BASE, channel="right", attack_seconds=0, release_seconds=0)
     assert analyze(audio, fps=30, settings=left).max() == pytest.approx(1.0, abs=0.02)
     assert analyze(audio, fps=30, settings=right).max() == 0.0
     # The mix halves a one-sided signal: -6 dB, 0.9 on the 60 dB scale.
@@ -70,7 +71,7 @@ def test_channel_setting_selects_the_analyzed_signal():
 
 def test_release_makes_values_fall_gradually_and_attack_rise_quickly():
     tone_then_silence = np.concatenate([sine(1000, 1.0), np.zeros(SAMPLE_RATE, np.float32)])
-    settings = AnalysisSettings(attack_seconds=0.01, release_seconds=0.3)
+    settings = AnalysisSettings(**BASE, attack_seconds=0.01, release_seconds=0.3)
     values = analyze(stereo(tone_then_silence), fps=30, settings=settings).max(axis=1)
     assert values[10] > 0.95
     after_stop = values[33:45]
@@ -81,7 +82,7 @@ def test_release_makes_values_fall_gradually_and_attack_rise_quickly():
 def test_linear_scale_spreads_bands_evenly():
     settings = AnalysisSettings(
         frequency_scale="linear", magnitude_scale="linear", min_frequency=0, max_frequency=24000,
-        num_bands=2048, channel="left", attack_seconds=0, release_seconds=0,
+        bands=2048, tilt_db_per_octave=0.0, channel="left", attack_seconds=0, release_seconds=0,
     )
     values = analyze(stereo(sine(3000, 1.0)), fps=30, settings=settings)
     assert int(values[15].argmax()) == 3000 * 2048 // 24000
@@ -93,7 +94,7 @@ def test_analysis_is_deterministic():
 
 
 def test_tilt_boosts_highs_and_cuts_lows_around_1_khz():
-    tilted = AnalysisSettings(tilt_db_per_octave=6.0, attack_seconds=0, release_seconds=0)
+    tilted = AnalysisSettings(bands=128, db_floor=-60.0, tilt_db_per_octave=6.0, attack_seconds=0, release_seconds=0)
     half_scale = 10 ** (-12 / 20)
 
     def peak(frequency):

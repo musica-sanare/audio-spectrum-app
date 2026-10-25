@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from audio_spectrum.geometry import flat_quads, perspective_quads
-from audio_spectrum.presets import GREEN_BACK, PRESETS, WHITE, FlatLook, PerspectiveLook, Preset
+from audio_spectrum.presets import GREEN_BACK, WHITE, FlatLook, PerspectiveLook, Preset, builtin_preset_names, load_preset
 from audio_spectrum.renderer import FrameRenderer
 
 WIDTH, HEIGHT = 640, 360
@@ -57,10 +57,10 @@ def test_render_draws_foreground_on_the_chosen_background():
     assert tuple(frame[HEIGHT // 2, WIDTH // 2]) == WHITE
 
 
-@pytest.mark.parametrize("name", sorted(PRESETS))
+@pytest.mark.parametrize("name", builtin_preset_names())
 def test_builtin_presets_render_deterministically(name):
-    preset = PRESETS[name]
-    values = np.random.default_rng(0).random(preset.analysis.num_bands).astype(np.float32) * 0.2
+    preset = load_preset(name)
+    values = np.random.default_rng(0).random(preset.analysis.bands).astype(np.float32) * 0.2
     renderer = FrameRenderer(preset, WIDTH, HEIGHT)
     first = renderer.render(values)
     assert np.array_equal(first, renderer.render(values))

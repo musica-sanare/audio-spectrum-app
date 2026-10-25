@@ -7,12 +7,13 @@ license = "MIT"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "numpy>=2.5.4",
+    "pydantic>=2.14.1",
     "skia-python>=144.1",
     "soundfile>=0.14.0",
 ]
 
 [project.scripts]
-audio-spectrum = "audio_spectrum.__main__:main"
+audio-spectrum = "audio_spectrum.cli:main"
 
 [dependency-groups]
 dev = [

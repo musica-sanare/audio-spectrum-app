@@ -1,0 +1,31 @@
+# Improved look: white lines on blue back, mirrored around a centered baseline, low to high frequencies left to right.
+# Copy this file to make your own preset; missing keys take these values, unknown keys are errors.
+schema_version = 1
+name = "default"
+background = "#0000FF"
+foreground = "#FFFFFF"
+
+[analysis]
+fft_size = 4096
+bands = 512
+frequency_scale = "log"     # "log" or "linear"
+min_frequency = 30.0        # Hz
+max_frequency = 16000.0     # Hz; inf means up to the audio's Nyquist frequency
+magnitude_scale = "db"      # "db" or "linear"
+db_floor = -48.0            # level shown as zero height
+gain = 1.0
+tilt_db_per_octave = 3.0    # lifts highs and lowers lows around 1 kHz
+channel = "mix"             # "mix", "left" or "right"
+attack_seconds = 0.01       # how fast lines rise
+release_seconds = 0.15      # how fast lines fall
+
+[look]
+kind = "flat"
+margin_x = 0.04             # fraction of the width, each side
+baseline_y = 0.5            # fraction of the height from the top
+max_height = 0.3            # fraction of the height, one side
+mirror = true
+bar_fill = 0.5              # line width as a fraction of each band's slot
+min_bar_width_px = 2.0
+min_height_px = 1.0
+response = 1.6              # above 1 keeps quiet bands low
