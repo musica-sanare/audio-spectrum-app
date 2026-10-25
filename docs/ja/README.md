@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 5f13f167d9234d72682bc7b866b48b238b92469f -->
+<!-- source: docs/en/README.md blob 0cd3452944dfa6e157ef1529c75c4e9600a914cc -->
 [English](../en/README.md) | 日本語 · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -31,3 +31,4 @@
 | [Phase 1 plan](../working/PHASE1_PLAN.md)（英語のみ） | MVP CLI：プリセットのファイル化、CLI の約束事（一括処理、進捗、終了コード）、公開 API、正式な文書。 |
 | [Phase 1 acceptance](../working/PHASE1_ACCEPTANCE.md)（英語のみ） | Phase 1 の受入報告：完了条件、要件の充足状況、測定値、次の候補。 |
 | [Phase 2 plan](../working/PHASE2_PLAN.md)（英語のみ） | エフェクトとスタイル：グラデーション、発光、バーのスタイル、周波数範囲、低音部の解像度改善、`--set` と `still`。 |
+| [Phase 2 acceptance](../working/PHASE2_ACCEPTANCE.md)（英語のみ） | Phase 2 の受入報告（下書き）：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |

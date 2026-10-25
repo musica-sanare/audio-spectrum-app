@@ -6,9 +6,9 @@ Renders an audio spectrum video on a solid blue or green background from an audi
 meant to be overlaid on a background video with a chroma key in a video editor. Frames are computed from the audio
 timeline, so audio and video stay in exact sync.
 
-**Status:** Phase 1 (MVP CLI) accepted, version 0.2.0. Rendering, batch mode, preset files and the CLI contract for
-other tools work; effects and the GUI come in later phases. See the
-[Phase 1 acceptance report](docs/working/PHASE1_ACCEPTANCE.md).
+**Status:** Phase 2 (effects and styles) implemented, version 0.3.0, acceptance pending. On top of the Phase 1 CLI:
+gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444 output, still frames and `--set` overrides.
+The GUI comes in Phase 3. See the [Phase 2 acceptance report](docs/working/PHASE2_ACCEPTANCE.md) (draft).
 
 ## Quick start
 

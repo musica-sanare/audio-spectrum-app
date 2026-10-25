@@ -9,7 +9,7 @@ Public API: the names in `__all__`. Everything else is internal and may change w
         result = render_video(job)
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from audio_spectrum.encode import EncodeSettings
 from audio_spectrum.errors import (
