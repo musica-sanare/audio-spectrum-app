@@ -1,0 +1,16 @@
+# Segmented blocks like an LED meter: 48 bars rising from a baseline near the bottom. Keys not listed take the
+# default preset's values (see `presets show default`).
+schema_version = 1
+name = "blocks"
+
+[analysis]
+bands = 48
+
+[look]
+style = "blocks"
+bar_fill = 0.8              # bar width as a fraction of each band's slot
+mirror = false
+baseline_y = 0.85           # fraction of the height from the top
+max_height = 0.6            # fraction of the height
+block_height_px = 12.0      # segment height
+block_gap_px = 4.0          # gap between segments

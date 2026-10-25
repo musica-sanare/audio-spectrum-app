@@ -1,0 +1,10 @@
+# Solid bars: 64 white bars on blue back, mirrored around a centered baseline. Keys not listed take the default
+# preset's values (see `presets show default`).
+schema_version = 1
+name = "bars"
+
+[analysis]
+bands = 64
+
+[look]
+bar_fill = 0.8              # bar width as a fraction of each band's slot

@@ -152,6 +152,8 @@ Built-in presets:
 | Name | Look |
 |---|---|
 | `default` | 512 white lines on blue, mirrored around a centered baseline, low to high frequencies left to right |
+| `bars` | 64 solid white bars, mirrored around a centered baseline |
+| `blocks` | 48 bars split into blocks like an LED meter, rising from a baseline near the bottom |
 | `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
 
 To make your own, start from a built-in one:

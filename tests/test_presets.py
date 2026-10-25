@@ -17,7 +17,7 @@ from audio_spectrum.presets import (
 
 
 def test_builtin_presets_are_listed():
-    assert builtin_preset_names() == ["default", "unity-classic"]
+    assert builtin_preset_names() == ["bars", "blocks", "default", "unity-classic"]
 
 
 def test_default_preset_file_matches_the_model_defaults():
@@ -81,7 +81,7 @@ def test_missing_preset_file_is_a_preset_error(tmp_path):
 
 def test_cli_presets_list_and_show(capsys):
     assert main(["presets", "list"]) == 0
-    assert capsys.readouterr().out.split() == ["default", "unity-classic"]
+    assert capsys.readouterr().out.split() == ["bars", "blocks", "default", "unity-classic"]
     assert main(["presets", "show", "default"]) == 0
     assert capsys.readouterr().out == builtin_preset_text("default")
 

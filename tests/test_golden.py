@@ -19,6 +19,8 @@ FPS = 30
 FRAMES = (3, 15, 30, 45, 58)
 
 GOLDEN = {
+    "bars": "7755194c13f367a075c17fefd649a4828b0df478163c59e4c0359f40f8403b52",
+    "blocks": "69025577c04f1c16e8436a8ef790c0553d7fd4fb6149eeb1da4173abb761bb88",
     "default": "459cd8e8affd68ccdb96816fc700862770773acb2db8973dc3498333f818c191",
     "unity-classic": "922b4c8ab0d942cf6198c046abdf9dd5cecd1f0af8d3afc7f7ec5b7776f7cef4",
 }

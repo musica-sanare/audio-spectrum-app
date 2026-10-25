@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 392017a2dd004524c3bce96f1909e34b388f72c7 -->
+<!-- source: docs/en/USER_GUIDE.md blob 73c3b2a299d99360e7ba7ce1ad396ec0a7495012 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -153,6 +153,8 @@ audio-spectrum presets check FILE    # validate a preset file
 | 名前 | 見た目 |
 |---|---|
 | `default` | 青背景に白い線 512 本。中央の基準線から上下対称に伸び、左から右へ低音から高音 |
+| `bars` | 白い太い棒 64 本。中央の基準線から上下対称に伸びる |
+| `blocks` | LED メーターのようにブロックに区切った棒 48 本。下寄りの基準線から上へ伸びる |
 | `unity-classic` | 以前の Unity 版に近い見た目:傾いた遠近法、リニアな周波数軸、左チャンネル |
 
 自分用のプリセットは、組み込みのものをもとに作ります:
