@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob f63e8a699967c63c7fc9902d406de710e4778bbe -->
+<!-- source: docs/en/USER_GUIDE.md blob 2b2c8c3e23fe2025df6a8d8ad5d675b5741c88da -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -207,6 +207,7 @@ uv run audio-spectrum render song.wav --preset my-look.toml
 | `analysis.tilt_db_per_octave` | 高音を持ち上げ、右側が常に低くならないようにする |
 | `analysis.channel` | `"mix"`、`"left"`、`"right"` |
 | `analysis.attack_seconds`、`release_seconds` | 線が上がる速さ・下がる速さ |
+| `analysis.low_fft_size`、`low_crossover_frequency` | 低音をくっきりさせる。切り替え周波数より下の帯に、より長い FFT を使う(下記参照)。`0`(既定)でオフ |
 | `look.max_height` | 最大音量の線の片側の高さ(画面の高さに対する割合) |
 | `look.baseline_y` | 基準線の位置(上端からの、画面の高さに対する割合) |
 | `look.mirror` | 上下に伸ばす(`true`)か、上だけ(`false`)か |
@@ -214,6 +215,13 @@ uv run audio-spectrum render song.wav --preset my-look.toml
 | `look.response` | 1 より大きいと小さな値を低く抑え、ピークを目立たせる |
 | `look.style` | `"bars"`(1帯につき1本の線または棒)か `"blocks"`(棒を区切ったブロック。LED メーター風) |
 | `look.block_height_px`、`block_gap_px` | ブロックの1つの高さと、ブロック間のすき間(ピクセル)。ブロックは、棒がその高さに完全に届いたときだけ表示される |
+
+既定の解析では、低音の1つの音が左端に広くなめらかな山として表示されます。そのあたりの帯が、解析で見分けられる幅より
+狭いためです。`--set analysis.low_fft_size=16384` を付けると、250 Hz より下の帯を 4 倍長い窓で解析するので、低音の音が
+別々の細い山として表示されます。60 Hz の音が光らせる線は、61 本から 17 本になります。長い窓はより長い時間にまたがるため、
+キックのまわりでは低音の線が約 2 コマ早く上がり、約 1 コマ遅く下がります(山の頂点はキックのコマのままです)。
+`32768` と `low_crossover_frequency = 150` の組み合わせはさらにくっきりしますが、時間方向のにじみも増えます。
+切り替えの 1 オクターブより上の帯は変わりません。
 
 細い線も太い棒も `"bars"` です。`analysis.bands` を減らして `look.bar_fill` を大きくすると太い棒になります
 (例:`--set analysis.bands=64 --set look.bar_fill=0.8`)。ブロックは 32〜96 帯くらいが見やすくなります。

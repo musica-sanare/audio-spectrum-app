@@ -36,7 +36,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | Module | Role |
 |---|---|
 | `audio.py` | Decodes audio with libsndfile, or ffmpeg for other formats; selects or mixes channels |
-| `analysis.py` | One spectrum per frame time `n / fps`: window centered on that time, FFT, frequency bands, dB scale, tilt, attack/release smoothing |
+| `analysis.py` | One spectrum per frame time `n / fps`: window centered on that time, FFT (optionally a longer one for low bands, level-matched and cross-faded), frequency bands, dB scale, tilt, attack/release smoothing |
 | `presets.py` | Preset schema (pydantic), loading of built-in and user TOML files, overrides and keying warnings |
 | `builtin_presets/` | The built-in presets as TOML files |
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) and style (bars, blocks); places fill gradients |

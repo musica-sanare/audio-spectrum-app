@@ -103,3 +103,70 @@ def test_tilt_boosts_highs_and_cuts_lows_around_1_khz():
     one_octave_in_db = 6.0 / -tilted.db_floor
     assert peak(2000) - peak(1000) == pytest.approx(one_octave_in_db, abs=0.01)
     assert peak(1000) - peak(500) == pytest.approx(one_octave_in_db, abs=0.01)
+
+
+DEFAULT_BANDS = np.geomspace(30.0, 16000.0, 513)
+DEFAULT_CENTERS = np.sqrt(DEFAULT_BANDS[:-1] * DEFAULT_BANDS[1:])
+STILL = dict(attack_seconds=0.0, release_seconds=0.0)
+LONG = AnalysisSettings(low_fft_size=16384, **STILL)
+
+
+def band_of(frequency: float) -> int:
+    return int(np.searchsorted(DEFAULT_BANDS, frequency)) - 1
+
+
+def loud_noise(seconds: float = 3.0) -> np.ndarray:
+    return np.random.default_rng(5).standard_normal(round(seconds * SAMPLE_RATE)).astype(np.float32) * 0.5
+
+
+def test_longer_low_fft_separates_two_bass_notes():
+    notes = stereo(sine(55, 3.0, 0.4) + sine(73.4, 3.0, 0.4))
+    for settings, merged in ((AnalysisSettings(**STILL), True), (LONG, False)):
+        row = analyze(notes, 30, settings)[45]
+        dip = row[band_of(55):band_of(73.4) + 1].min() / min(row[band_of(55)], row[band_of(73.4)])
+        assert (dip > 0.9) == merged
+
+
+def test_longer_low_fft_narrows_a_single_bass_note():
+    tone = stereo(sine(60, 3.0, 0.5))
+    wide = analyze(tone, 30, AnalysisSettings(**STILL))[45]
+    narrow = analyze(tone, 30, LONG)[45]
+    assert (narrow > narrow.max() / 2).sum() < (wide > wide.max() / 2).sum() / 2
+
+
+def test_bands_above_the_cross_fade_are_unchanged():
+    audio = stereo(loud_noise() + sine(60, 3.0, 0.3))
+    plain = analyze(audio, 30, AnalysisSettings())
+    blended = analyze(audio, 30, AnalysisSettings(low_fft_size=16384))
+    above = DEFAULT_CENTERS >= 250.0 * np.sqrt(2)
+    assert np.array_equal(plain[:, above], blended[:, above])
+    assert not np.array_equal(plain[:, ~above], blended[:, ~above])
+
+
+def test_off_by_default_and_crossover_alone_changes_nothing():
+    audio = stereo(loud_noise(1.0))
+    assert np.array_equal(
+        analyze(audio, 30, AnalysisSettings()), analyze(audio, 30, AnalysisSettings(low_crossover_frequency=100.0))
+    )
+
+
+def test_broadband_bass_keeps_about_the_same_level():
+    # A longer FFT reads broadband sound about 6 dB lower; without level matching this noise reads 0.016 here.
+    below = (DEFAULT_CENTERS > 60) & (DEFAULT_CENTERS < 170)
+    plain = analyze(stereo(loud_noise()), 30, AnalysisSettings())[15:75][:, below].mean()
+    blended = analyze(stereo(loud_noise()), 30, AnalysisSettings(low_fft_size=16384))[15:75][:, below].mean()
+    assert abs(blended - plain) < 0.04
+
+
+def test_a_kick_still_peaks_on_its_own_frame():
+    signal = np.zeros(3 * SAMPLE_RATE, np.float32)
+    burst = sine(60, 0.08, 0.8) * np.exp(-np.arange(round(0.08 * SAMPLE_RATE)) / (0.03 * SAMPLE_RATE))
+    signal[SAMPLE_RATE:SAMPLE_RATE + len(burst)] = burst
+    column = analyze(stereo(signal), 30, LONG)[:, band_of(60)]
+    assert abs(int(column.argmax()) - 30) <= 1
+
+
+@pytest.mark.parametrize("size", [3000, 2048, 4096])
+def test_low_fft_size_must_be_a_larger_power_of_two(size):
+    with pytest.raises(ValueError, match="low_fft_size"):
+        AnalysisSettings(low_fft_size=size)

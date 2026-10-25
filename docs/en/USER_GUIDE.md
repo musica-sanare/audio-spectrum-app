@@ -207,6 +207,7 @@ Main keys (the file printed by `presets show default` explains each one):
 | `analysis.tilt_db_per_octave` | Lifts high frequencies so the right side is not always low |
 | `analysis.channel` | `"mix"`, `"left"` or `"right"` |
 | `analysis.attack_seconds`, `release_seconds` | How fast lines rise and fall |
+| `analysis.low_fft_size`, `low_crossover_frequency` | Sharper bass: a longer FFT for the bands below the crossover frequency (see below). `0` (default) is off |
 | `look.max_height` | Height of a full-scale line on each side, as a fraction of the frame height |
 | `look.baseline_y` | Baseline position from the top, as a fraction of the frame height |
 | `look.mirror` | Grow up and down (`true`) or only up (`false`) |
@@ -214,6 +215,13 @@ Main keys (the file printed by `presets show default` explains each one):
 | `look.response` | Above 1 keeps quiet bands low and lets peaks stand out |
 | `look.style` | `"bars"` (one line or bar per band) or `"blocks"` (bars split into segments, like an LED meter) |
 | `look.block_height_px`, `block_gap_px` | Blocks: segment height and the gap between segments, in pixels. A segment shows only once the bar reaches its full height |
+
+With the default analysis, one bass note lights a wide, smooth hill at the left end, because the bands there are
+narrower than the analysis can resolve. `--set analysis.low_fft_size=16384` analyzes the bands below 250 Hz with a
+four times longer window, so bass notes show as separate, narrower peaks: a 60 Hz tone covers 17 lines instead of 61.
+The longer window spans more time, so around a kick the bass lines rise about two frames earlier and fall about one
+frame later (the peak stays on the kick's frame). `32768` with `low_crossover_frequency = 150` is sharper still,
+with more smearing in time. Bands above the cross-fade octave are not affected.
 
 Thin lines and solid bars are both `"bars"`: fewer `analysis.bands` and a larger `look.bar_fill` give solid bars,
 for example `--set analysis.bands=64 --set look.bar_fill=0.8`. Blocks read best with 32 to 96 bands.

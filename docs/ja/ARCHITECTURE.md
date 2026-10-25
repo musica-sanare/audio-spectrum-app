@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob a47f47ab79bb9ee85da856d6520db381edefa58f -->
+<!-- source: docs/en/ARCHITECTURE.md blob d600924a2ad1d4e2ac2681fbc4a5277346bec8b8 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -38,7 +38,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | モジュール | 役割 |
 |---|---|
 | `audio.py` | libsndfile(ほかの形式は ffmpeg)で音声を読み込み、チャンネルを選ぶか混ぜる |
-| `analysis.py` | コマの時刻 `n / fps` ごとに1つのスペクトラム:その時刻を中心にした窓、FFT、周波数帯、dB 変換、傾き補正、上がり下がりの平滑化 |
+| `analysis.py` | コマの時刻 `n / fps` ごとに1つのスペクトラム:その時刻を中心にした窓、FFT(低い帯には、より長い FFT を選べる。レベルを合わせてなめらかにつなぐ)、周波数帯、dB 変換、傾き補正、上がり下がりの平滑化 |
 | `presets.py` | プリセットの定義(pydantic)、組み込み・ユーザーの TOML ファイルの読み込み、上書き、キーイングの警告 |
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
