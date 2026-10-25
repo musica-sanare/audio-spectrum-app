@@ -9,6 +9,8 @@ from typing import Literal
 import numpy as np
 import soundfile as sf
 
+from audio_spectrum.errors import DecodeError, FfmpegNotFoundError
+
 ChannelMode = Literal["mix", "left", "right"]
 
 DEFAULT_FFMPEG_SAMPLE_RATE = 48000
@@ -40,17 +42,21 @@ class Audio:
 def load_audio(path: str | Path) -> Audio:
     """Decode an audio file. Formats libsndfile cannot read are decoded with ffmpeg."""
     path = Path(path)
+    if not path.is_file():
+        raise DecodeError(f"{path}: file not found")
     try:
         samples, sample_rate = sf.read(path, dtype="float32", always_2d=True)
     except sf.LibsndfileError:
         return _load_with_ffmpeg(path)
+    if len(samples) == 0:
+        raise DecodeError(f"{path}: no audio samples")
     return Audio(samples=samples, sample_rate=sample_rate)
 
 
 def _load_with_ffmpeg(path: Path) -> Audio:
     ffmpeg = shutil.which("ffmpeg")
     if ffmpeg is None:
-        raise RuntimeError(f"Cannot decode {path.name}: ffmpeg is not installed (brew install ffmpeg).")
+        raise FfmpegNotFoundError(f"cannot decode {path.name}: ffmpeg is not installed (brew install ffmpeg)")
     channels = 2
     result = subprocess.run(
         [
@@ -62,6 +68,9 @@ def _load_with_ffmpeg(path: Path) -> Audio:
         check=False,
     )
     if result.returncode != 0:
-        raise RuntimeError(f"ffmpeg could not decode {path.name}: {result.stderr.decode(errors='replace').strip()}")
+        detail = result.stderr.decode(errors="replace").strip().splitlines()
+        raise DecodeError(f"{path}: cannot decode audio ({detail[-1] if detail else 'unknown error'})")
     samples = np.frombuffer(result.stdout, dtype="<f4").reshape(-1, channels)
+    if len(samples) == 0:
+        raise DecodeError(f"{path}: no audio samples")
     return Audio(samples=samples, sample_rate=DEFAULT_FFMPEG_SAMPLE_RATE)

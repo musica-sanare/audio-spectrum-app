@@ -6,6 +6,7 @@ import pytest
 import soundfile as sf
 
 from audio_spectrum.audio import Audio, load_audio
+from audio_spectrum.errors import DecodeError
 from signals import SAMPLE_RATE, sine, stereo
 
 
@@ -39,3 +40,19 @@ def test_formats_libsndfile_cannot_read_are_decoded_with_ffmpeg(tmp_path):
     audio = load_audio(m4a)
     assert audio.samples.shape[1] == 2
     assert audio.duration == pytest.approx(1.0, abs=0.05)
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_mp3_input_is_decoded(tmp_path):
+    wav = tmp_path / "tone.wav"
+    mp3 = tmp_path / "tone.mp3"
+    sf.write(wav, sine(440, 1.0, amplitude=0.5), SAMPLE_RATE)
+    subprocess.run(["ffmpeg", "-v", "error", "-i", str(wav), str(mp3)], check=True)
+    audio = load_audio(mp3)
+    assert audio.duration == pytest.approx(1.0, abs=0.06)
+    assert np.abs(audio.samples).max() == pytest.approx(0.5, abs=0.05)
+
+
+def test_missing_file_is_a_decode_error(tmp_path):
+    with pytest.raises(DecodeError, match="file not found"):
+        load_audio(tmp_path / "missing.wav")

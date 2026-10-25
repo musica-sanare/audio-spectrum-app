@@ -1,11 +1,15 @@
 """Video encoding with ffmpeg: raw RGB frames in through a pipe, the source audio muxed in unchanged in time."""
 
+import os
 import shutil
 import subprocess
+import tempfile
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 from typing import Literal
+
+from audio_spectrum.errors import EncodeError, FfmpegNotFoundError
 
 Codec = Literal["h264", "prores"]
 
@@ -31,7 +35,7 @@ def build_command(
 ) -> list[str]:
     ffmpeg = shutil.which("ffmpeg")
     if ffmpeg is None:
-        raise RuntimeError("ffmpeg is not installed (brew install ffmpeg).")
+        raise FfmpegNotFoundError("ffmpeg is not installed (brew install ffmpeg)")
     command = [
         ffmpeg, "-y", "-v", "error",
         "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", f"{width}x{height}", "-framerate", ffmpeg_fps(fps), "-i", "-",
@@ -60,33 +64,73 @@ def build_command(
     return [*command, str(output)]
 
 
+def partial_path(output: Path) -> Path:
+    """Temporary name in the output folder; it keeps the extension so ffmpeg picks the right container."""
+    return output.with_name(f".{output.stem}.partial-{os.getpid()}{output.suffix}")
+
+
 class VideoWriter:
-    """Context manager that accepts frames as (height, width, 3) uint8 RGB arrays."""
+    """Context manager that accepts frames as (height, width, 3) uint8 RGB arrays.
+
+    The video is written to a temporary file next to the output and renamed only after ffmpeg succeeds, so a file
+    with the final name is always complete. On any error or interruption the temporary file is removed.
+    """
 
     def __init__(
         self, output: Path, width: int, height: int, fps: float,
         settings: EncodeSettings = EncodeSettings(), audio_path: Path | None = None,
     ):
-        self._command = build_command(output, width, height, fps, settings, audio_path)
+        self._output = Path(output)
+        self._partial = partial_path(self._output)
+        self._command = build_command(self._partial, width, height, fps, settings, audio_path)
         self._process: subprocess.Popen | None = None
+        self._errors = None
 
     def __enter__(self) -> "VideoWriter":
-        self._process = subprocess.Popen(self._command, stdin=subprocess.PIPE, stderr=subprocess.PIPE)
+        self._errors = tempfile.TemporaryFile()
+        # A separate session keeps Ctrl+C away from ffmpeg; this writer decides when ffmpeg stops.
+        self._process = subprocess.Popen(
+            self._command, stdin=subprocess.PIPE, stderr=self._errors, start_new_session=True
+        )
         return self
 
     def write(self, frame) -> None:
         try:
             self._process.stdin.write(frame.tobytes())
         except BrokenPipeError:
-            self._fail()
+            self._process.wait()
+            raise EncodeError(f"ffmpeg failed: {self._error_text()}") from None
 
     def __exit__(self, exc_type, exc, traceback) -> None:
-        self._process.stdin.close()
-        self._process.wait()
-        if exc_type is None and self._process.returncode != 0:
-            self._fail()
+        try:
+            if exc_type is None:
+                self._finish()
+            else:
+                self._abort()
+        finally:
+            self._errors.close()
 
-    def _fail(self) -> None:
+    def _finish(self) -> None:
+        try:
+            self._process.stdin.close()
+        except BrokenPipeError:
+            pass
         self._process.wait()
-        message = self._process.stderr.read().decode(errors="replace").strip()
-        raise RuntimeError(f"ffmpeg failed: {message}")
+        if self._process.returncode != 0:
+            self._partial.unlink(missing_ok=True)
+            raise EncodeError(f"ffmpeg failed: {self._error_text()}")
+        self._partial.replace(self._output)
+
+    def _abort(self) -> None:
+        self._process.kill()
+        try:
+            self._process.stdin.close()
+        except BrokenPipeError:
+            pass
+        self._process.wait()
+        self._partial.unlink(missing_ok=True)
+
+    def _error_text(self) -> str:
+        self._errors.seek(0)
+        lines = self._errors.read().decode(errors="replace").strip().splitlines()
+        return lines[-1] if lines else f"exit code {self._process.returncode}"

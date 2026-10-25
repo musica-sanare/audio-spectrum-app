@@ -57,7 +57,7 @@ def decoded_brightness(path) -> np.ndarray:
 def test_video_has_one_frame_per_frame_time_and_matches_the_audio_length(click_track, tmp_path, fps):
     output = tmp_path / "out.mp4"
     job = RenderJob(click_track, output, load_preset("default"), WIDTH, HEIGHT, fps, workers=1)
-    frames = render_video(job)
+    frames = render_video(job).frames
 
     streams = probe(output)
     assert frames == frame_count(3 * SAMPLE_RATE, SAMPLE_RATE, fps)
