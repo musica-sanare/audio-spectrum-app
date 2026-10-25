@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 8545be23d6d77425886de4b23623b8d05d6caf9d -->
+<!-- source: docs/en/README.md blob 9f65a54e67719b4f23bdc4077cd0a9fc4107263d -->
 [English](../en/README.md) | 日本語 · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -15,3 +15,4 @@
 | [Decisions](../working/DECISIONS.md)（英語のみ） | 設計判断の記録（ADR）。 |
 | [Phase 0 plan](../working/PHASE0_PLAN.md)（英語のみ） | リポジトリの土台と試作：解析、描画、書き出し、同期。 |
 | [Phase 0 results](../working/PHASE0_RESULTS.md)（英語のみ） | Phase 0 の測定結果：描画ライブラリ、速度、同期、キーイング。 |
+| [Phase 1 plan](../working/PHASE1_PLAN.md)（英語のみ） | MVP CLI：プリセットのファイル化、CLI の約束事（一括処理、進捗、終了コード）、公開 API、正式な文書。 |
