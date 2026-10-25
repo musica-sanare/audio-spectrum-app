@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob d1491443471b01e03aad7ef75b4e1eee97be393a -->
+<!-- source: docs/en/ARCHITECTURE.md blob 3b26077850ff6dfc90567a8e5e8424633fb927cc -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -44,8 +44,8 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `geometry.py` | 1コマ分の帯の値を、見た目ごと(flat、perspective)にピクセル座標の四角形へ変換 |
 | `raster.py` | 四角形をアンチエイリアス付き(Skia)で RGB のコマに塗る |
 | `renderer.py` | 1コマについて geometry と raster を組み合わせる |
-| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える |
-| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル |
+| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く |
+| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills`:確認用の1コマ |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
 

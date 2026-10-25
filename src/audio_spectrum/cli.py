@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import math
 import shutil
 import signal
 import sys
@@ -9,15 +10,17 @@ import time
 from pathlib import Path
 
 from audio_spectrum import __version__
-from audio_spectrum.encode import EncodeSettings
-from audio_spectrum.errors import AudioSpectrumError, FfmpegNotFoundError, PresetError
-from audio_spectrum.pipeline import RenderJob, RenderResult, render_video
+from audio_spectrum.encode import EncodeSettings, write_png
+from audio_spectrum.errors import AudioSpectrumError, FfmpegNotFoundError, OutputExistsError, PresetError
+from audio_spectrum.pipeline import RenderJob, RenderResult, render_stills, render_video
 from audio_spectrum.presets import (
     BLUE_BACK,
     GREEN_BACK,
+    Preset,
     builtin_preset_names,
     builtin_preset_text,
     load_preset,
+    override_preset,
     parse_color,
 )
 
@@ -65,6 +68,16 @@ def crf_value(text: str) -> int:
     return value
 
 
+def still_time(text: str) -> float:
+    try:
+        value = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected a time in seconds, got {text!r}") from None
+    if not 0 <= value < math.inf:
+        raise argparse.ArgumentTypeError(f"expected a time of 0 seconds or more, got {text!r}")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="audio-spectrum",
@@ -78,16 +91,7 @@ def build_parser() -> argparse.ArgumentParser:
     render.add_argument("-o", "--output", type=Path, help="output video; only with a single input")
     render.add_argument("--out-dir", type=Path, help="output folder (default: next to each input)")
     render.add_argument("--overwrite", action="store_true", help="replace existing output files")
-    render.add_argument(
-        "--preset", default="default", help="built-in preset name or path to a .toml preset file (default: default)"
-    )
-    render.add_argument("--background", type=background_color, help="blue, green or #RRGGBB (default: from the preset)")
-    render.add_argument(
-        "--size", type=frame_size, default=SIZES["1080p"], help="720p, 1080p, 1440p, 2160p or WxH (default: 1080p)"
-    )
-    render.add_argument(
-        "--fps", type=float, default=30.0, help="frames per second, for example 24, 29.97 or 60 (default: 30)"
-    )
+    add_look_arguments(render)
     render.add_argument(
         "--codec", choices=sorted(CODECS), default="h264",
         help="h264 (small .mp4, default), prores (ProRes 422 .mov) or prores4444 (ProRes 4444 .mov, cleanest keying)",
@@ -104,6 +108,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
     render.add_argument("--fail-fast", action="store_true", help="stop at the first file that fails")
 
+    still = commands.add_parser("still", help="render single frames of a song as PNG images, to check a look")
+    still.add_argument("audio", type=Path, help="input audio file")
+    still.add_argument(
+        "--at", type=still_time, action="append", required=True, metavar="SECONDS",
+        help="time of a frame in seconds, for example 61.5 (repeatable)",
+    )
+    still.add_argument("--out-dir", type=Path, help="output folder (default: next to the input)")
+    still.add_argument("--overwrite", action="store_true", help="replace existing images")
+    add_look_arguments(still)
+
     presets = commands.add_parser("presets", help="list, show or check presets")
     preset_commands = presets.add_subparsers(dest="preset_command", required=True)
     preset_commands.add_parser("list", help="list built-in presets")
@@ -112,6 +126,24 @@ def build_parser() -> argparse.ArgumentParser:
     check = preset_commands.add_parser("check", help="validate a preset file")
     check.add_argument("file", type=Path)
     return parser
+
+
+def add_look_arguments(command: argparse.ArgumentParser) -> None:
+    """Options shared by `render` and `still`: what the frames look like."""
+    command.add_argument(
+        "--preset", default="default", help="built-in preset name or path to a .toml preset file (default: default)"
+    )
+    command.add_argument(
+        "--set", action="append", default=[], metavar="KEY=VALUE",
+        help="override a preset key, for example look.max_height=0.4 (repeatable; values in TOML syntax)",
+    )
+    command.add_argument("--background", type=background_color, help="blue, green or #RRGGBB (default: from the preset)")
+    command.add_argument(
+        "--size", type=frame_size, default=SIZES["1080p"], help="720p, 1080p, 1440p, 2160p or WxH (default: 1080p)"
+    )
+    command.add_argument(
+        "--fps", type=float, default=30.0, help="frames per second, for example 24, 29.97 or 60 (default: 30)"
+    )
 
 
 def plan_outputs(args: argparse.Namespace, suffix: str) -> list[Path]:
@@ -124,13 +156,19 @@ def plan_outputs(args: argparse.Namespace, suffix: str) -> list[Path]:
     return outputs
 
 
+def resolve_preset(args: argparse.Namespace) -> Preset:
+    """The preset named by --preset, with --set overrides and then --background applied."""
+    preset = override_preset(load_preset(args.preset), args.set)
+    if args.background is not None:
+        preset = preset.model_copy(update={"background": args.background})
+    return preset
+
+
 def run_render(args: argparse.Namespace, reporter: "Reporter") -> int:
     if shutil.which("ffmpeg") is None:
         reporter.fatal(FfmpegNotFoundError("ffmpeg is not installed (brew install ffmpeg)"))
         return EXIT_FFMPEG_MISSING
-    preset = load_preset(args.preset)
-    if args.background is not None:
-        preset = preset.model_copy(update={"background": args.background})
+    preset = resolve_preset(args)
     codec, prores_profile = CODECS[args.codec]
     encode = EncodeSettings(
         codec=codec, crf=args.crf, prores_profile=prores_profile or EncodeSettings.prores_profile,
@@ -162,6 +200,35 @@ def run_render(args: argparse.Namespace, reporter: "Reporter") -> int:
         reporter.done(audio, result)
     reporter.finished(succeeded, failed)
     return EXIT_OK if failed == 0 else EXIT_FAILED
+
+
+def run_still(args: argparse.Namespace, reporter: "Reporter") -> int:
+    preset = resolve_preset(args)
+    folder = args.out_dir if args.out_dir is not None else args.audio.parent
+    outputs = [folder / f"{args.audio.stem}_{seconds_label(seconds)}s.png" for seconds in args.at]
+    existing = [output for output in outputs if output.exists()]
+    if existing and not args.overwrite:
+        reporter.fatal(OutputExistsError(f"{existing[0]} already exists (use --overwrite to replace it)"))
+        return EXIT_FAILED
+    width, height = args.size
+    try:
+        frames = render_stills(args.audio, preset, args.at, width, height, args.fps)
+    except FfmpegNotFoundError as error:
+        reporter.fatal(error)
+        return EXIT_FFMPEG_MISSING
+    except AudioSpectrumError as error:
+        reporter.fatal(error)
+        return EXIT_FAILED
+    folder.mkdir(parents=True, exist_ok=True)
+    for output, frame in zip(outputs, frames, strict=True):
+        write_png(output, frame)
+        print(output, flush=True)
+    return EXIT_OK
+
+
+def seconds_label(seconds: float) -> str:
+    """61.5 -> "61.5", 30.0 -> "30": millisecond precision without trailing zeros."""
+    return f"{seconds:.3f}".rstrip("0").rstrip(".")
 
 
 class Reporter:
@@ -258,6 +325,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "render":
             return run_render(args, reporter)
+        if args.command == "still":
+            return run_still(args, reporter)
         if args.command == "presets":
             return run_presets(args)
     except PresetError as error:

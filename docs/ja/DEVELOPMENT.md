@@ -1,4 +1,4 @@
-<!-- source: docs/en/DEVELOPMENT.md blob ec2b98f30d0a4bf32de586ffc27ec4689b3fb597 -->
+<!-- source: docs/en/DEVELOPMENT.md blob 484013fb57e5be46082ef4991d7849a78c9251dd -->
 [English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -36,10 +36,13 @@ uv run pytest
 | `test_render.py` | 両方の見た目の図形、描画したコマ |
 | `test_video.py` | 実際の動画でのコマ数、長さ、開始時刻、クリック音による同期。コーデック |
 | `test_cli_contract.py` | JSON イベント、終了コード、上書きのルール、安全な書き出し、キャンセル、Ctrl+C と SIGTERM |
+| `test_stills.py` | `still` と `render_stills`(動画のコマと同一であること)、`--set` と `override_preset` |
+| `test_golden.py` | 組み込みプリセットのコマの基準ハッシュ値。確定した見た目が意図せず変わらないようにする |
 
 ## 3. 見た目の確認
 
-`bench/render_compare.py` は、曲から確認用のコマを PNG で書き出し、描画の速さを測ります:
+プリセットや変更の見た目を確かめるには、`audio-spectrum still` で静止画を書き出します([ユーザーガイド](USER_GUIDE.md) 3章)。
+`bench/render_compare.py` は、複数の設定のコマを並べて PNG で書き出し、描画の速さを測ります:
 
 ```bash
 uv run python bench/render_compare.py song.wav --preset default --bands 256 1024 --times 30 60
@@ -48,7 +51,9 @@ uv run python bench/render_compare.py song.wav --preset default --bands 256 1024
 出力先は `work/render_compare/` です。`work/` フォルダは Git の管理外です。曲や書き出した動画は、ここかリポジトリの外に置いてください。
 
 見た目を変えないはずの変更(リファクタリング)では、同じ入力について変更の前後でコマを比べ(例:描画したコマのハッシュ値)、
-そのことをコミットメッセージに書きます。
+そのことをコミットメッセージに書きます。組み込みプリセットについては、`tests/test_golden.py` が生成した信号でこれを行います。
+見た目を意図して変えたときや、Skia・NumPy の更新でバイト列が変わったときは、まずコマを目で確かめ、そのあとテストが表示する
+ハッシュ値に更新します。
 
 ## 4. 規約
 

@@ -33,10 +33,13 @@ uv run pytest
 | `test_render.py` | Geometry of both looks, rendered frames |
 | `test_video.py` | Frame count, duration, start times and click-track sync in real videos; codecs |
 | `test_cli_contract.py` | JSON events, exit codes, overwrite rules, safe output, cancellation, Ctrl+C and SIGTERM |
+| `test_stills.py` | `still` and `render_stills` (identical to video frames), `--set` and `override_preset` |
+| `test_golden.py` | Golden hashes of the built-in presets' frames, so a settled look cannot change by accident |
 
 ## 3. Visual checks
 
-`bench/render_compare.py` renders sample frames of a song as PNG files and times the renderer:
+To look at a preset or a change, render stills with `audio-spectrum still` ([user guide](USER_GUIDE.md) §3).
+`bench/render_compare.py` renders sample frames of several variants side by side and times the renderer:
 
 ```bash
 uv run python bench/render_compare.py song.wav --preset default --bands 256 1024 --times 30 60
@@ -46,7 +49,9 @@ Output goes to `work/render_compare/`. The `work/` folder is ignored by Git; kee
 outside the repository.
 
 When a change should not alter the look (refactoring), compare frames before and after for the same input, for
-example by hashing rendered frames, and say so in the commit message.
+example by hashing rendered frames, and say so in the commit message. `tests/test_golden.py` does this for the
+built-in presets on a generated signal. When a look changes on purpose, or a Skia or NumPy upgrade changes the bytes,
+check the frames visually first and then renew the hashes it prints.
 
 ## 4. Conventions
 

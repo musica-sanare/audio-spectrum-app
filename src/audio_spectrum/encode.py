@@ -9,6 +9,9 @@ from fractions import Fraction
 from pathlib import Path
 from typing import Literal
 
+import numpy as np
+import skia
+
 from audio_spectrum.errors import EncodeError, FfmpegNotFoundError
 
 Codec = Literal["h264", "prores"]
@@ -134,3 +137,16 @@ class VideoWriter:
         self._errors.seek(0)
         lines = self._errors.read().decode(errors="replace").strip().splitlines()
         return lines[-1] if lines else f"exit code {self._process.returncode}"
+
+
+def write_png(path: Path, frame: np.ndarray) -> None:
+    """Write a (height, width, 3) uint8 RGB frame as a lossless PNG, through a temporary file like videos."""
+    path = Path(path)
+    opaque = np.dstack([frame, np.full(frame.shape[:2], 255, dtype=np.uint8)])
+    image = skia.Image.fromarray(opaque, colorType=skia.kRGBA_8888_ColorType)
+    partial = partial_path(path)
+    try:
+        partial.write_bytes(bytes(image.encodeToData(skia.kPNG, 100)))
+        partial.replace(path)
+    finally:
+        partial.unlink(missing_ok=True)

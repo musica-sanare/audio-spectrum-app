@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob bc2ed9a352b111c756e7e1ba854d04a9cde622cc -->
+<!-- source: docs/en/USER_GUIDE.md blob 819f71fc44e59b9a8a0f270b2cf783c8ce94d6c8 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -43,6 +43,18 @@ uv run audio-spectrum render *.wav --out-dir ~/Movies/spectrum     # several son
 uv run audio-spectrum render song.wav --preset my-look.toml        # your own preset
 ```
 
+### 見た目を手早く試す
+
+動画全体ではなく1コマだけを PNG 画像で書き出せます。また、`--set` でプリセットの項目をコマンドラインから変えられます:
+
+```bash
+uv run audio-spectrum still song.wav --at 30 --at 61.5                    # song_30s.png, song_61.5s.png
+uv run audio-spectrum still song.wav --at 30 --set look.max_height=0.4 --overwrite
+uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the same overrides work for videos
+```
+
+静止画は、動画がその時刻に表示するコマとまったく同じです。
+
 ### iMovie で使う
 
 1. 背景動画をタイムラインに置きます。
@@ -76,6 +88,7 @@ audio-spectrum render AUDIO... [options]
 | `--out-dir DIR` | 各入力の隣 | 出力フォルダ(なければ作成)。出力名は `<入力名>_spectrum.mp4`(または `.mov`) |
 | `--overwrite` | オフ | 既存の出力を置き換える。付けない場合、既存の出力はそのファイルのエラーとなり、元のファイルは変更されません |
 | `--preset NAME_OR_FILE` | `default` | 組み込みプリセット名、または `.toml` プリセットファイルのパス |
+| `--set KEY=VALUE` | | プリセットの項目を1つ変える。例:`look.max_height=0.4`。複数指定可(4章参照) |
 | `--background COLOR` | プリセットの値 | `blue`、`green`、または `#RRGGBB` |
 | `--size SIZE` | `1080p` | `720p`、`1080p`、`1440p`、`2160p`、または `幅x高さ`(偶数) |
 | `--fps FPS` | `30` | 1秒あたりのコマ数。例:`24`、`29.97`、`60` |
@@ -85,6 +98,26 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0`(自動) | 描画プロセス数。`1` で単一プロセス |
 | `--progress MODE` | `text` | stderr にテキスト(`text`)、stdout に JSON イベント(`json`)、または出力なし(`none`) |
 | `--fail-fast` | オフ | 最初に失敗したファイルで止める。付けない場合は残りのファイルも書き出します |
+
+### `still`
+
+```
+audio-spectrum still AUDIO --at SECONDS [--at SECONDS ...] [options]
+```
+
+指定した各時刻に表示されるコマを、`<入力名>_<秒>s.png`(例:`song_61.5s.png`)という名前の PNG 画像で書き出し、
+書き出したパスを stdout に1行ずつ表示します。画像は劣化がなく、同じオプションで書き出した動画のコマと同一です。
+
+| オプション | 既定値 | 意味 |
+|---|---|---|
+| `AUDIO` | | 音声ファイル1つ |
+| `--at SECONDS` | | コマの時刻(0 から音声の長さ未満まで)。複数指定可 |
+| `--out-dir DIR` | 入力の隣 | 出力フォルダ(なければ作成) |
+| `--overwrite` | オフ | 既存の画像を置き換える。付けない場合、画像が1つでも既にあれば何も書き出しません |
+| `--preset`、`--set`、`--background`、`--size`、`--fps` | | `render` と同じ。なめらかさの処理が fps に依存するため、`--fps` も結果に影響します |
+
+終了コードは `render` と同じです。画像が既にある、音声を読めない、時刻が音声の範囲外のときは 1、オプションの誤りや
+不正なプリセットのときは 2 です。
 
 ### `presets`
 
@@ -108,6 +141,7 @@ audio-spectrum presets check FILE    # validate a preset file
 
 各動画は出力フォルダ内の隠し一時ファイル(`.<名前>.partial-<番号>.mp4`)に書き出され、ffmpeg が成功したあとで
 正式な名前に変わります。失敗や中断のあとには、出力も一時ファイルも残りません。正式な名前のファイルは、常に完全なものです。
+`still` の画像も同じ方法で書き出します。
 
 ## 4. プリセット
 
@@ -136,6 +170,10 @@ uv run audio-spectrum render song.wav --preset my-look.toml
 - 知らない項目、型の誤り、範囲外の値はエラーになり、項目名が表示されます。例:
   `analysis.bandz: Extra inputs are not permitted`
 - `schema_version = 1` はファイル形式のバージョンを表します。
+- `render` と `still` の `--set KEY=VALUE` で、ファイルを編集せずに項目を1つ変えられます。`KEY` は下の表の
+  `analysis.min_frequency`、`look.mirror`、`background` のような、ドットでつないだ名前です。`VALUE` はファイルと同じ書き方
+  (`0.4`、`true`、`"#00FF00"`)で、単語や色は引用符なしでも構いません。結果はプリセットファイルと同じように検査されます。
+  `look.kind` はこの方法では変えられません。
 
 主な項目(`presets show default` で表示されるファイルに、各項目の説明があります):
 
@@ -211,6 +249,11 @@ if __name__ == "__main__":  # required, see below
 - `render_video` は失敗すると `AudioSpectrumError` の派生クラスを送出します:`PresetError`、`DecodeError`、`EncodeError`、
   `OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、および `cancel` が真を返したときの `Cancelled`。
   いずれの場合も出力ファイルは残りません。
+- `override_preset(preset, ["look.max_height=0.4"])` は `--set` と同じ上書きをして、新しいプリセットを返します。
+  結果が不正なら `PresetError` を送出します。
+- `render_stills(audio_path, preset, times, width, height, fps)` は、指定した時刻(秒)に表示されるコマを
+  `(height, width, 3)` の `uint8` RGB 配列で返します。ファイルは書きません。時刻が音声の範囲外なら `TimeRangeError`
+  (コード `time_out_of_range`)を、読み込みの失敗には `render_video` と同じエラーを送出します。描画は呼び出し元のプロセスで行います。
 - コマは複数のプロセスで描かれ、それらは呼び出し元のスクリプトを読み込み直します。そのため、スクリプトからは
   `if __name__ == "__main__":` の中で API を呼んでください。これがないと、その旨を伝える `WorkerError` で失敗します。
   `workers=1` を指定すれば、追加のプロセスは使いません。

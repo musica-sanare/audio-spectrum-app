@@ -42,8 +42,8 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) |
 | `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame |
 | `renderer.py` | Combines geometry and raster for one frame |
-| `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success |
-| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation |
+| `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success; `write_png` writes stills the same way |
+| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills`: single frames for checks |
 | `errors.py` | Error types with stable codes |
 | `cli.py` | Commands, progress output, exit codes, signal handling |
 

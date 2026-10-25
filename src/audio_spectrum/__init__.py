@@ -20,10 +20,11 @@ from audio_spectrum.errors import (
     FfmpegNotFoundError,
     OutputExistsError,
     PresetError,
+    TimeRangeError,
     WorkerError,
 )
-from audio_spectrum.pipeline import RenderJob, RenderResult, render_video
-from audio_spectrum.presets import Preset, builtin_preset_names, load_preset
+from audio_spectrum.pipeline import RenderJob, RenderResult, render_stills, render_video
+from audio_spectrum.presets import Preset, builtin_preset_names, load_preset, override_preset
 
 __all__ = [
     "AudioSpectrumError",
@@ -37,9 +38,12 @@ __all__ = [
     "PresetError",
     "RenderJob",
     "RenderResult",
+    "TimeRangeError",
     "WorkerError",
     "__version__",
     "builtin_preset_names",
     "load_preset",
+    "override_preset",
+    "render_stills",
     "render_video",
 ]

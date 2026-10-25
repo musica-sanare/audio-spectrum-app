@@ -1,5 +1,6 @@
 """Audio file in, spectrum video out."""
 
+import math
 import os
 import signal
 import time
@@ -16,7 +17,7 @@ import numpy as np
 from audio_spectrum.analysis import analyze
 from audio_spectrum.audio import load_audio
 from audio_spectrum.encode import EncodeSettings, VideoWriter
-from audio_spectrum.errors import Cancelled, OutputExistsError, WorkerError
+from audio_spectrum.errors import Cancelled, OutputExistsError, TimeRangeError, WorkerError
 from audio_spectrum.presets import Preset
 from audio_spectrum.renderer import FrameRenderer
 
@@ -75,6 +76,30 @@ def render_video(job: RenderJob, progress: Progress | None = None, cancel: Cance
             if progress is not None:
                 progress(index, total)
     return RenderResult(output_path=output, frames=total, seconds=time.perf_counter() - started)
+
+
+def render_stills(
+    audio_path: Path, preset: Preset, times: list[float], width: int = 1920, height: int = 1080, fps: float = 30.0
+) -> list[np.ndarray]:
+    """Render the frames a video with these settings shows at the given times (seconds), as (height, width, 3) uint8
+    RGB arrays. Each is byte-identical to that video frame before encoding. Raises TimeRangeError for a time outside
+    the audio."""
+    audio = load_audio(audio_path)
+    values = analyze(audio, fps, preset.analysis)
+    try:
+        indices = [still_frame_index(seconds, fps, audio.duration) for seconds in times]
+    except TimeRangeError as error:
+        raise TimeRangeError(f"{Path(audio_path).name}: {error}") from None
+    renderer = FrameRenderer(preset, width, height)
+    return [renderer.render(values[min(index, len(values) - 1)]) for index in indices]
+
+
+def still_frame_index(seconds: float, fps: float, duration: float) -> int:
+    """The frame shown at `seconds`: frame n is on screen from n / fps until (n + 1) / fps."""
+    if not 0 <= seconds < duration:
+        raise TimeRangeError(f"{seconds:g} s is outside the audio (0 to {duration:.3f} s)")
+    # The tolerance keeps times such as 2.3 s at 30 fps (68.99999... in floating point) on frame 69.
+    return math.floor(seconds * fps + 1e-9)
 
 
 def _frames(job: RenderJob, values: np.ndarray) -> Iterator[np.ndarray]:

@@ -5,6 +5,7 @@ Built-in presets ship as TOML files in `builtin_presets/`. Missing keys take the
 """
 
 import tomllib
+from collections.abc import Iterable
 from importlib import resources
 from pathlib import Path
 from typing import Annotated, Literal
@@ -134,6 +135,43 @@ def parse_preset(source: str, origin: str = "preset") -> Preset:
         return Preset.model_validate(data)
     except ValidationError as error:
         raise PresetError(f"{origin} is invalid:\n{_describe(error)}") from None
+
+
+def override_preset(preset: Preset, assignments: Iterable[str]) -> Preset:
+    """Apply "dotted.key=value" assignments and validate the result like a preset file.
+
+    Values use TOML syntax (`0.4`, `true`, `["#FFFFFF", "#00FFFF"]`); a value that is not valid TOML is taken as a
+    plain string, so `analysis.channel=left` and `background=#00FF00` need no quotes.
+    """
+    assignments = list(assignments)
+    if not assignments:
+        return preset
+    data = preset.model_dump()
+    for assignment in assignments:
+        key, separator, text = assignment.partition("=")
+        key = key.strip()
+        if not separator or not key:
+            raise PresetError(f"--set expects KEY=VALUE, got {assignment!r}")
+        if key == "look.kind":
+            raise PresetError("--set cannot change look.kind; start from a preset with the look you want")
+        *parents, leaf = key.split(".")
+        table = data
+        for part in parents:
+            table = table.get(part) if isinstance(table, dict) else None
+            if not isinstance(table, dict):
+                raise PresetError(f"--set {key}: {part!r} is not a preset table")
+        table[leaf] = _toml_value(text.strip())
+    try:
+        return Preset.model_validate(data)
+    except ValidationError as error:
+        raise PresetError(f"preset with --set overrides is invalid:\n{_describe(error)}") from None
+
+
+def _toml_value(text: str) -> object:
+    try:
+        return tomllib.loads(f"value = {text}")["value"]
+    except tomllib.TOMLDecodeError:
+        return text
 
 
 def _describe(error: ValidationError) -> str:

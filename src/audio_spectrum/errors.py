@@ -47,3 +47,9 @@ class Cancelled(AudioSpectrumError):
     """The caller cancelled the render."""
 
     code = "cancelled"
+
+
+class TimeRangeError(AudioSpectrumError):
+    """A still was requested at a time outside the audio."""
+
+    code = "time_out_of_range"

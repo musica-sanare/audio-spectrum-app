@@ -40,6 +40,19 @@ uv run audio-spectrum render *.wav --out-dir ~/Movies/spectrum     # several son
 uv run audio-spectrum render song.wav --preset my-look.toml        # your own preset
 ```
 
+### Trying a look quickly
+
+Render single frames as PNG images instead of a whole video, and change preset keys on the command line with
+`--set`:
+
+```bash
+uv run audio-spectrum still song.wav --at 30 --at 61.5                    # song_30s.png, song_61.5s.png
+uv run audio-spectrum still song.wav --at 30 --set look.max_height=0.4 --overwrite
+uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the same overrides work for videos
+```
+
+A still is exactly the frame the video shows at that time.
+
 ### Using the video in iMovie
 
 1. Put the background video on the timeline.
@@ -73,6 +86,7 @@ audio-spectrum render AUDIO... [options]
 | `--out-dir DIR` | next to each input | Output folder, created if missing. Outputs are named `<input name>_spectrum.mp4` (or `.mov`) |
 | `--overwrite` | off | Replace existing outputs. Without it, an existing output is an error for that file and is left untouched |
 | `--preset NAME_OR_FILE` | `default` | Built-in preset name, or a path to a `.toml` preset file |
+| `--set KEY=VALUE` | | Change one preset key, for example `look.max_height=0.4`; repeatable (see section 4) |
 | `--background COLOR` | from the preset | `blue`, `green` or `#RRGGBB` |
 | `--size SIZE` | `1080p` | `720p`, `1080p`, `1440p`, `2160p` or `WIDTHxHEIGHT` (even numbers) |
 | `--fps FPS` | `30` | Frames per second, for example `24`, `29.97`, `60` |
@@ -82,6 +96,27 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0` (automatic) | Render processes; `1` renders in a single process |
 | `--progress MODE` | `text` | `text` on stderr, `json` events on stdout, or `none` |
 | `--fail-fast` | off | Stop at the first file that fails; otherwise the remaining files are still rendered |
+
+### `still`
+
+```
+audio-spectrum still AUDIO --at SECONDS [--at SECONDS ...] [options]
+```
+
+Writes the frame shown at each time as a PNG image named `<input name>_<seconds>s.png` (for example
+`song_61.5s.png`) and prints each written path on stdout. The images are lossless and identical to the frames of a
+video rendered with the same options.
+
+| Option | Default | Meaning |
+|---|---|---|
+| `AUDIO` | | One audio file |
+| `--at SECONDS` | | Time of a frame, from 0 up to the length of the audio; repeatable |
+| `--out-dir DIR` | next to the input | Output folder, created if missing |
+| `--overwrite` | off | Replace existing images. Without it, nothing is written when one of the images exists |
+| `--preset`, `--set`, `--background`, `--size`, `--fps` | | As for `render`. `--fps` matters because smoothing depends on the frame rate |
+
+Exit codes are those of `render`: 1 when an image exists, the audio cannot be decoded or a time is outside the
+audio; 2 for bad options or an invalid preset.
 
 ### `presets`
 
@@ -105,7 +140,7 @@ audio-spectrum presets check FILE    # validate a preset file
 
 Each video is written to a hidden temporary file in the output folder (`.<name>.partial-<number>.mp4`) and renamed
 only after ffmpeg succeeds. After a failure or an interruption no output and no temporary file remain, so any file
-with the final name is complete.
+with the final name is complete. Images from `still` are written the same way.
 
 ## 4. Presets
 
@@ -135,6 +170,10 @@ Rules:
 - Unknown keys, wrong types and out-of-range values are errors that name the key, for example
   `analysis.bandz: Extra inputs are not permitted`.
 - `schema_version = 1` marks the file format.
+- `--set KEY=VALUE` on `render` and `still` changes one key without editing a file. `KEY` is a dotted name from the
+  table below, such as `analysis.min_frequency`, `look.mirror` or `background`. `VALUE` is written as in the file
+  (`0.4`, `true`, `"#00FF00"`); a plain word or color needs no quotes. The result is checked like a preset file.
+  `look.kind` cannot be changed this way.
 
 Main keys (the file printed by `presets show default` explains each one):
 
@@ -210,6 +249,12 @@ if __name__ == "__main__":  # required, see below
 - `render_video` raises a subclass of `AudioSpectrumError` on failure: `PresetError`, `DecodeError`, `EncodeError`,
   `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, or `Cancelled` when `cancel` returns true. No output
   file is left behind in any of these cases.
+- `override_preset(preset, ["look.max_height=0.4"])` applies overrides like `--set` and returns a new preset. It
+  raises `PresetError` for an invalid result.
+- `render_stills(audio_path, preset, times, width, height, fps)` returns the frames shown at the given times (in
+  seconds) as `(height, width, 3)` `uint8` RGB arrays, without writing files. It raises `TimeRangeError` (code
+  `time_out_of_range`) for a time outside the audio, and the same decoding errors as `render_video`. It draws in the
+  calling process.
 - Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API
   under `if __name__ == "__main__":`. Without it the render fails with a `WorkerError` that says so. Passing
   `workers=1` avoids extra processes.
