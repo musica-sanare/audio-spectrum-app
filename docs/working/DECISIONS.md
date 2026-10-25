@@ -91,3 +91,15 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
 - Consequences: Clean edges, colors and glow in editors that read alpha. Files are about 1.4 times the size of
   opaque ProRes 4444; 16-bit alpha was 2.5 times slower to encode and 40 % larger for no visible gain, since frames
   carry 8-bit alpha.
+
+## ADR-011: Effects drawn with the shapes
+
+- Context: Architecture §5 planned effects such as glow as a post-processing step on the finished RGB frame. At that
+  point lines and background are already merged, so a blur would also spread the key color, and a transparent
+  background (ADR-010) would need its own path.
+- Decision: The raster backend draws effects together with the shapes: the glow is the same path drawn first with a
+  blur mask filter (standard deviation a third of `fx.glow_radius_px`) and the fill's color or gradient, then the
+  sharp shapes on top. Effects are configured in the preset's `[fx]` table and are off by default. Effects that
+  depend on earlier frames go into the analysis, so frames stay independent for parallel rendering.
+- Consequences: No extra dependency; a glow adds about 10 % to the render time. The halo is correct on transparent
+  backgrounds. On a key-color background it still mixes with the key color, which `presets check` warns about.

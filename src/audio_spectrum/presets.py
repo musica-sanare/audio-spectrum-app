@@ -113,6 +113,16 @@ class Fill(_Settings):
     """Gradient stops, evenly spaced: at least two colors when the mode is not "solid"."""
 
 
+class Effects(_Settings):
+    """Effects drawn with the lines. All off by default."""
+
+    glow_radius_px: float = Field(0.0, ge=0.0, le=200.0)
+    """How far a soft halo spreads around the lines, in pixels; 0 turns the glow off. The halo mixes with a key-color
+    background, so check keying, or use a transparent background."""
+    glow_strength: float = Field(1.0, gt=0.0, le=1.0)
+    """Opacity of the halo."""
+
+
 class Preset(_Settings):
     schema_version: Literal[1] = SCHEMA_VERSION
     name: str
@@ -121,6 +131,7 @@ class Preset(_Settings):
     analysis: AnalysisSettings = AnalysisSettings()
     look: Look = FlatLook()
     fill: Fill = Fill()
+    fx: Effects = Effects()
 
     @model_validator(mode="after")
     def _check(self) -> "Preset":
@@ -160,6 +171,11 @@ def preset_warnings(preset: Preset) -> list[str]:
             )
         if look.style == "blocks" and preset.analysis.bands > MAX_READABLE_BLOCK_BANDS:
             warnings.append(f"blocks with {preset.analysis.bands} bands are hard to read; 32 to 96 bands work best")
+    if preset.fx.glow_radius_px > 0:
+        warnings.append(
+            f"the glow mixes with the background {_hex(preset.background)}, so a chroma key may leave a colored fringe "
+            "or cut the halo; check keying in your editor, or render with --background transparent --codec prores4444"
+        )
     return warnings
 
 

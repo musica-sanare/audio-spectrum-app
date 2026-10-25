@@ -36,3 +36,7 @@ block_gap_px = 3.0          # blocks: gap between segments
 [fill]
 mode = "solid"              # "solid" (foreground), "frequency" (left to right) or "height" (baseline to tip)
 colors = []                 # gradient stops, at least two, for example ["#FFFFFF", "#FF00C8"]
+
+[fx]
+glow_radius_px = 0.0        # soft halo around the lines, in pixels; 0 = off (mixes with a key-color background)
+glow_strength = 1.0         # halo opacity, up to 1

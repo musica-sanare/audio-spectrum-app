@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 5e6caae86e63b3f41a81ccb1b45ee15bc64a56a3 -->
+<!-- source: docs/en/ARCHITECTURE.md blob a47f47ab79bb9ee85da856d6520db381edefa58f -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -75,7 +75,7 @@ H.264 エンコーダーが律速で、M1 では4分の曲を 1080p30 で約2分
 |---|---|
 | 新しい見た目(例:円形、ブロック) | `presets.py` に新しい `kind` の見た目モデル、`geometry.py` にその四角形の生成。描画の下回りなどはそのまま |
 | 新しい解析オプション | `AnalysisSettings` の項目(古いプリセットが動くよう既定値付き)と、`analysis.py` での利用 |
-| 発光やぼかしなどのエフェクト | `renderer.py` とエンコーダーの間で、RGB のコマに後処理を加える段階 |
+| 発光などのエフェクト | 描画の下回り(`raster.py`)が図形と一緒に描く。設定はプリセットの `[fx]` 表(ADR-011)。前のコマに依存するエフェクトは解析側に置く |
 | 新しい出力形式 | `encode.py` の `EncodeSettings` と `build_command`、`cli.py` の `--codec` の選択肢 |
 | GPU や 3D のレンダラー | 同じ `render(values) -> frame` の呼び出しの裏にある、別の rasterizer や renderer |
 | GUI | 公開 API だけを使う別のパッケージモジュール。依存は任意のオプションに入れる |

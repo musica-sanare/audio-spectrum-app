@@ -171,3 +171,48 @@ def test_transparent_edges_keep_the_full_line_color():
     edges = (clear[:, :, 3] > 0) & (clear[:, :, 3] < 255)
     assert edges.any()
     assert np.all(clear[edges][:, :3] == 255)
+
+
+def glow_preset(radius: float, strength: float = 1.0, **fill) -> Preset:
+    return Preset(
+        name="test", look=FlatLook(bar_fill=0.2, response=1.0), fx={"glow_radius_px": radius, "glow_strength": strength},
+        **fill,
+    )
+
+
+def test_glow_off_draws_exactly_the_plain_lines():
+    values = np.random.default_rng(3).random(32).astype(np.float32)
+    plain = FrameRenderer(Preset(name="test", look=FlatLook(bar_fill=0.2, response=1.0)), WIDTH, HEIGHT).render(values)
+    assert np.array_equal(FrameRenderer(glow_preset(0.0), WIDTH, HEIGHT).render(values), plain)
+
+
+def test_glow_lights_the_background_near_the_lines_and_keeps_the_lines():
+    values = np.full(32, 0.5, np.float32)
+    plain = Preset(name="test", look=FlatLook(bar_fill=0.2, response=1.0))
+    without = FrameRenderer(plain, WIDTH, HEIGHT).render(values).astype(int)
+    soft = FrameRenderer(glow_preset(12.0), WIDTH, HEIGHT).render(values).astype(int)
+    strong = FrameRenderer(glow_preset(12.0, 1.0), WIDTH, HEIGHT).render(values).astype(int)
+    faint = FrameRenderer(glow_preset(12.0, 0.3), WIDTH, HEIGHT).render(values).astype(int)
+    lines = np.all(without == 255, axis=2)
+    assert np.all(soft[lines] == 255)
+    halo = np.all(without == (0, 0, 255), axis=2) & np.any(soft != without, axis=2)
+    assert halo.sum() > lines.sum()
+    assert faint[halo][:, 0].mean() < strong[halo][:, 0].mean()
+    assert np.all(soft[0, 0] == (0, 0, 255))
+
+
+def test_glow_on_a_transparent_background_is_white_with_partial_alpha():
+    clear = FrameRenderer(glow_preset(12.0), WIDTH, HEIGHT, transparent=True).render(np.full(32, 0.5, np.float32))
+    halo = (clear[:, :, 3] > 0) & (clear[:, :, 3] < 255)
+    assert halo.sum() > 1000
+    assert np.all(clear[halo][:, :3] == 255)
+
+
+def test_glow_takes_the_gradient_colors():
+    preset = glow_preset(12.0, fill={"mode": "frequency", "colors": ["#FF0000", "#00FF00"]})
+    frame = FrameRenderer(preset, WIDTH, HEIGHT, transparent=True).render(np.full(32, 0.5, np.float32))
+    halo = (frame[:, :, 3] > 0) & (frame[:, :, 3] < 255)
+    left = halo & (np.arange(WIDTH) < WIDTH // 4)[None, :]
+    right = halo & (np.arange(WIDTH) > 3 * WIDTH // 4)[None, :]
+    assert frame[left][:, 0].mean() > frame[left][:, 1].mean()
+    assert frame[right][:, 1].mean() > frame[right][:, 0].mean()

@@ -60,7 +60,8 @@ A still is exactly the frame the video shows at that time.
 2. Drag the spectrum video above it, at the same start position.
 3. In the video overlay settings, choose **Blue/Green Screen**.
 
-Effects such as blur or glow can be added in the editor. The app keeps the lines plain so they key cleanly.
+Effects such as blur can be added in the editor. The app keeps the lines plain by default so they key cleanly; its
+own glow (section 4) is off unless a preset turns it on.
 
 ### Choosing the output format
 
@@ -138,7 +139,8 @@ audio-spectrum presets check FILE    # validate a preset file
 ```
 
 `presets check` also prints warnings on stderr for presets that are valid but likely to key or encode badly: a line
-color close to the background, thin colored lines (see section 4), or blocks with too many bands. Warnings do not
+color close to the background, thin colored lines (see section 4), a glow on a key-color background, or blocks
+with too many bands. Warnings do not
 change the exit code. They are checked against the preset's own background, not a `--background` given to `render`.
 
 ### Exit codes
@@ -169,6 +171,7 @@ Built-in presets:
 | `default` | 512 white lines on blue, mirrored around a centered baseline, low to high frequencies left to right |
 | `bars` | 64 solid white bars, mirrored around a centered baseline |
 | `blocks` | 48 bars split into blocks like an LED meter, rising from a baseline near the bottom |
+| `glow` | `default` with a soft glow; check keying, or use a transparent background (section 4) |
 | `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
 
 To make your own, start from a built-in one:
@@ -234,6 +237,18 @@ Gradients work with the flat look (all built-in presets except `unity-classic`).
   512 lines of `default`, a pink-to-yellow gradient came out on average 35 levels (of 255) off and tinted blue. White
   lines and solid bars (`bars`, about 6 levels) are hardly affected. For colored thin lines use
   `--codec prores4444`, which keeps them exact.
+
+### Glow
+
+| Key | Meaning |
+|---|---|
+| `fx.glow_radius_px` | How far a soft halo spreads around the lines, in pixels; `0` (default) turns it off |
+| `fx.glow_strength` | Opacity of the halo, from just above 0 up to 1 |
+
+The halo takes the line colors, including a gradient. On a blue or green back it is a mix of the line color and the
+key color, which a chroma key cannot always separate: it may leave a colored fringe or cut the halo short. Check the
+result in your editor, or render with `--background transparent --codec prores4444` (section 2), where the halo is
+the line color with partial transparency. A glow adds about 10 % to the render time.
 
 ## 5. Using it from other tools
 

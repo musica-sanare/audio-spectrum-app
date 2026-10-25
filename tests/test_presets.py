@@ -19,7 +19,7 @@ from audio_spectrum.presets import (
 
 
 def test_builtin_presets_are_listed():
-    assert builtin_preset_names() == ["bars", "blocks", "default", "unity-classic"]
+    assert builtin_preset_names() == ["bars", "blocks", "default", "glow", "unity-classic"]
 
 
 def test_default_preset_file_matches_the_model_defaults():
@@ -72,7 +72,7 @@ def test_invalid_presets_name_the_problem(source, message):
 
 
 def test_unknown_builtin_name_lists_the_available_presets():
-    with pytest.raises(PresetError, match="default, unity-classic"):
+    with pytest.raises(PresetError, match="bars, blocks, default, glow, unity-classic"):
         load_preset("nonexistent")
 
 
@@ -83,7 +83,7 @@ def test_missing_preset_file_is_a_preset_error(tmp_path):
 
 def test_cli_presets_list_and_show(capsys):
     assert main(["presets", "list"]) == 0
-    assert capsys.readouterr().out.split() == ["bars", "blocks", "default", "unity-classic"]
+    assert capsys.readouterr().out.split() == ["bars", "blocks", "default", "glow", "unity-classic"]
     assert main(["presets", "show", "default"]) == 0
     assert capsys.readouterr().out == builtin_preset_text("default")
 
@@ -118,14 +118,24 @@ def test_invalid_fills_are_rejected(overrides, message):
         override_preset(load_preset("default"), overrides)
 
 
+@pytest.mark.parametrize("overrides", [["fx.glow_radius_px=-1"], ["fx.glow_radius_px=500"], ["fx.glow_strength=0"],
+                                       ["fx.glow_strength=1.5"], ["fx.halo=1"]])
+def test_invalid_effects_are_rejected(overrides):
+    with pytest.raises(PresetError, match="fx"):
+        override_preset(load_preset("default"), overrides)
+
+
 def test_gradients_need_the_flat_look():
     with pytest.raises(PresetError, match="flat look"):
         override_preset(load_preset("unity-classic"), ["fill.mode=height", "fill.colors=[\"#FFFFFF\", \"#00FFFF\"]"])
 
 
 @pytest.mark.parametrize("name", builtin_preset_names())
-def test_builtin_presets_have_no_warnings(name):
-    assert preset_warnings(load_preset(name)) == []
+def test_builtin_presets_warn_only_about_glow(name):
+    warnings = preset_warnings(load_preset(name))
+    assert warnings == ([] if name != "glow" else [warnings[0]])
+    if name == "glow":
+        assert "the glow mixes with the background #0000FF" in warnings[0]
 
 
 @pytest.mark.parametrize(
@@ -137,6 +147,7 @@ def test_builtin_presets_have_no_warnings(name):
         (["fill.mode=frequency", "fill.colors=[\"#FFFFFF\", \"#6060FF\"]"], "#6060FF is close"),
         (["foreground=#FF00C8"], "thin colored lines"),
         (["look.style=blocks"], "blocks with 512 bands"),
+        (["background=#00FF00", "fx.glow_radius_px=12"], "glow mixes with the background #00FF00"),
     ],
 )
 def test_risky_presets_get_warnings(overrides, expected):

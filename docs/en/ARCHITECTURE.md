@@ -74,7 +74,7 @@ ffmpeg so memory stays bounded. With parallel workers the H.264 encoder is the l
 |---|---|
 | A new look (for example circular, blocks) | A look model in `presets.py` with a new `kind`, and its quad builder in `geometry.py`. The raster backend and the rest stay unchanged |
 | New analysis options | Fields in `AnalysisSettings` (with defaults, so old presets keep working) and their use in `analysis.py` |
-| Effects such as glow or blur | A post-processing step on the RGB frame between `renderer.py` and the encoder |
+| Effects such as glow | Drawn by the raster backend together with the shapes (`raster.py`), configured in the preset's `[fx]` table (ADR-011). Effects that depend on earlier frames belong in the analysis |
 | A new output format | `EncodeSettings` and `build_command` in `encode.py`, plus a `--codec` choice in `cli.py` |
 | A GPU or 3D renderer | Another rasterizer or renderer behind the same `render(values) -> frame` call |
 | The GUI | A separate package module using only the public API, with its dependencies in an optional extra |

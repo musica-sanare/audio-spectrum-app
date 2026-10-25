@@ -1,0 +1,9 @@
+# The default look with a soft glow. The halo mixes with the key-color background: check keying in your editor, or
+# render with --background transparent --codec prores4444. Keys not listed take the default preset's values (see
+# `presets show default`).
+schema_version = 1
+name = "glow"
+
+[fx]
+glow_radius_px = 36.0       # how far the halo spreads, in pixels
+glow_strength = 1.0         # halo opacity, up to 1
