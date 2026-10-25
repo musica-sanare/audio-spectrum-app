@@ -29,3 +29,6 @@ bar_fill = 0.5              # line width as a fraction of each band's slot
 min_bar_width_px = 2.0
 min_height_px = 1.0
 response = 1.6              # above 1 keeps quiet bands low
+style = "bars"              # "bars" or "blocks" (segmented, like an LED meter)
+block_height_px = 8.0       # blocks: segment height
+block_gap_px = 3.0          # blocks: gap between segments

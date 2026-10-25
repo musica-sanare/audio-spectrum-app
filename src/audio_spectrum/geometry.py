@@ -29,9 +29,30 @@ def flat_quads(look: FlatLook, values: np.ndarray, width: int, height: int) -> n
     extent = look.max_height * height * np.clip(values, 0.0, 1.0) ** look.response
     extent = np.maximum(extent, look.min_height_px)
     baseline = look.baseline_y * height
+    if look.style == "blocks":
+        return _blocks(look, x0, x1, extent, baseline, height)
     top = baseline - extent
     bottom = baseline + extent if look.mirror else np.full(num_bands, baseline)
     return _rectangles(x0, top, x1, bottom)
+
+
+def _blocks(
+    look: FlatLook, x0: np.ndarray, x1: np.ndarray, extent: np.ndarray, baseline: float, height: int
+) -> np.ndarray:
+    """Split each bar into whole segments counted outward from the baseline; a segment the bar does not fully reach
+    is not drawn. Mirrored segments start half a gap away from the baseline so the two halves stay apart."""
+    pitch = look.block_height_px + look.block_gap_px
+    offset = look.block_gap_px / 2 if look.mirror else 0.0
+    counts = np.floor((extent - offset + look.block_gap_px) / pitch).astype(np.int64)
+    max_count = max(int(np.floor((look.max_height * height - offset + look.block_gap_px) / pitch)), 0)
+    counts = np.clip(counts, 0, max_count)
+    bands, segments = np.nonzero(np.arange(max_count)[None, :] < counts[:, None])
+    near = baseline - offset - segments * pitch
+    far = near - look.block_height_px
+    quads = _rectangles(x0[bands], far, x1[bands], near)
+    if look.mirror:
+        quads = np.concatenate([quads, _rectangles(x0[bands], 2 * baseline - near, x1[bands], 2 * baseline - far)])
+    return quads
 
 
 def perspective_quads(look: PerspectiveLook, values: np.ndarray, width: int, height: int) -> np.ndarray:

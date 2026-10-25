@@ -192,6 +192,11 @@ Main keys (the file printed by `presets show default` explains each one):
 | `look.mirror` | Grow up and down (`true`) or only up (`false`) |
 | `look.bar_fill` | Line width as a fraction of the space per band |
 | `look.response` | Above 1 keeps quiet bands low and lets peaks stand out |
+| `look.style` | `"bars"` (one line or bar per band) or `"blocks"` (bars split into segments, like an LED meter) |
+| `look.block_height_px`, `block_gap_px` | Blocks: segment height and the gap between segments, in pixels. A segment shows only once the bar reaches its full height |
+
+Thin lines and solid bars are both `"bars"`: fewer `analysis.bands` and a larger `look.bar_fill` give solid bars,
+for example `--set analysis.bands=64 --set look.bar_fill=0.8`. Blocks read best with 32 to 96 bands.
 
 ## 5. Using it from other tools
 

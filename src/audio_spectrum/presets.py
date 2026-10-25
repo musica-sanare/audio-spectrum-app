@@ -32,6 +32,8 @@ def parse_color(value: object) -> object:
     return value
 
 
+BarStyle = Literal["bars", "blocks"]
+
 Channel = Annotated[int, Field(ge=0, le=255)]
 Color = Annotated[tuple[Channel, Channel, Channel], BeforeValidator(parse_color)]
 
@@ -63,6 +65,12 @@ class FlatLook(_Settings):
     """Every band is at least this tall on each side, so the baseline stays visible."""
     response: float = Field(1.6, gt=0.0)
     """Exponent applied to band values: above 1 keeps quiet bands low and lets peaks stand out."""
+    style: BarStyle = "bars"
+    """"bars": one solid line or bar per band; "blocks": each bar split into segments, like an LED meter."""
+    block_height_px: float = Field(8.0, gt=0.0)
+    """Blocks: height of one segment. A segment shows only once the bar reaches its full height."""
+    block_gap_px: float = Field(3.0, ge=0.0)
+    """Blocks: gap between segments, and around the baseline when mirrored."""
 
 
 class PerspectiveLook(_Settings):

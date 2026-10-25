@@ -37,6 +37,52 @@ def test_flat_bars_are_never_thinner_than_the_minimum_width():
     assert np.all(quads[:, 1, 0] - quads[:, 0, 0] >= 2.0 - 1e-9)
 
 
+def blocks(**settings) -> FlatLook:
+    return FlatLook(style="blocks", response=1.0, block_height_px=8.0, block_gap_px=3.0, **settings)
+
+
+def segment_spans(quads: np.ndarray) -> list[tuple[float, float]]:
+    return sorted((float(quad[:, 1].min()), float(quad[:, 1].max())) for quad in quads)
+
+
+def test_blocks_draw_only_the_segments_a_bar_fully_reaches():
+    # Full scale is 36 px on each side; segments start 1.5 px from the baseline and repeat every 11 px.
+    look = blocks(max_height=0.1, mirror=False)
+    quads = flat_quads(look, np.array([0.0, 0.25, 0.5, 1.0]), WIDTH, HEIGHT)
+    counts = np.bincount(np.round(quads[:, 0, 0]).astype(int))
+    assert sorted(counts[counts > 0]) == [1, 1, 3]
+    assert segment_spans(flat_quads(look, np.array([1.0]), WIDTH, HEIGHT)) == [
+        (150.0, 158.0), (161.0, 169.0), (172.0, 180.0)
+    ]
+
+
+def test_mirrored_blocks_keep_a_gap_around_the_baseline():
+    quads = flat_quads(blocks(max_height=0.1), np.array([1.0]), WIDTH, HEIGHT)
+    assert segment_spans(quads) == [
+        (148.5, 156.5), (159.5, 167.5), (170.5, 178.5), (181.5, 189.5), (192.5, 200.5), (203.5, 211.5)
+    ]
+
+
+def test_blocks_keep_the_bar_positions_and_widths():
+    values = np.full(16, 1.0)
+    bars = flat_quads(FlatLook(response=1.0), values, WIDTH, HEIGHT)
+    segments = flat_quads(blocks(), values, WIDTH, HEIGHT)
+    assert set(np.round(segments[:, 0, 0], 6)) == set(np.round(bars[:, 0, 0], 6))
+    assert set(np.round(segments[:, 1, 0], 6)) == set(np.round(bars[:, 1, 0], 6))
+
+
+def test_silent_blocks_draw_nothing_and_render_the_background():
+    look = blocks()
+    assert flat_quads(look, np.zeros(8), WIDTH, HEIGHT).shape == (0, 4, 2)
+    frame = FrameRenderer(Preset(name="test", look=look), WIDTH, HEIGHT).render(np.zeros(8))
+    assert np.all(frame == (0, 0, 255))
+
+
+def test_blocks_never_grow_past_the_full_scale_height():
+    quads = flat_quads(blocks(max_height=0.1), np.array([5.0]), WIDTH, HEIGHT)
+    assert quads[:, :, 1].min() >= HEIGHT / 2 - 0.1 * HEIGHT
+
+
 def test_perspective_box_on_the_camera_axis_projects_to_the_horizontal_center():
     look = PerspectiveLook(first_x=0.0)
     quads = perspective_quads(look, np.array([0.05]), WIDTH, HEIGHT)

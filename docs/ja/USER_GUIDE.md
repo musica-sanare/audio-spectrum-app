@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 819f71fc44e59b9a8a0f270b2cf783c8ce94d6c8 -->
+<!-- source: docs/en/USER_GUIDE.md blob 392017a2dd004524c3bce96f1909e34b388f72c7 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -192,6 +192,11 @@ uv run audio-spectrum render song.wav --preset my-look.toml
 | `look.mirror` | 上下に伸ばす(`true`)か、上だけ(`false`)か |
 | `look.bar_fill` | 1本あたりの幅のうち、線が占める割合 |
 | `look.response` | 1 より大きいと小さな値を低く抑え、ピークを目立たせる |
+| `look.style` | `"bars"`(1帯につき1本の線または棒)か `"blocks"`(棒を区切ったブロック。LED メーター風) |
+| `look.block_height_px`、`block_gap_px` | ブロックの1つの高さと、ブロック間のすき間(ピクセル)。ブロックは、棒がその高さに完全に届いたときだけ表示される |
+
+細い線も太い棒も `"bars"` です。`analysis.bands` を減らして `look.bar_fill` を大きくすると太い棒になります
+(例:`--set analysis.bands=64 --set look.bar_fill=0.8`)。ブロックは 32〜96 帯くらいが見やすくなります。
 
 ## 5. ほかのツールから使う
 
