@@ -3,7 +3,7 @@
 # Phase 2 plan: effects and styles
 
 Status: scope approved by the owner on 2026-10-25 (option 1: effects and styles now, GUI in Phase 3). The owner's
-answers to the open questions are under "Decisions on open questions"; Q1 and Q2 are deferred (`要確認`).
+answers to the open questions are under "Decisions on open questions".
 
 ## Goal
 
@@ -41,7 +41,7 @@ The owner chose option 1; the rest of this plan follows it.
 ### Out (later phases or not planned)
 
 - GUI (F14, F15): Phase 3.
-- HEVC output (F13). Alpha output gets a test first (Q6); whether it ships in this phase follows from the test.
+- HEVC output (F13). Alpha output ships in this phase (Q6).
 - Blur of the lines in the app (Q3): the owner gets good results with iMovie's blur-type effects such as Romantic.
 - Peak hold and `--start`/`--duration` test clips (Q5).
 - New looks beyond the flat layout (for example circular). Effects apply to the `flat` look; `unity-classic` stays a
@@ -212,10 +212,10 @@ the JSON events stay as they are.
 
 | Area | Change |
 |---|---|
-| CLI | New `still` command; new `--set` option on `render` and `still`. Existing options, defaults and behavior unchanged |
+| CLI | New `still` command; new `--set` option on `render` and `still`; `--background transparent` (with `--codec prores4444`). Existing options, defaults and behavior unchanged |
 | JSON events | None |
 | Exit codes | None; `still` uses the existing ones |
-| Public API | New `render_stills(audio_path, preset, times, width, height, fps) -> list[ndarray]` and `override_preset(preset, assignments) -> Preset` |
+| Public API | New `render_stills(audio_path, preset, times, width, height, fps, transparent=False) -> list[ndarray]`, `override_preset(preset, assignments) -> Preset`, `TimeRangeError`, and `EncodeSettings.alpha` |
 | Preset format | New keys `analysis.low_fft_size`, `analysis.low_crossover_frequency`, `look.style`, `look.block_height_px`, `look.block_gap_px`, tables `[fill]` and `[fx]`; `schema_version` stays 1 |
 
 The user guide (English and Japanese) is updated in the same commit as each change.
@@ -263,13 +263,17 @@ and Japanese) within their milestone.
 
 Answered by the owner on 2026-10-25.
 
-- Q1. Low frequencies (multi-resolution analysis, opt-in or new default): deferred, `要確認`. Milestone 4 waits.
-- Q2. Glow (importance, and what to do if iMovie keys it poorly): deferred, `要確認`. Glow in milestone 2 and the
-  `glow` preset wait; gradient fill and keying warnings go ahead.
+- Q1. Low frequencies: first deferred, then approved as planned: the multi-resolution analysis ships as opt-in
+  preset keys and `default` stays as it is. Adopting it in `default` later needs its own decision after stills and a
+  clip (`要確認`).
+- Q2. Glow: first deferred, then approved as planned: off by default, with a `presets check` warning about keying on a
+  key-color background, and the `glow` preset. Transparent output (Q6) is the clean way to use it.
 - Q3. Blur in the app: not needed. iMovie's blur-type effects (for example Romantic) work well.
 - Q4. Built-in example presets `bars`, `blocks` and `glow`: agreed. `glow` follows Q2.
 - Q5. Peak hold and `--start`/`--duration`: not added in this phase, as planned.
-- Q6. Alpha output: the owner wants to try it once; the app need not be optimized for iMovie alone. Test clips in
-  ProRes 4444 with alpha (plain lines, and lines with a glow, which is where alpha matters most) are made from a
-  throwaway script and checked by the owner. If they work, alpha output is added as an output option (F13), with its
-  own entry in the contract table and an ADR; otherwise ADR-005 stands.
+- Q6. Alpha output: the owner wants it; the app need not be optimized for iMovie alone. Test clips in ProRes 4444
+  with alpha were made from a throwaway script (`work/phase2_alpha/`), then the owner approved adding transparent
+  output as a feature (F13), with its own entry in the contract table and an ADR.
+
+Order of the remaining work, one commit each: transparent output, glow, low frequencies, then docs, version and
+acceptance.
