@@ -2,8 +2,8 @@
 
 # Phase 2 plan: effects and styles
 
-Status: scope approved by the owner on 2026-10-25 (option 1: effects and styles now, GUI in Phase 3). Questions
-Q1–Q6 are open and marked `要確認`; milestone 1 does not depend on them.
+Status: scope approved by the owner on 2026-10-25 (option 1: effects and styles now, GUI in Phase 3). The owner's
+answers to the open questions are under "Decisions on open questions"; Q1 and Q2 are deferred (`要確認`).
 
 ## Goal
 
@@ -41,8 +41,9 @@ The owner chose option 1; the rest of this plan follows it.
 ### Out (later phases or not planned)
 
 - GUI (F14, F15): Phase 3.
-- HEVC and alpha output (F13), unless the owner decides otherwise (要確認 Q6).
-- Blur of the lines in the app (要確認 Q3): the owner already blurs in iMovie, after keying, which is cleaner.
+- HEVC output (F13). Alpha output gets a test first (Q6); whether it ships in this phase follows from the test.
+- Blur of the lines in the app (Q3): the owner gets good results with iMovie's blur-type effects such as Romantic.
+- Peak hold and `--start`/`--duration` test clips (Q5).
 - New looks beyond the flat layout (for example circular). Effects apply to the `flat` look; `unity-classic` stays a
   comparison preset without effects.
 
@@ -258,15 +259,17 @@ and Japanese) within their milestone.
 - The owner has checked glow and the low-frequency option in iMovie and decided Q1 and Q2.
 - Docs in English and Japanese match the delivered contract.
 
-## Open questions (要確認)
+## Decisions on open questions
 
-- Q1. Low frequencies: keep the multi-resolution analysis opt-in, or make it the new `default` after seeing stills
-  and a clip? Which crossover and FFT size look best (16384 below 250 Hz, or 32768 below 150 Hz)?
-- Q2. Glow: how important is it? If iMovie keys it poorly, keep it as an option with a warning, or drop it?
-- Q3. Blur in the app: not planned, because blurring in iMovie after keying is cleaner. Is that right for your use?
-  How do you apply the blur in iMovie today?
-- Q4. Built-in example presets: are `bars`, `blocks` and `glow` the right set? Any colors you already know you want?
-- Q5. Extras not in the plan, cheap to add if wanted: a peak-hold cap that falls slowly above each bar; a
-  `--start`/`--duration` option to render a short test clip of a song.
-- Q6. Alpha output (F13): ADR-005 assumes iMovie cannot use alpha video. If the owner can confirm that with a test
-  clip, glow and blur would key perfectly in an alpha-capable editor. Worth a quick check in this phase?
+Answered by the owner on 2026-10-25.
+
+- Q1. Low frequencies (multi-resolution analysis, opt-in or new default): deferred, `要確認`. Milestone 4 waits.
+- Q2. Glow (importance, and what to do if iMovie keys it poorly): deferred, `要確認`. Glow in milestone 2 and the
+  `glow` preset wait; gradient fill and keying warnings go ahead.
+- Q3. Blur in the app: not needed. iMovie's blur-type effects (for example Romantic) work well.
+- Q4. Built-in example presets `bars`, `blocks` and `glow`: agreed. `glow` follows Q2.
+- Q5. Peak hold and `--start`/`--duration`: not added in this phase, as planned.
+- Q6. Alpha output: the owner wants to try it once; the app need not be optimized for iMovie alone. Test clips in
+  ProRes 4444 with alpha (plain lines, and lines with a glow, which is where alpha matters most) are made from a
+  throwaway script and checked by the owner. If they work, alpha output is added as an output option (F13), with its
+  own entry in the contract table and an ADR; otherwise ADR-005 stands.
