@@ -37,7 +37,7 @@ If any path does not exist, report it rather than silently inventing its content
 - Work in phases: write a plan in `docs/working/PHASE<N>_PLAN.md`, get the owner's approval, then implement, measure and
   propose a commit per milestone. Each phase ends with a report in `docs/working/` (`PHASE0_RESULTS.md`, then
   `PHASE<N>_ACCEPTANCE.md`).
-- Commit on `main` until the owner creates the `dev` branch after the first push.
+- Work and commit on the `dev` branch, which the owner created after the first push.
 
 ## Overrides of shared rules
 None.
