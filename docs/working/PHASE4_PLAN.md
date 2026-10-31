@@ -3,7 +3,7 @@
 # Phase 4 plan: drawing the spectrum over another app's frames
 
 Status: approved by the owner on 2026-10-31 with the recommended option B; accepted the same day
-([Phase 4 acceptance](PHASE4_ACCEPTANCE.md)). P4-1 is open (`要確認`).
+([Phase 4 acceptance](PHASE4_ACCEPTANCE.md)). P4-1 was answered afterwards: `v0.5.0` is tagged.
 
 ## Goal
 
@@ -72,14 +72,14 @@ hashes and the CLI do not change.
 | JSON events | Error code `backdrop_failed` (only from the API; the CLI has no backdrop option) |
 | CLI, presets, GUI | None |
 
-A CLI option for a still background image is easy to add on top but is not planned: the lyrics app owns that. (要確認
-P4-2)
+A CLI option for a still background image is easy to add on top but is not planned: the lyrics app owns that.
+(P4-2)
 
 ### 4. Version and release
 
 Version 0.5.0. The lyrics app first depends on this repository by path (`../audio-spectrum-app`, editable) while
 both change; once this phase is accepted it can pin a Git tag such as `v0.5.0`. Creating and pushing the tag is the
-owner's (要確認 P4-1).
+owner's (P4-1).
 
 ## Milestones and commits
 
@@ -105,6 +105,7 @@ Each milestone ends with a commit proposal for the owner's approval.
 
 Answered by the owner on 2026-10-31 ("approved with the recommended options").
 
-- P4-1. Tagging: open, `要確認`. Until it is decided, lyrics-video-app uses the path dependency.
+- P4-1. Tagging: the owner asked for the tag on 2026-10-31; `v0.5.0` is an annotated tag on `dc7ce4f`, pushed by the
+  owner. lyrics-video-app uses the path dependency while both change and can pin the tag later.
 - P4-2. No CLI option for a background image; the lyrics app owns that.
 - P4-3. Only the layer under the spectrum in this phase; an overlay hook can follow if a need appears.

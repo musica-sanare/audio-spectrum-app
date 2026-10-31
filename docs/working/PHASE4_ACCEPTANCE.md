@@ -59,5 +59,5 @@ In all three the video lasts 317.767 s and the audio 317.746 s, less than one fr
 
 ## 6. Open items
 
-- 要確認 P4-1: tagging `v0.5.0` for lyrics-video-app, or keeping its path dependency for now.
+- P4-1 answered after acceptance: `v0.5.0` is tagged on `dc7ce4f` (the acceptance commit).
 - Next: lyrics-video-app in its own repository, which will use this backdrop.
