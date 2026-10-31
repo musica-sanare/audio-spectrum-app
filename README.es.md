@@ -1,4 +1,4 @@
-<!-- source: README.md blob cd701c72e826517de6d46d598fdbac97a2702861 -->
+<!-- source: README.md blob e31b2adc594e3afb0dff4ce81bf095589b556904 -->
 [English](README.md) | [日本語](README.ja.md) | Español
 
 > Este documento es una traducción de la [versión en inglés](README.md). Si el contenido difiere, prevalece la versión
@@ -11,11 +11,11 @@ verde. El vídeo está pensado para superponerse a un vídeo de fondo con un rec
 fotogramas se calculan a partir de la línea de tiempo del audio, así que audio y vídeo se mantienen exactamente
 sincronizados.
 
-**Estado:** fase 3 (interfaz gráfica) implementada, versión 0.4.0; las fases 2 y 3 están pendientes de aceptación. La
+**Estado:** fases 1 a 3 aceptadas, versión 0.4.0. La
 CLI exporta con efectos y estilos (degradados, brillo, barras y bloques, graves más nítidos, ProRes 4444 transparente);
 `audio-spectrum gui` abre una página web local en japonés, inglés o español para ajustar el aspecto con vista previa,
 exportar y guardar preajustes. Consulta los informes de aceptación de la [fase 2](docs/working/PHASE2_ACCEPTANCE.md) y de la
-[fase 3](docs/working/PHASE3_ACCEPTANCE.md) (ambos borradores, solo en inglés).
+[fase 3](docs/working/PHASE3_ACCEPTANCE.md) (solo en inglés).
 
 ## Inicio rápido
 

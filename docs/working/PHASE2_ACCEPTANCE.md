@@ -2,7 +2,7 @@
 
 # Phase 2 acceptance: effects and styles
 
-Status: draft, waiting for the owner's checks and acceptance (section 7). Version 0.3.0.
+Status: accepted by the owner on 2026-10-31. Delivered as version 0.3.0; current version 0.4.0.
 
 Plan: [PHASE2_PLAN.md](PHASE2_PLAN.md). Machine: Apple M1 (8 cores), 16 GB RAM, ffmpeg 9.0.2.
 
@@ -30,7 +30,7 @@ on them went first.
 | With every new key at its default, frames of `default` and `unity-classic` are byte-identical to Phase 1 | Met | Analysis values and frames of a real clip hashed before milestone 1 and after every milestone: identical. A full song rendered by the Phase 1 code and by 0.3.0 gives the same H.264 frames. `tests/test_golden.py` guards all built-in presets |
 | A still is byte-identical to the corresponding video frame | Met | `test_stills_equal_the_video_frames_drawn_by_parallel_workers`; a real-clip still equals frame 450 |
 | Sync, frame-count and CLI contract tests pass; a full song with glow renders within its own length (N3) | Met | Tests pass; a 254.8 s song with glow rendered in 155 s (H.264) and 230 s (transparent ProRes 4444), section 5 |
-| The owner has checked glow and the low-frequency option in an editor and decided Q1 and Q2 | Open | Q2 decided (glow off by default, with a warning). Q1 (adopt in `default`) and the editor checks are open (section 7) |
+| The owner has checked glow and the low-frequency option in an editor and decided Q1 and Q2 | Met | The owner checked the outputs in an editor and closed the phase on 2026-10-31. Q2: glow off by default, with a warning. Q1: `default` stays as it is; the low-frequency analysis remains an option (section 7) |
 | Docs in English and Japanese match the delivered contract | Met | User guide, architecture and development docs updated in the commit of each change; Japanese source hashes current |
 
 Test suite: 160 tests, all passing (78 at the end of Phase 1).
@@ -98,10 +98,9 @@ machine was busier than in Phase 1: the Phase 1 code took 157 s for the same son
 
 ## 7. Open items and candidates for the next phase
 
-- 要確認 Q1: adopt `analysis.low_fft_size = 16384` in `default`, after the comparison clips in `work/phase2_low/`.
-  Adopting it changes the settled look: a new ADR and renewed golden hashes.
-- 要確認: the owner's check in an editor of transparent output (`work/phase2_alpha/`) and of glow on blue back
-  (`glow` preset).
-- Phase 3: GUI as a local web UI (F14). The preset models can produce a JSON schema for its forms;
-  `preset_warnings` may then become public API.
-- Later: HEVC output (F13), a user preset folder, peak hold and `--start`/`--duration` test clips (Q5).
+- Q1: the owner closed the phase without changing `default`; `analysis.low_fft_size` stays an opt-in key. Adopting
+  it in `default` later would change the settled look: a new ADR and renewed golden hashes.
+- The owner checked transparent output and glow in an editor before accepting.
+- Done in Phase 3 since this report was drafted: the GUI (F14), public `preset_warnings`, a user preset folder,
+  `--start`/`--duration` ([Phase 3 acceptance](PHASE3_ACCEPTANCE.md)).
+- Later: HEVC output (F13), peak hold.

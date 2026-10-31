@@ -2,7 +2,7 @@
 
 # Phase 3 acceptance: GUI as a local web UI
 
-Status: draft, waiting for the owner's check in an editor (section 7). Version 0.4.0.
+Status: accepted by the owner on 2026-10-31. Version 0.4.0.
 
 Plan: [PHASE3_PLAN.md](PHASE3_PLAN.md). Machine: Apple M1 (8 cores), 16 GB RAM, ffmpeg 9.0.2.
 
@@ -24,13 +24,13 @@ Plan: [PHASE3_PLAN.md](PHASE3_PLAN.md). Machine: Apple M1 (8 cores), 16 GB RAM, 
 
 | Criterion | Result | Evidence |
 |---|---|---|
-| `audio-spectrum gui` opens the page; every item of F14 works on the owner's Mac without network access | Met in Claude's checks; the owner's own use is open | Checked in a browser on the owner's Mac: song by path, preset changes with field errors, gradients, transparent preview, perspective look, 5-second clip, saving a preset, a full render with progress (section 5). The page loads nothing from the network (no external URL in `gui/static/`) |
+| `audio-spectrum gui` opens the page; every item of F14 works on the owner's Mac without network access | Met | Checked in a browser on the owner's Mac: song by path, preset changes with field errors, gradients, transparent preview, perspective look, 5-second clip, saving a preset, a full render with progress (section 5). The page loads nothing from the network (no external URL in `gui/static/`) |
 | A video rendered from the GUI is frame-for-frame identical to the CLI's with the same settings | Met | A 30-second clip rendered from the page and with `render --preset <saved user preset>`: identical `framemd5` of every frame |
 | A preview still is byte-identical to the corresponding video frame; a clip preview stays in sync with its audio | Met | `test_stills_equal_the_core_stills` (through the server), `test_preview_frames_equal_render_stills_and_reuse_the_analysis`; clips use `RenderJob.start`/`duration`, covered by click-track tests (`test_a_part_of_the_song_keeps_frames_and_audio_in_sync`: the click lands within 1 ms in the audio and on its frame) |
 | Cancelling a render from the GUI leaves no output or temporary file | Met | `test_a_render_can_be_cancelled_and_only_one_runs_at_a_time`, `test_stopping_the_server_cancels_a_running_render` |
 | Without the extra no GUI dependencies are installed, and the CLI and API work as before | Met | `uv sync --no-dev` removes FastAPI and uvicorn, leaving the four core dependencies; `test_the_core_and_cli_do_not_import_the_gui_packages`; golden hashes of all built-in presets unchanged after every milestone |
 | The server refuses requests without the token or with a foreign `Host` header | Met | `test_api_requests_need_the_session_token`, `test_requests_to_a_foreign_host_are_refused`, no CORS headers (`test_the_page_loads_without_the_token_but_sends_no_cross_origin_headers`) |
-| The owner renders at least one song through the GUI and uses it in the editor | Open (要確認) | Section 7 |
+| The owner renders at least one song through the GUI and uses it in the editor | Met | The owner checked it in an editor and closed the phase on 2026-10-31 |
 
 Test suite: 219 tests, all passing (160 at the end of Phase 2).
 
@@ -79,10 +79,9 @@ Test suite: 219 tests, all passing (160 at the end of Phase 2).
 
 ## 7. Open items and candidates for the next phase
 
-- 要確認: the owner renders a song through the GUI and uses it in the editor (the last acceptance criterion).
 - 要確認: review of the Japanese texts (page and docs); a native speaker's review of the Spanish texts.
 - 要確認: switching the test dependency from `httpx` to `httpx2`.
-- Phase 2 is still to be accepted (its Q1 and editor checks, [Phase 2 acceptance](PHASE2_ACCEPTANCE.md) §7).
+- Phase 2 was accepted on the same day ([Phase 2 acceptance](PHASE2_ACCEPTANCE.md)).
 - The shared documentation rule covers English and Japanese only; adding Spanish there is a change to
   `claude-shared-rules`.
 - Candidates: a native window and a Finder quick action (F15); batch rendering in the page; filling two colors when

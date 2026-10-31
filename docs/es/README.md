@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 2ad8b62e1e6ab0a1284c8f2f1636e0bb390c3154 -->
+<!-- source: docs/en/README.md blob 7fa888cd66652848e2bcdc55e8c867f5980750ed -->
 [English](../en/README.md) | [日本語](../ja/README.md) | Español · [README del repositorio](../../README.es.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/README.md). Si el contenido difiere, prevalece la
@@ -33,6 +33,6 @@ cada fase.
 | [Phase 1 plan](../working/PHASE1_PLAN.md) (solo en inglés) | CLI mínima: preajustes en archivos, contrato de la CLI (lotes, progreso, códigos de salida), API pública, documentos estables. |
 | [Phase 1 acceptance](../working/PHASE1_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 1: criterios, cobertura de requisitos, mediciones, siguientes candidatos. |
 | [Phase 2 plan](../working/PHASE2_PLAN.md) (solo en inglés) | Efectos y estilos: degradados, brillo, estilos de barra, rango de frecuencias, graves más nítidos, `--set` y `still`. |
-| [Phase 2 acceptance](../working/PHASE2_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 2 (borrador): criterios, cobertura de requisitos, cambios de contrato, mediciones, puntos abiertos. |
+| [Phase 2 acceptance](../working/PHASE2_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 2: criterios, cobertura de requisitos, cambios de contrato, mediciones, puntos abiertos. |
 | [Phase 3 plan](../working/PHASE3_PLAN.md) (solo en inglés) | Interfaz gráfica como interfaz web local: añadidos a la biblioteca (rangos de tiempo, vista previa, escritura y esquema de preajustes), página, diálogos de archivos, exportación, seguridad local. |
-| [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 3 (borrador): criterios, cobertura de requisitos, cambios de contrato, mediciones, puntos abiertos. |
+| [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 3: criterios, cobertura de requisitos, cambios de contrato, mediciones, puntos abiertos. |
