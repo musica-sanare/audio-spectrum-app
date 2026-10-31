@@ -75,8 +75,8 @@ The same settings, with previews, are also available in a local web page:
 uv run audio-spectrum gui
 ```
 
-It opens in the default browser and runs until you press Ctrl+C in the terminal. The page is in Japanese, English
-or Spanish, chosen at the top right; the first visit follows the browser's language.
+It opens in the default browser and runs until you press Ctrl+C in the terminal. The page is in Japanese, English,
+Spanish or French, chosen at the top right; the first visit follows the browser's language.
 
 - **Song**: open an audio file with the Finder dialog, or paste its path and press Enter.
 - **Preset**: start from a built-in preset and change any key in the sections below (colors, analysis, look,

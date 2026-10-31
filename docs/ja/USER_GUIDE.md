@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 0f8489f9f7a7eb9accacc45949488d17e1704006 -->
+<!-- source: docs/en/USER_GUIDE.md blob a8919f374f3d535b50eba8764e77f39cfe3b1815 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -78,7 +78,7 @@ uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the 
 uv run audio-spectrum gui
 ```
 
-既定のブラウザで開き、ターミナルで Ctrl+C を押すまで動く。画面は日本語・英語・スペイン語で使え、右上で切り替える。
+既定のブラウザで開き、ターミナルで Ctrl+C を押すまで動く。画面は日本語・英語・スペイン語・フランス語で使え、右上で切り替える。
 最初はブラウザの言語に合わせる。
 
 - **曲**：Finder の選択画面で音声ファイルを開くか、パスを貼り付けて Enter を押す。

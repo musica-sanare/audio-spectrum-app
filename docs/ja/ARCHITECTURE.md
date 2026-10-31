@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 74d3e19b59de45aa8c6ecc194607b255ab0ce7ef -->
+<!-- source: docs/en/ARCHITECTURE.md blob 9aafd6215eb4c754bc15e5548420e939969da6de -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -58,7 +58,7 @@ flowchart TB
 | `pipeline.py` | `render_video`：読み込み、解析、コマの描画（並列のワーカープロセス）、書き出し。進捗とキャンセルも扱う。`render_stills` と `Preview`：確認や GUI 用に 1 コマずつ描く。`Preview` は解析結果を持ち続ける。`Backdrop`：組み込み先のアプリが用意する、スペクトラムの下の絵。ワーカーがコマごとに求める |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
-| `gui/` | `app.py`：HTTP の API と画面、Host とトークンの確認。`dialogs.py`：macOS 標準のファイル選択画面。`server.py`：起動。`static/`：画面（`index.html`、`app.js`、`app.css`。ビルド不要）と、`i18n/` の文言（`en`、`ja`、`es`） |
+| `gui/` | `app.py`：HTTP の API と画面、Host とトークンの確認。`dialogs.py`：macOS 標準のファイル選択画面。`server.py`：起動。`static/`：画面（`index.html`、`app.js`、`app.css`。ビルド不要）と、`i18n/` の文言（`en`、`ja`、`es`、`fr`） |
 
 ## 3. 不変条件
 

@@ -55,7 +55,7 @@ flowchart TB
 | `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills` and `Preview`: single frames for checks and GUIs; `Preview` keeps the analysis. `Backdrop`: the picture under the spectrum supplied by an embedding app, asked for in the workers per frame |
 | `errors.py` | Error types with stable codes |
 | `cli.py` | Commands, progress output, exit codes, signal handling |
-| `gui/` | `app.py`: HTTP API and page, with the host and token checks. `dialogs.py`: native macOS file dialogs. `server.py`: start-up. `static/`: the page (`index.html`, `app.js`, `app.css`, no build step) and its texts in `i18n/` (`en`, `ja`, `es`) |
+| `gui/` | `app.py`: HTTP API and page, with the host and token checks. `dialogs.py`: native macOS file dialogs. `server.py`: start-up. `static/`: the page (`index.html`, `app.js`, `app.css`, no build step) and its texts in `i18n/` (`en`, `ja`, `es`, `fr`) |
 
 ## 3. Invariants
 

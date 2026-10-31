@@ -34,7 +34,7 @@ If any path does not exist, report it rather than silently inventing its content
   embedding apps ([Embedding guide](docs/en/EMBEDDING.md)). Change them only deliberately and update that guide.
 
 ## Documentation
-- The GUI's page texts are in Japanese, English and Spanish (`src/audio_spectrum/gui/static/i18n/`).
+- The GUI's page texts are in Japanese, English, Spanish and French (`src/audio_spectrum/gui/static/i18n/`).
 
 ## Workflow
 - Work in phases: write a plan in `docs/working/PHASE<N>_PLAN.md`, get the owner's approval, then implement, measure and

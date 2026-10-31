@@ -127,6 +127,7 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
 - Consequences: No second toolchain; the GUI's output equals the CLI's frame for frame. File dialogs are macOS-only
   (a path can always be typed). Every new preset key needs a label and help text in three languages. Rejected:
   Qt, Electron and Tauri (ADR-008); a JavaScript framework with a build step; uploading songs into the server.
+- Later change: French (`fr`) was added as a fourth page language, so new preset keys need texts in four languages.
 
 ## ADR-013: A backdrop under the spectrum for embedding apps
 

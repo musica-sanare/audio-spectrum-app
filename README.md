@@ -11,8 +11,8 @@ timeline, so audio and video stay in exact sync.
 Phases 1 to 4 are accepted; the current version is 0.5.0.
 
 - **CLI:** renders with effects and styles: gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444.
-- **GUI:** `audio-spectrum gui` opens a local web page in Japanese, English or Spanish. It adjusts the look with
-  previews, renders, and saves presets.
+- **GUI:** `audio-spectrum gui` opens a local web page in Japanese, English, Spanish or French. It adjusts the look
+  with previews, renders, and saves presets.
 - **Embedding:** other apps can draw the spectrum over their own frames.
 
 Details are in the acceptance reports for [Phase 2](docs/working/PHASE2_ACCEPTANCE.md),
