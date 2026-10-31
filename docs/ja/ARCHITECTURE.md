@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob d600924a2ad1d4e2ac2681fbc4a5277346bec8b8 -->
+<!-- source: docs/en/ARCHITECTURE.md blob ae92239c0babca9ea420198af798aff13432d131 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -39,13 +39,13 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 |---|---|
 | `audio.py` | libsndfile(ほかの形式は ffmpeg)で音声を読み込み、チャンネルを選ぶか混ぜる |
 | `analysis.py` | コマの時刻 `n / fps` ごとに1つのスペクトラム:その時刻を中心にした窓、FFT(低い帯には、より長い FFT を選べる。レベルを合わせてなめらかにつなぐ)、周波数帯、dB 変換、傾き補正、上がり下がりの平滑化 |
-| `presets.py` | プリセットの定義(pydantic)、組み込み・ユーザーの TOML ファイルの読み込み、上書き、キーイングの警告 |
+| `presets.py` | プリセットの定義(pydantic)とその JSON スキーマ、組み込み・ユーザーの TOML ファイルの読み込み、プリセットの TOML への書き出し、上書き、キーイングの警告 |
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
 | `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る。透明な背景では、ストレートアルファの RGBA のコマにする |
 | `renderer.py` | 1コマについて geometry と raster を組み合わせる |
-| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く |
-| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills`:確認用の1コマ |
+| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く。曲の一部では、音声をサンプル単位で正確に切る |
+| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
 

@@ -23,8 +23,16 @@ from audio_spectrum.errors import (
     TimeRangeError,
     WorkerError,
 )
-from audio_spectrum.pipeline import RenderJob, RenderResult, render_stills, render_video
-from audio_spectrum.presets import Preset, builtin_preset_names, load_preset, override_preset
+from audio_spectrum.pipeline import Preview, RenderJob, RenderResult, render_stills, render_video
+from audio_spectrum.presets import (
+    Preset,
+    builtin_preset_names,
+    load_preset,
+    override_preset,
+    preset_schema,
+    preset_to_toml,
+    preset_warnings,
+)
 
 __all__ = [
     "AudioSpectrumError",
@@ -36,6 +44,7 @@ __all__ = [
     "OutputExistsError",
     "Preset",
     "PresetError",
+    "Preview",
     "RenderJob",
     "RenderResult",
     "TimeRangeError",
@@ -44,6 +53,9 @@ __all__ = [
     "builtin_preset_names",
     "load_preset",
     "override_preset",
+    "preset_schema",
+    "preset_to_toml",
+    "preset_warnings",
     "render_stills",
     "render_video",
 ]

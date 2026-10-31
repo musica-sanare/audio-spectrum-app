@@ -13,7 +13,7 @@ from audio_spectrum.cli import main
 from audio_spectrum.analysis import analyze, frame_count
 from audio_spectrum.audio import load_audio
 from audio_spectrum.encode import EncodeSettings, ffmpeg_fps
-from audio_spectrum.pipeline import RenderJob, _frames, render_video
+from audio_spectrum.pipeline import RenderJob, _frame_range, _frames, render_video
 from audio_spectrum.presets import load_preset
 from signals import SAMPLE_RATE, sine
 
@@ -176,3 +176,66 @@ def test_parallel_rendering_produces_the_same_transparent_frames(click_track):
 def test_alpha_needs_prores4444(codec, profile):
     with pytest.raises(ValueError, match="ProRes 4444"):
         EncodeSettings(codec=codec, prores_profile=profile, alpha=True)
+
+
+def decoded_audio(path) -> np.ndarray:
+    result = subprocess.run(
+        ["ffmpeg", "-v", "error", "-i", str(path), "-map", "0:a:0", "-f", "f32le", "-ac", "1", "-ar", str(SAMPLE_RATE),
+         "-"],
+        capture_output=True, check=True,
+    )
+    return np.frombuffer(result.stdout, np.float32)
+
+
+def test_a_part_of_the_song_keeps_frames_and_audio_in_sync(click_track, tmp_path):
+    output = tmp_path / "part.mov"
+    job = RenderJob(
+        click_track, output, load_preset("default"), WIDTH, HEIGHT, 30,
+        EncodeSettings(codec="prores", prores_profile=4), workers=1, start=1.0, duration=1.0,
+    )
+    result = render_video(job)
+    assert result.frames == 30
+    streams = probe(output)
+    assert int(streams["video"]["nb_read_frames"]) == 30
+    assert abs(float(streams["audio"]["duration"]) - 1.0) < 1 / 30
+    # The click at 1.5 s of the song is at 0.5 s of the part, in the audio and on frame 15 of the video.
+    audio = decoded_audio(output)
+    onset = int(np.argmax(np.abs(audio) > 0.1))
+    assert abs(onset / SAMPLE_RATE - 0.5) < 0.001
+    brightness = decoded_brightness(output)
+    assert abs(int(brightness[10:20].argmax()) + 10 - 15) <= 1
+
+
+def test_part_frames_equal_the_full_video_frames(click_track):
+    preset = load_preset("default")
+    values = analyze(load_audio(click_track), 30, preset.analysis)
+    full = list(_frames(RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, workers=1), values))
+    job = RenderJob(click_track, click_track, preset, WIDTH, HEIGHT, 30, workers=1, start=1.01, duration=0.5)
+    first, last = _frame_range(job, 3.0, len(values))
+    assert (first, last) == (30, 45)
+    part = list(_frames(job, values[first:last]))
+    assert all(np.array_equal(one, other) for one, other in zip(part, full[30:45], strict=True))
+
+
+def test_a_part_starting_at_zero_trims_the_audio_too(click_track, tmp_path):
+    output = tmp_path / "head.mp4"
+    assert main(["render", str(click_track), "-o", str(output), "--size", f"{WIDTH}x{HEIGHT}", "--workers", "1",
+                 "--duration", "1"]) == 0
+    streams = probe(output)
+    assert int(streams["video"]["nb_read_frames"]) == 30
+    assert abs(float(streams["audio"]["duration"]) - 1.0) < 0.05
+
+
+def test_a_part_starting_after_the_end_fails_for_that_file(click_track, tmp_path, capsys):
+    code = main(["render", str(click_track), "-o", str(tmp_path / "late.mp4"), "--start", "5", "--progress", "json"])
+    assert code == 1
+    events = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert events[0]["code"] == "time_out_of_range"
+    assert not (tmp_path / "late.mp4").exists()
+
+
+@pytest.mark.parametrize("args", [["--start", "-1"], ["--duration", "0"], ["--duration", "nan"]])
+def test_invalid_ranges_are_usage_errors(click_track, args):
+    with pytest.raises(SystemExit) as exc:
+        main(["render", str(click_track), *args])
+    assert exc.value.code == 2

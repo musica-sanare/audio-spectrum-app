@@ -14,6 +14,8 @@ from audio_spectrum.presets import (
     load_preset,
     override_preset,
     parse_preset,
+    preset_schema,
+    preset_to_toml,
     preset_warnings,
 )
 
@@ -175,3 +177,56 @@ def test_presets_check_prints_warnings_on_stderr_and_still_succeeds(tmp_path, ca
     captured = capsys.readouterr()
     assert "valid preset 'pale'" in captured.out
     assert "warning: line color #8080FF is close to the background #0000FF" in captured.err
+
+
+def schema_leaves(schema: dict) -> dict[str, dict]:
+    """Every preset key as "table.key" (or "key"), with its schema."""
+    definitions = schema["$defs"]
+    leaves = {}
+    for key, field in schema["properties"].items():
+        references = [field] if "$ref" in field else field.get("oneOf", [])
+        tables = [definitions[item["$ref"].split("/")[-1]] for item in references if "$ref" in item]
+        if not tables:
+            leaves[key] = field
+        for table in tables:
+            for name, sub in table["properties"].items():
+                leaves[f"{key}.{name}"] = sub
+    return leaves
+
+
+def test_schema_describes_every_key():
+    leaves = schema_leaves(preset_schema())
+    assert "look.block_gap_px" in leaves and "fx.glow_radius_px" in leaves and "analysis.low_fft_size" in leaves
+    assert sorted(key for key, field in leaves.items() if not field.get("description")) == []
+
+
+def test_schema_writes_colors_as_hex_strings():
+    schema = preset_schema()
+    assert schema["properties"]["background"]["default"] == "#0000FF"
+    assert schema["properties"]["background"]["format"] == "color"
+    assert schema["$defs"]["Fill"]["properties"]["colors"]["items"]["format"] == "color"
+
+
+@pytest.mark.parametrize("name", builtin_preset_names())
+@pytest.mark.parametrize("full", [False, True])
+def test_presets_written_as_toml_read_back_equal(name, full):
+    preset = load_preset(name)
+    assert parse_preset(preset_to_toml(preset, full=full)) == preset
+
+
+def test_toml_lists_only_changed_keys_by_default():
+    preset = override_preset(
+        load_preset("default"),
+        ['name=Mine "2"', "background=#00FF00", "fill.mode=height", 'fill.colors=["#00FF66", "#FFE000"]'],
+    )
+    text = preset_to_toml(preset)
+    assert parse_preset(text) == preset
+    assert 'name = "Mine \\"2\\""' in text
+    assert 'background = "#00FF00"' in text and "foreground" not in text
+    assert "[analysis]" not in text and "[look]" not in text
+    assert 'colors = ["#00FF66", "#FFE000"]' in text
+
+
+def test_toml_keeps_the_look_kind_when_it_is_not_flat():
+    text = preset_to_toml(load_preset("unity-classic"))
+    assert 'kind = "perspective"' in text and "max_frequency = inf" in text

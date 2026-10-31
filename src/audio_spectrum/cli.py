@@ -82,6 +82,16 @@ def still_time(text: str) -> float:
     return value
 
 
+def positive_seconds(text: str) -> float:
+    try:
+        value = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected a length in seconds, got {text!r}") from None
+    if not 0 < value < math.inf:
+        raise argparse.ArgumentTypeError(f"expected a length above 0 seconds, got {text!r}")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="audio-spectrum",
@@ -111,6 +121,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="text on stderr (default), JSON Lines events on stdout, or nothing",
     )
     render.add_argument("--fail-fast", action="store_true", help="stop at the first file that fails")
+    render.add_argument(
+        "--start", type=still_time, default=0.0, metavar="SECONDS",
+        help="render only part of each song, from this time (default: 0)",
+    )
+    render.add_argument(
+        "--duration", type=positive_seconds, metavar="SECONDS", help="length of that part (default: to the end)"
+    )
 
     still = commands.add_parser("still", help="render single frames of a song as PNG images, to check a look")
     still.add_argument("audio", type=Path, help="input audio file")
@@ -190,7 +207,7 @@ def run_render(args: argparse.Namespace, reporter: "Reporter") -> int:
     for index, (audio, output) in enumerate(zip(args.audio, outputs, strict=True), start=1):
         job = RenderJob(
             audio_path=audio, output_path=output, preset=preset, width=width, height=height, fps=args.fps,
-            encode=encode, workers=args.workers, overwrite=args.overwrite,
+            encode=encode, workers=args.workers, overwrite=args.overwrite, start=args.start, duration=args.duration,
         )
         try:
             result = render_video(job, reporter.progress_for(audio, output, index, len(outputs)))

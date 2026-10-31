@@ -37,13 +37,13 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 |---|---|
 | `audio.py` | Decodes audio with libsndfile, or ffmpeg for other formats; selects or mixes channels |
 | `analysis.py` | One spectrum per frame time `n / fps`: window centered on that time, FFT (optionally a longer one for low bands, level-matched and cross-faded), frequency bands, dB scale, tilt, attack/release smoothing |
-| `presets.py` | Preset schema (pydantic), loading of built-in and user TOML files, overrides and keying warnings |
+| `presets.py` | Preset schema (pydantic) and its JSON schema, loading of built-in and user TOML files, writing presets as TOML, overrides and keying warnings |
 | `builtin_presets/` | The built-in presets as TOML files |
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) and style (bars, blocks); places fill gradients |
 | `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame, in a solid color or a linear gradient; with a transparent background, an RGBA frame with straight alpha |
 | `renderer.py` | Combines geometry and raster for one frame |
-| `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success; `write_png` writes stills the same way |
-| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills`: single frames for checks |
+| `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success; `write_png` writes stills the same way; for part of a song the audio is cut at exact samples |
+| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills` and `Preview`: single frames for checks and GUIs, `Preview` keeping the analysis |
 | `errors.py` | Error types with stable codes |
 | `cli.py` | Commands, progress output, exit codes, signal handling |
 

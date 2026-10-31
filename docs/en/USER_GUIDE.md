@@ -108,6 +108,8 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0` (automatic) | Render processes; `1` renders in a single process |
 | `--progress MODE` | `text` | `text` on stderr, `json` events on stdout, or `none` |
 | `--fail-fast` | off | Stop at the first file that fails; otherwise the remaining files are still rendered |
+| `--start SECONDS` | `0` | Render only part of each song, from this time. The part begins with the frame the full video shows at that time, and the audio is cut to match, so it stays in sync |
+| `--duration SECONDS` | to the end | Length of that part |
 
 ### `still`
 
@@ -276,7 +278,7 @@ With `--progress json`, the CLI prints one JSON object per line on stdout. Error
 | `interrupted` | | The run was interrupted |
 
 Error codes: `decode_failed`, `encode_failed`, `output_exists`, `worker_failed`, `preset_invalid`,
-`ffmpeg_not_found`.
+`ffmpeg_not_found`, `time_out_of_range` (`--start` beyond the end of a song).
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -320,6 +322,15 @@ if __name__ == "__main__":  # required, see below
   seconds) as `(height, width, 3)` `uint8` RGB arrays, without writing files. It raises `TimeRangeError` (code
   `time_out_of_range`) for a time outside the audio, and the same decoding errors as `render_video`. It draws in the
   calling process. With `transparent=True` it returns `(height, width, 4)` RGBA arrays with straight alpha.
+- `RenderJob(..., start=10.0, duration=5.0)` renders part of a song, like `--start` and `--duration`. The frames
+  are identical to those of the full video, and the audio is cut at the same time.
+- `Preview(audio_path, fps)` decodes a song once; `preview.frames(preset, times, width, height)` then returns frames
+  like `render_stills`, keeping the analysis for the last few analysis settings. A change of the look alone renders a
+  1080p frame in about 20 ms. `preview.duration` is the song's length. Not thread-safe.
+- `preset_to_toml(preset)` returns the preset as TOML with only the keys that differ from `default`
+  (`full=True` writes every key); `load_preset` reads it back to an equal preset.
+- `preset_schema()` returns the JSON schema of a preset: types, ranges, defaults and a description of every key,
+  with colors as `"#RRGGBB"` strings. `preset_warnings(preset)` returns the warnings of `presets check` as a list.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in
   `RenderJob.encode`. Other codecs with `alpha=True` raise `ValueError`.
 - Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API

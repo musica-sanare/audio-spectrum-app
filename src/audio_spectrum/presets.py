@@ -4,6 +4,7 @@ Built-in presets ship as TOML files in `builtin_presets/`. Missing keys take the
 `default` preset's values; unknown keys are errors.
 """
 
+import json
 import math
 import tomllib
 from collections.abc import Iterable
@@ -11,7 +12,18 @@ from importlib import resources
 from pathlib import Path
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, ConfigDict, Discriminator, Field, Tag, ValidationError, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    ConfigDict,
+    Discriminator,
+    Field,
+    PlainSerializer,
+    Tag,
+    ValidationError,
+    WithJsonSchema,
+    model_validator,
+)
 
 from audio_spectrum.analysis import AnalysisSettings
 from audio_spectrum.errors import PresetError
@@ -37,7 +49,13 @@ BarStyle = Literal["bars", "blocks"]
 FillMode = Literal["solid", "frequency", "height"]
 
 Channel = Annotated[int, Field(ge=0, le=255)]
-Color = Annotated[tuple[Channel, Channel, Channel], BeforeValidator(parse_color)]
+Color = Annotated[
+    tuple[Channel, Channel, Channel],
+    BeforeValidator(parse_color),
+    # Written as "#RRGGBB" in JSON and in the JSON schema, as in preset files.
+    PlainSerializer(lambda color: "#" + "".join(f"{channel:02X}" for channel in color), when_used="json"),
+    WithJsonSchema({"type": "string", "format": "color", "pattern": "^#[0-9A-Fa-f]{6}$"}),
+]
 
 BLUE_BACK = (0, 0, 255)
 GREEN_BACK = (0, 255, 0)
@@ -45,13 +63,14 @@ WHITE = (255, 255, 255)
 
 
 class _Settings(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True)
 
 
 class FlatLook(_Settings):
     """Vertical lines or bars side by side, growing from a horizontal baseline."""
 
     kind: Literal["flat"] = "flat"
+    """The look: "flat" lines or bars, or "perspective" as in the legacy Unity scene."""
     margin_x: float = Field(0.04, ge=0.0, lt=0.5)
     """Empty space left and right, as a fraction of the frame width."""
     baseline_y: float = Field(0.5, ge=0.0, le=1.0)
@@ -63,6 +82,7 @@ class FlatLook(_Settings):
     bar_fill: float = Field(0.5, gt=0.0, le=1.0)
     """Fraction of each band's slot covered by its line; the rest is the gap."""
     min_bar_width_px: float = Field(2.0, ge=0.0)
+    """Lines are never thinner than this, in pixels."""
     min_height_px: float = Field(1.0, ge=0.0)
     """Every band is at least this tall on each side, so the baseline stays visible."""
     response: float = Field(1.6, gt=0.0)
@@ -79,15 +99,23 @@ class PerspectiveLook(_Settings):
     """Thin boxes in a row seen through a tilted perspective camera, approximating the legacy Unity scene."""
 
     kind: Literal["perspective"] = "perspective"
+    """The look: "flat" lines or bars, or "perspective" as in the legacy Unity scene."""
     first_x: float = -15.0
+    """Position of the first box along the row, in scene units."""
     spacing: float = Field(0.1, gt=0.0)
+    """Distance between neighboring boxes, in scene units."""
     box_size: float = Field(0.105, gt=0.0)
     """Slightly wider than the spacing so neighboring boxes overlap and no anti-aliasing seams show between them."""
     depth: float = 10.0
+    """Distance of the row from the scene origin along the view direction, in scene units."""
     height_scale: float = Field(200.0, gt=0.0)
+    """Box height for a band value of 1, in scene units."""
     camera_position: tuple[float, float, float] = (0.0, 6.0, -10.0)
+    """Camera position (x, y, z) in scene units."""
     camera_pitch_degrees: float = Field(26.0, gt=-90.0, lt=90.0)
+    """How far the camera looks down, in degrees."""
     vertical_fov_degrees: float = Field(60.0, gt=0.0, lt=180.0)
+    """Vertical field of view of the camera, in degrees."""
 
 
 def _look_kind(value: object) -> str:
@@ -125,9 +153,13 @@ class Effects(_Settings):
 
 class Preset(_Settings):
     schema_version: Literal[1] = SCHEMA_VERSION
+    """Version of the preset file format."""
     name: str
+    """Name of the preset."""
     background: Color = BLUE_BACK
+    """Background color, usually the key color: pure blue or green."""
     foreground: Color = WHITE
+    """Color of the lines when fill.mode is "solid"."""
     analysis: AnalysisSettings = AnalysisSettings()
     look: Look = FlatLook()
     fill: Fill = Fill()
@@ -270,6 +302,61 @@ def _toml_value(text: str) -> object:
         return tomllib.loads(f"value = {text}")["value"]
     except tomllib.TOMLDecodeError:
         return text
+
+
+COLOR_KEYS = {"background", "foreground", "fill.colors"}
+
+
+def preset_schema() -> dict:
+    """JSON schema of a preset, for building forms: types, ranges, defaults and the description of every key. Colors
+    are "#RRGGBB" strings, as in preset files."""
+    return Preset.model_json_schema(mode="serialization")
+
+
+def preset_to_toml(preset: Preset, full: bool = False) -> str:
+    """The preset as a TOML file that `load_preset` reads back to an equal preset. By default only the keys that differ
+    from the default preset are written, plus `schema_version` and `name`; `full` writes every key."""
+    data = preset.model_dump()
+    if not full:
+        reference = Preset(name=preset.name, look=type(preset.look)()).model_dump()
+        data = {
+            key: _changed(value, reference[key]) if isinstance(value, dict) else value
+            for key, value in data.items()
+            if key in ("schema_version", "name") or isinstance(value, dict) or value != reference[key]
+        }
+        if preset.look.kind != "flat":
+            data["look"] = {"kind": preset.look.kind, **data["look"]}
+    lines = [] if full else ["# Keys not listed take the default preset's values (see `presets show default`)."]
+    lines += [f"{key} = {_format_toml(value, key)}" for key, value in data.items() if not isinstance(value, dict)]
+    for table, values in data.items():
+        if isinstance(values, dict) and values:
+            lines += ["", f"[{table}]"]
+            lines += [f"{key} = {_format_toml(value, f'{table}.{key}')}" for key, value in values.items()]
+    return "\n".join(lines) + "\n"
+
+
+def _changed(values: dict, reference: dict) -> dict:
+    return {key: value for key, value in values.items() if value != reference[key]}
+
+
+def _format_toml(value: object, key: str) -> str:
+    if key in COLOR_KEYS:
+        colors = [_hex(color) for color in value] if key == "fill.colors" else _hex(value)
+        return _format_toml(colors, "")
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, float):
+        if math.isinf(value):
+            return "inf" if value > 0 else "-inf"
+        return repr(value)
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, str):
+        # A JSON string is a valid TOML basic string.
+        return json.dumps(value, ensure_ascii=False)
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_format_toml(item, "") for item in value) + "]"
+    raise TypeError(f"cannot write {key or 'value'} of type {type(value).__name__} as TOML")
 
 
 def _describe(error: ValidationError) -> str:

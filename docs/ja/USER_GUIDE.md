@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 2b2c8c3e23fe2025df6a8d8ad5d675b5741c88da -->
+<!-- source: docs/en/USER_GUIDE.md blob a377d3e7076a074466c8b90921bb20ebdd8ee812 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -110,6 +110,8 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0`(自動) | 描画プロセス数。`1` で単一プロセス |
 | `--progress MODE` | `text` | stderr にテキスト(`text`)、stdout に JSON イベント(`json`)、または出力なし(`none`) |
 | `--fail-fast` | オフ | 最初に失敗したファイルで止める。付けない場合は残りのファイルも書き出します |
+| `--start SECONDS` | `0` | 各曲の一部だけを、この時刻から書き出す。全体の動画がその時刻に表示するコマから始まり、音声も同じ位置で切るので、同期は保たれます |
+| `--duration SECONDS` | 最後まで | その一部の長さ |
 
 ### `still`
 
@@ -274,7 +276,7 @@ CLI と Python API は、このツールを組み込むスクリプトやアプ�
 | `interrupted` | | 実行が中断された |
 
 エラーコード:`decode_failed`、`encode_failed`、`output_exists`、`worker_failed`、`preset_invalid`、
-`ffmpeg_not_found`
+`ffmpeg_not_found`、`time_out_of_range`(`--start` が曲の終わりより後)
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -318,6 +320,15 @@ if __name__ == "__main__":  # required, see below
   `(height, width, 3)` の `uint8` RGB 配列で返します。ファイルは書きません。時刻が音声の範囲外なら `TimeRangeError`
   (コード `time_out_of_range`)を、読み込みの失敗には `render_video` と同じエラーを送出します。描画は呼び出し元のプロセスで行います。
   `transparent=True` を付けると、ストレートアルファの `(height, width, 4)` RGBA 配列を返します。
+- `RenderJob(..., start=10.0, duration=5.0)` は、`--start` と `--duration` と同じく曲の一部を書き出します。
+  コマは全体の動画のものと同一で、音声も同じ位置で切ります。
+- `Preview(audio_path, fps)` は曲を一度だけ読み込みます。そのあと `preview.frames(preset, times, width, height)` が
+  `render_stills` と同じコマを返します。直近のいくつかの解析設定の結果を保持するので、見た目だけを変えた場合は
+  1080p のコマを約 20 ミリ秒で描けます。`preview.duration` は曲の長さです。スレッドセーフではありません。
+- `preset_to_toml(preset)` は、`default` と違う項目だけを書いた TOML を返します(`full=True` なら全項目)。
+  `load_preset` で読み直すと、同じプリセットになります。
+- `preset_schema()` はプリセットの JSON スキーマを返します。型、範囲、既定値、全項目の説明を含み、色は `"#RRGGBB"`
+  の文字列です。`preset_warnings(preset)` は `presets check` の警告をリストで返します。
 - 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`
   を指定します。ほかのコーデックで `alpha=True` にすると `ValueError` を送出します。
 - コマは複数のプロセスで描かれ、それらは呼び出し元のスクリプトを読み込み直します。そのため、スクリプトからは
