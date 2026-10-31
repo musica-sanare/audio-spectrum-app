@@ -31,7 +31,7 @@ If any path does not exist, report it rather than silently inventing its content
 - Tests: `uv run pytest`. Automated tests use generated signals only, never real songs. More:
   [Development](docs/en/DEVELOPMENT.md).
 - The CLI options, JSON events, exit codes and the names exported by `audio_spectrum` are a public contract for
-  embedding apps ([User guide](docs/en/USER_GUIDE.md) §5). Change them only deliberately and update the guide.
+  embedding apps ([Embedding guide](docs/en/EMBEDDING.md)). Change them only deliberately and update that guide.
 
 ## Documentation
 - Stable docs and the root README also have a Spanish translation (`docs/es/`, `README.es.md`), kept like the

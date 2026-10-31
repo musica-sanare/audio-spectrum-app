@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob db07d129f00c3682cb3ae8754fbaa32d8492d2ee -->
+<!-- source: docs/en/README.md blob 457a643639129470754db7068aa9ce0b7381fd06 -->
 [English](../en/README.md) | [日本語](../ja/README.md) | Español · [README del repositorio](../../README.es.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/README.md). Si el contenido difiere, prevalece la
@@ -6,14 +6,17 @@
 
 # Documentación de audio-spectrum-app
 
-Cómo se especifica, diseña y desarrolla el renderizador de vídeos de espectro de audio sin conexión, y el registro de
-cada fase.
+Todos los documentos del renderizador de vídeos de espectro de audio sin conexión, con una línea sobre cada uno. Quien
+lo usa empieza por la guía de uso; quien desarrolla una aplicación que lo integra, por la guía de integración; quien
+contribuye, por desarrollo y arquitectura. Los documentos de trabajo registran los requisitos, las decisiones y cada
+fase.
 
 ## Guías
 
 | Documento | Descripción |
 |---|---|
-| [Guía de uso](USER_GUIDE.md) | Instalación, uso diario, referencia de comandos, preajustes y uso desde otras herramientas (eventos JSON, API de Python). |
+| [Guía de uso](USER_GUIDE.md) | Instalación, uso diario, interfaz gráfica, formatos de salida, preajustes, solución de problemas y referencia de comandos. |
+| [Guía de integración](EMBEDDING.md) | Uso desde scripts y otras aplicaciones: eventos JSON de progreso y la API de Python, incluidos los fondos. |
 | [Desarrollo](DEVELOPMENT.md) | Preparación, pruebas, comprobaciones visuales y convenciones. |
 
 ## Diseño

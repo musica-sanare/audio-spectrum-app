@@ -2,13 +2,16 @@ English | [日本語](../ja/README.md) | [Español](../es/README.md) · [Reposit
 
 # audio-spectrum-app documentation
 
-How the offline audio spectrum video renderer is specified, designed and developed, and the records of each phase.
+Every doc of the offline audio spectrum video renderer, with one line on each. Users start with the user guide;
+developers of embedding apps with the embedding guide; contributors with development and architecture. The working
+docs record requirements, decisions and each phase.
 
 ## Guides
 
 | Document | Description |
 |---|---|
-| [User guide](USER_GUIDE.md) | Setup, everyday use, command reference, presets, and use from other tools (JSON events, Python API). |
+| [User guide](USER_GUIDE.md) | Setup, everyday use, the GUI, output formats, presets, troubleshooting and command reference. |
+| [Embedding guide](EMBEDDING.md) | Use from scripts and other apps: JSON progress events and the Python API, including backdrops. |
 | [Development](DEVELOPMENT.md) | Setup, tests, visual checks and conventions. |
 
 ## Design
