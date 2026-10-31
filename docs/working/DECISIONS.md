@@ -127,3 +127,21 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
 - Consequences: No second toolchain; the GUI's output equals the CLI's frame for frame. File dialogs are macOS-only
   (a path can always be typed). Every new preset key needs a label and help text in three languages. Rejected:
   Qt, Electron and Tauri (ADR-008); a JavaScript framework with a build step; uploading songs into the server.
+
+## ADR-013: A backdrop under the spectrum for embedding apps
+
+- Context: The owner builds lyrics videos from a background image, lyrics captions and this app's spectrum, so far
+  by stacking layers in iMovie. A separate repository, lyrics-video-app, will automate that and embed this app
+  (ADR-008). Blending a transparent spectrum frame over another picture in NumPy took about 46 ms per 1080p frame,
+  more than drawing the spectrum (about 20 ms), and the internal renderer cannot be sent to worker processes
+  ([Phase 4 plan](PHASE4_PLAN.md)).
+- Decision: `RenderJob.backdrop` takes a picklable object whose `frame(index, seconds, width, height)` returns the RGB
+  picture under the spectrum for frame `index` of the whole song. The workers ask for it and draw the spectrum
+  directly over it, so `render_video` keeps one path for sync, parallel workers, progress, cancellation, parts of
+  songs, audio and safe output. `render_stills` and `Preview.frames` take the same backdrop. Failures raise
+  `BackdropError` and leave no file. A backdrop cannot be combined with a transparent background. No layer over the
+  spectrum and no CLI option for now.
+- Consequences: Lyrics, captions and layout stay in lyrics-video-app; this repository only gains an additive API.
+  Drawing over a one-color backdrop gives byte-identical frames, so existing outputs are unchanged. Rejected: making
+  the analysis, painter and encoder public for a second render loop (duplicates sync and safety logic), and lyrics
+  features in this repository.

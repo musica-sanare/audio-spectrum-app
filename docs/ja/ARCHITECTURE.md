@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 86491a32b0f9cd7da554cf7a5f6579efc1f754cf -->
+<!-- source: docs/en/ARCHITECTURE.md blob 284aa16c1fe4a80188df09ff5a4bc7426afb4ccb -->
 [English](../en/ARCHITECTURE.md) | 日本語 | [Español](../es/ARCHITECTURE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -31,6 +31,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
                                                      │
                                   for each frame n:  ▼
                               geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
+                              (drawn over the backdrop's picture when the job has one)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -44,9 +45,9 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
 | `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る。透明な背景では、ストレートアルファの RGBA のコマにする |
-| `renderer.py` | 1コマについて geometry と raster を組み合わせる |
+| `renderer.py` | 1コマについて geometry と raster を組み合わせる。プリセットの背景色か、渡された絵の上に描く |
 | `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く。曲の一部では、音声をサンプル単位で正確に切る |
-| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する |
+| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する。`Backdrop`:組み込み先のアプリが用意する、スペクトラムの下の絵。ワーカーがコマごとに求める |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
 | `gui/` | `app.py`:HTTP の API と画面、Host と合言葉の確認。`dialogs.py`:macOS 標準のファイル選択画面。`server.py`:起動。`static/`:画面(`index.html`、`app.js`、`app.css`。ビルド不要)と、`i18n/` の文言(`en`、`ja`、`es`) |
@@ -80,6 +81,7 @@ H.264 エンコーダーが律速で、M1 では4分の曲を 1080p30 で約2分
 | 発光などのエフェクト | 描画の下回り(`raster.py`)が図形と一緒に描く。設定はプリセットの `[fx]` 表(ADR-011)。前のコマに依存するエフェクトは解析側に置く |
 | 新しい出力形式 | `encode.py` の `EncodeSettings` と `build_command`、`cli.py` の `--codec` の選択肢 |
 | GPU や 3D のレンダラー | 同じ `render(values) -> frame` の呼び出しの裏にある、別の rasterizer や renderer |
+| ほかのアプリからのスペクトラムの下の絵(背景、歌詞の帯) | そのアプリ側の `Backdrop` を `RenderJob.backdrop` に渡す。このリポジトリには歌詞や配置の処理を入れない(ADR-013)。スペクトラムの上の層は別の仕組みになる |
 | GUI の機能 | 公開 API を呼ぶエンドポイントを `gui/app.py` に、操作部品を `gui/static/app.js` に足す(API に足りないものがあれば先に API へ)。プリセットの新しい項目は `preset_schema()` から自動でフォームに出るが、各 `gui/static/i18n/*.json` に名前と説明が必要。設計は ADR-012 |
 
 プリセットの形式を互換性のない形で変えるときは、`schema_version` を上げ、バージョン 1 のファイルも読めるようにしておきます。

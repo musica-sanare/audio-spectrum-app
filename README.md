@@ -6,7 +6,8 @@ Renders an audio spectrum video on a solid blue or green background from an audi
 meant to be overlaid on a background video with a chroma key in a video editor. Frames are computed from the audio
 timeline, so audio and video stay in exact sync.
 
-**Status:** Phases 1 to 3 accepted, version 0.4.0. The CLI renders with
+**Status:** Phases 1 to 3 accepted; Phase 4 (a backdrop API for embedding apps) implemented, version 0.5.0.
+The CLI renders with
 effects and styles (gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444); `audio-spectrum gui`
 opens a local web page in Japanese, English or Spanish to adjust the look with previews, render, and save presets.
 See the acceptance reports for [Phase 2](docs/working/PHASE2_ACCEPTANCE.md) and

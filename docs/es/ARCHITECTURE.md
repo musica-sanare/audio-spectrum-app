@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 86491a32b0f9cd7da554cf7a5f6579efc1f754cf -->
+<!-- source: docs/en/ARCHITECTURE.md blob 284aa16c1fe4a80188df09ff5a4bc7426afb4ccb -->
 [English](../en/ARCHITECTURE.md) | [日本語](../ja/ARCHITECTURE.md) | Español · [Volver al índice](README.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/ARCHITECTURE.md). Si el contenido difiere,
@@ -35,6 +35,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
                                                      │
                                   for each frame n:  ▼
                               geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
+                              (drawn over the backdrop's picture when the job has one)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -48,9 +49,9 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `builtin_presets/` | Los preajustes incluidos como archivos TOML |
 | `geometry.py` | Convierte un fotograma de valores de banda en cuadriláteros en coordenadas de píxel, según el aspecto (flat, perspective) y el estilo (bars, blocks); sitúa los degradados de relleno |
 | `raster.py` | Rellena los cuadriláteros con suavizado de bordes (Skia) en un fotograma RGB, con un color sólido o un degradado lineal; con fondo transparente, un fotograma RGBA con alfa no premultiplicado |
-| `renderer.py` | Combina geometría y relleno para un fotograma |
+| `renderer.py` | Combina geometría y relleno para un fotograma, sobre el color de fondo del preajuste o una imagen dada |
 | `encode.py` | Construye el comando de ffmpeg; `VideoWriter` envía los fotogramas, escribe en un archivo temporal y lo renombra si todo va bien; `write_png` escribe las imágenes fijas igual; para una parte de una canción, el audio se corta en muestras exactas |
-| `pipeline.py` | `render_video`: carga, análisis, dibujo de fotogramas (en procesos de trabajo en paralelo), codificación; progreso y cancelación. `render_stills` y `Preview`: fotogramas sueltos para comprobaciones e interfaces, `Preview` conservando el análisis |
+| `pipeline.py` | `render_video`: carga, análisis, dibujo de fotogramas (en procesos de trabajo en paralelo), codificación; progreso y cancelación. `render_stills` y `Preview`: fotogramas sueltos para comprobaciones e interfaces, `Preview` conservando el análisis. `Backdrop`: la imagen bajo el espectro que aporta una aplicación que integra esta, pedida fotograma a fotograma en los procesos de trabajo |
 | `errors.py` | Tipos de error con códigos estables |
 | `cli.py` | Comandos, salida de progreso, códigos de salida, manejo de señales |
 | `gui/` | `app.py`: API HTTP y página, con las comprobaciones de host y token; `dialogs.py`: diálogos de archivos nativos de macOS; `server.py`: arranque; `static/`: la página (`index.html`, `app.js`, `app.css`, sin paso de compilación) y sus textos en `i18n/` (`en`, `ja`, `es`) |
@@ -89,6 +90,7 @@ Mediciones: [resultados de la fase 0](../working/PHASE0_RESULTS.md) (solo en ing
 | Efectos como el brillo | Los dibuja el relleno junto con las formas (`raster.py`), configurados en la tabla `[fx]` del preajuste (ADR-011). Los efectos que dependen de fotogramas anteriores van en el análisis |
 | Un formato de salida nuevo | `EncodeSettings` y `build_command` en `encode.py`, más una opción de `--codec` en `cli.py` |
 | Un renderizador GPU o 3D | Otro relleno o renderizador detrás de la misma llamada `render(values) -> frame` |
+| Imágenes bajo el espectro desde otra aplicación (fondos, subtítulos) | Un `Backdrop` en esa aplicación, pasado como `RenderJob.backdrop`; este repositorio no recibe lógica de letras ni de composición (ADR-013). Una capa sobre el espectro sería otro mecanismo |
 | Una función de la interfaz gráfica | Un endpoint en `gui/app.py` que llame a la API pública (si a la API le falta algo, añádelo primero ahí), y sus controles en `gui/static/app.js`. Las claves nuevas de los preajustes aparecen solas en los formularios, desde `preset_schema()`; necesitan un nombre y un texto de ayuda en cada `gui/static/i18n/*.json`. Diseño: ADR-012 |
 
 Cuando un cambio modifica el formato de los preajustes de forma incompatible, sube `schema_version` y sigue leyendo los

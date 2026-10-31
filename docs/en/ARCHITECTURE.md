@@ -29,6 +29,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
                                                      │
                                   for each frame n:  ▼
                               geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
+                              (drawn over the backdrop's picture when the job has one)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -42,9 +43,9 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `builtin_presets/` | The built-in presets as TOML files |
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) and style (bars, blocks); places fill gradients |
 | `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame, in a solid color or a linear gradient; with a transparent background, an RGBA frame with straight alpha |
-| `renderer.py` | Combines geometry and raster for one frame |
+| `renderer.py` | Combines geometry and raster for one frame, over the preset's background color or a supplied picture |
 | `encode.py` | Builds the ffmpeg command; `VideoWriter` streams frames, writes to a temporary file and renames it on success; `write_png` writes stills the same way; for part of a song the audio is cut at exact samples |
-| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills` and `Preview`: single frames for checks and GUIs, `Preview` keeping the analysis |
+| `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills` and `Preview`: single frames for checks and GUIs, `Preview` keeping the analysis. `Backdrop`: the picture under the spectrum supplied by an embedding app, asked for in the workers per frame |
 | `errors.py` | Error types with stable codes |
 | `cli.py` | Commands, progress output, exit codes, signal handling |
 | `gui/` | `app.py`: HTTP API and page, with the host and token checks; `dialogs.py`: native macOS file dialogs; `server.py`: start-up; `static/`: the page (`index.html`, `app.js`, `app.css`, no build step) and its texts in `i18n/` (`en`, `ja`, `es`) |
@@ -79,6 +80,7 @@ ffmpeg so memory stays bounded. With parallel workers the H.264 encoder is the l
 | Effects such as glow | Drawn by the raster backend together with the shapes (`raster.py`), configured in the preset's `[fx]` table (ADR-011). Effects that depend on earlier frames belong in the analysis |
 | A new output format | `EncodeSettings` and `build_command` in `encode.py`, plus a `--codec` choice in `cli.py` |
 | A GPU or 3D renderer | Another rasterizer or renderer behind the same `render(values) -> frame` call |
+| Pictures under the spectrum from another app (backgrounds, captions) | A `Backdrop` in that app, passed as `RenderJob.backdrop`; this repository gets no lyrics or layout logic (ADR-013). A layer over the spectrum would be a separate hook |
 | A GUI feature | An endpoint in `gui/app.py` calling the public API (add to the API first if it lacks something), and its controls in `gui/static/app.js`. New preset keys appear in the forms by themselves, from `preset_schema()`; they need a label and help text in each `gui/static/i18n/*.json`. Design: ADR-012 |
 
 When a change alters the preset format incompatibly, raise `schema_version` and keep reading version 1 files.
