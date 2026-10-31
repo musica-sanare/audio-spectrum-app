@@ -10,6 +10,7 @@ const SECTIONS = [
 ];
 const HIDDEN_KEYS = new Set(["schema_version", "name"]);
 const UPDATE_DELAY_MS = 150;
+const RENDER_POLL_MS = 250;
 
 const $ = (id) => document.getElementById(id);
 const state = {
@@ -24,12 +25,15 @@ const state = {
   stillUrl: null,
   clipUrl: null,
   fields: new Map(),
+  outputDir: null,
+  renderTimer: null,
 };
 
 // --- Text --------------------------------------------------------------------------------------------------------
 
-function t(id) {
-  return state.texts?.messages[id] ?? id;
+function t(id, params = {}) {
+  const text = state.texts?.messages[id] ?? id;
+  return text.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
 }
 
 function keyText(key) {
@@ -69,6 +73,7 @@ async function setLanguage(language) {
     element.placeholder = t(element.dataset.i18nPlaceholder);
   }
   showSong();
+  showFolder();
   if (state.preset) buildForm();
 }
 
@@ -80,6 +85,7 @@ class ApiError extends Error {
     this.status = status;
     this.code = body.code ?? "unknown";
     this.errors = body.errors ?? [];
+    this.detail = body;
   }
 }
 
@@ -358,6 +364,7 @@ async function openSong(path) {
       $("time").value = $("time-range").value = Math.min(30, Number(last) / 2).toFixed(1);
     }
     $("play-clip").disabled = false;
+    $("start-render").disabled = state.renderTimer !== null;
     showSong();
     showError(null);
     scheduleUpdate();
@@ -437,6 +444,109 @@ async function playClip() {
   }
 }
 
+// --- Presets and rendering ---------------------------------------------------------------------------------------
+
+async function refreshPresets(selected) {
+  const { builtin, user, shadowed } = await (await api("/api/presets")).json();
+  const group = (label, names) =>
+    element("optgroup", { label }, names.map((name) => element("option", { value: name, text: name })));
+  const groups = [group(t("preset.builtin_group"), builtin)];
+  if (user.length) groups.push(group(t("preset.user_group"), user));
+  $("builtin").replaceChildren(...groups);
+  $("builtin").value = selected;
+  $("preset-status").textContent = shadowed.length ? t("preset.shadowed", { names: shadowed.join(", ") }) : "";
+}
+
+async function savePreset() {
+  const save = (overwrite) => api("/api/presets", { preset: state.preset, overwrite });
+  try {
+    let response;
+    try {
+      response = await save(false);
+    } catch (error) {
+      if (error.code !== "output_exists" || !confirm(t("preset.overwrite", { name: state.preset.name }))) throw error;
+      response = await save(true);
+    }
+    const { name, path } = await response.json();
+    await refreshPresets(name);
+    $("preset-status").textContent = t("preset.saved", { path });
+    showError(null);
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function showFolder() {
+  $("output-folder").textContent = state.outputDir ?? t("render.next_to_song");
+}
+
+async function chooseFolder() {
+  try {
+    const { path } = await (await api("/api/dialogs/folder", { prompt: t("render.folder_prompt") })).json();
+    if (path) state.outputDir = path;
+    showFolder();
+  } catch (error) {
+    showError(error);
+  }
+}
+
+async function startRender() {
+  const { width, height, fps, transparent } = output();
+  const body = {
+    preset: state.preset, output_dir: state.outputDir, width, height, fps, format: $("format").value, transparent,
+  };
+  try {
+    try {
+      await api("/api/render", { ...body, overwrite: false });
+    } catch (error) {
+      if (error.code !== "output_exists" || !confirm(t("render.overwrite", { output: error.detail.output }))) throw error;
+      await api("/api/render", { ...body, overwrite: true });
+    }
+    showError(null);
+    showRendering(true);
+    state.renderTimer = setInterval(pollRender, RENDER_POLL_MS);
+  } catch (error) {
+    showError(error);
+  }
+}
+
+function showRendering(running) {
+  $("start-render").disabled = running || !state.song;
+  $("cancel-render").hidden = !running;
+  $("render-progress").hidden = !running;
+  if (running) $("reveal").hidden = true;
+}
+
+async function pollRender() {
+  let status;
+  try {
+    status = await (await api("/api/render")).json();
+  } catch (error) {
+    showError(error);
+    return;
+  }
+  const { state: phase, frame, frames, output: path, seconds, error } = status;
+  if (phase === "running") {
+    $("render-progress").max = frames || 1;
+    $("render-progress").value = frame;
+    const percent = frames ? Math.floor((frame * 100) / frames) : 0;
+    $("render-status").textContent = frames ? t("render.progress", { frame, frames, percent }) : "";
+    return;
+  }
+  clearInterval(state.renderTimer);
+  state.renderTimer = null;
+  showRendering(false);
+  if (phase === "done") {
+    $("render-status").textContent = t("render.done", { seconds: seconds.toFixed(1), output: path });
+    $("reveal").hidden = false;
+  } else if (phase === "cancelled") {
+    $("render-status").textContent = t("render.cancelled");
+  } else if (phase === "failed") {
+    $("render-status").textContent = "";
+    showError(new ApiError(500, error));
+  }
+}
+
 async function loadBuiltin(name) {
   try {
     state.preset = await (await api(`/api/presets/${name}`)).json();
@@ -487,6 +597,11 @@ function wire() {
   // The frame rate changes the analysis, so the song is opened again with it.
   $("fps").addEventListener("change", () => (state.song ? openSong(state.song.path) : null));
   $("play-clip").addEventListener("click", playClip);
+  $("save-preset").addEventListener("click", savePreset);
+  $("choose-folder").addEventListener("click", chooseFolder);
+  $("start-render").addEventListener("click", startRender);
+  $("cancel-render").addEventListener("click", () => api("/api/render/cancel", {}).catch(showError));
+  $("reveal").addEventListener("click", () => api("/api/reveal", {}).catch(showError));
 }
 
 async function start() {
@@ -502,9 +617,7 @@ async function start() {
   await setLanguage(state.language);
   try {
     state.schema = await (await api("/api/schema")).json();
-    const { builtin } = await (await api("/api/presets")).json();
-    $("builtin").replaceChildren(...builtin.map((name) => element("option", { value: name, text: name })));
-    $("builtin").value = "default";
+    await refreshPresets("default");
     await loadBuiltin("default");
   } catch (error) {
     showError(error);

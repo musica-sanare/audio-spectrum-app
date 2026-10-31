@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 4792e8665b072a243966a474ce46de913e3399c5 -->
+<!-- source: docs/en/ARCHITECTURE.md blob de0dd2d0308d67f0958fbc66aa2fcd05efc362c3 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -40,7 +40,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 |---|---|
 | `audio.py` | libsndfile(ほかの形式は ffmpeg)で音声を読み込み、チャンネルを選ぶか混ぜる |
 | `analysis.py` | コマの時刻 `n / fps` ごとに1つのスペクトラム:その時刻を中心にした窓、FFT(低い帯には、より長い FFT を選べる。レベルを合わせてなめらかにつなぐ)、周波数帯、dB 変換、傾き補正、上がり下がりの平滑化 |
-| `presets.py` | プリセットの定義(pydantic)とその JSON スキーマ、組み込み・ユーザーの TOML ファイルの読み込み、プリセットの TOML への書き出し、上書き、キーイングの警告 |
+| `presets.py` | プリセットの定義(pydantic)とその JSON スキーマ、組み込み・ユーザー・その他の TOML ファイルの読み込み、ユーザープリセットのフォルダ、プリセットの TOML への書き出し、上書き、キーイングの警告 |
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
 | `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る。透明な背景では、ストレートアルファの RGBA のコマにする |

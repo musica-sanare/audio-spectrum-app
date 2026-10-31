@@ -97,7 +97,7 @@ audio-spectrum render AUDIO... [options]
 | `-o, --output FILE` | next to the input | Output file; only with a single input |
 | `--out-dir DIR` | next to each input | Output folder, created if missing. Outputs are named `<input name>_spectrum.mp4` (or `.mov`) |
 | `--overwrite` | off | Replace existing outputs. Without it, an existing output is an error for that file and is left untouched |
-| `--preset NAME_OR_FILE` | `default` | Built-in preset name, or a path to a `.toml` preset file |
+| `--preset NAME_OR_FILE` | `default` | Built-in or user preset name, or a path to a `.toml` preset file |
 | `--set KEY=VALUE` | | Change one preset key, for example `look.max_height=0.4`; repeatable (see section 4) |
 | `--background COLOR` | from the preset | `blue`, `green`, `#RRGGBB`, or `transparent` (needs `--codec prores4444`; see section 2) |
 | `--size SIZE` | `1080p` | `720p`, `1080p`, `1440p`, `2160p` or `WIDTHxHEIGHT` (even numbers) |
@@ -155,13 +155,17 @@ The page, in Japanese, English or Spanish (chosen at the top right; the first vi
   transparent background shows on a checkerboard). "Play 5-second clip" renders five seconds with sound from that
   time; clips are always shown on the preset's background. Warnings from `presets check` appear below.
 
-Rendering videos and saving presets from the page come in the next version; until then, use `render` with
-`--set` for the keys you changed.
+- **Save preset**: saves the current settings under the name in the Preset box as a user preset (section 4). It
+  then appears under "Your presets" in the list, and `--preset NAME` finds it on the command line.
+- **Render**: renders the whole song with the current settings and output options, next to the song or into a
+  folder chosen with "Choose folder…". The progress shows while it runs; "Cancel" stops it and leaves no file.
+  When it is done, "Show in Finder" selects the video. One render runs at a time; stopping the server with Ctrl+C
+  cancels a running render cleanly.
 
 ### `presets`
 
 ```
-audio-spectrum presets list          # built-in presets
+audio-spectrum presets list          # built-in presets, then user presets
 audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
@@ -201,6 +205,17 @@ Built-in presets:
 | `blocks` | 48 bars split into blocks like an LED meter, rising from a baseline near the bottom |
 | `glow` | `default` with a soft glow; check keying, or use a transparent background (section 4) |
 | `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
+
+### User presets
+
+Presets saved from the GUI are user presets: TOML files in `~/Library/Application Support/audio-spectrum/presets/`
+(or the folder in the environment variable `AUDIO_SPECTRUM_PRESET_DIR`). They are used by name like the built-in
+ones (`--preset "My look"`) and listed by `presets list` after the built-in names. They hold only the keys that
+differ from `default`. Built-in names are reserved: a user preset cannot be saved as `default`, and a file named
+like a built-in preset is ignored with a warning, so a name such as `default` always means the same look in scripts.
+A preset file can also be copied into the folder by hand.
+
+### Your own preset files
 
 To make your own, start from a built-in one:
 
@@ -356,6 +371,9 @@ if __name__ == "__main__":  # required, see below
 - `preset_to_toml(preset)` returns the preset as TOML with only the keys that differ from `default`
   (`full=True` writes every key); `load_preset` reads it back to an equal preset.
 - `encode_png(frame)` returns a frame (RGB, or RGBA with alpha) as lossless PNG bytes.
+- `save_user_preset(preset, overwrite=False)` writes a preset into the user folder and returns its path;
+  `user_preset_names()`, `shadowed_user_preset_names()` and `user_preset_folder()` describe the folder.
+  `load_preset(name)` finds user presets by name after the built-in ones.
 - `preset_schema()` returns the JSON schema of a preset: types, ranges, defaults and a description of every key,
   with colors as `"#RRGGBB"` strings. `preset_warnings(preset)` returns the warnings of `presets check` as a list.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in

@@ -23,6 +23,9 @@ from audio_spectrum.presets import (
     override_preset,
     parse_color,
     preset_warnings,
+    shadowed_user_preset_names,
+    user_preset_folder,
+    user_preset_names,
 )
 
 EXIT_OK = 0
@@ -145,7 +148,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     presets = commands.add_parser("presets", help="list, show or check presets")
     preset_commands = presets.add_subparsers(dest="preset_command", required=True)
-    preset_commands.add_parser("list", help="list built-in presets")
+    preset_commands.add_parser("list", help="list built-in presets, then user presets")
     show = preset_commands.add_parser("show", help="print a built-in preset as TOML, to copy and edit")
     show.add_argument("name")
     check = preset_commands.add_parser("check", help="validate a preset file")
@@ -349,8 +352,14 @@ def run_gui(args: argparse.Namespace) -> int:
 
 def run_presets(args: argparse.Namespace) -> int:
     if args.preset_command == "list":
-        for name in builtin_preset_names():
+        # One name per line, built-in presets first, so scripts can read the list.
+        for name in builtin_preset_names() + user_preset_names():
             print(name)
+        for name in shadowed_user_preset_names():
+            print(
+                f"warning: user preset {name!r} in {user_preset_folder()} is ignored: built-in names are reserved",
+                file=sys.stderr,
+            )
     elif args.preset_command == "show":
         print(builtin_preset_text(args.name), end="")
     else:

@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -80,7 +81,9 @@ def test_the_page_loads_without_the_token_but_sends_no_cross_origin_headers():
 
 def test_presets_and_schema():
     api = client()
-    assert api.get("/api/presets").json() == {"builtin": ["bars", "blocks", "default", "glow", "unity-classic"]}
+    assert api.get("/api/presets").json() == {
+        "builtin": ["bars", "blocks", "default", "glow", "unity-classic"], "user": [], "shadowed": [],
+    }
     classic = api.get("/api/presets/unity-classic").json()
     assert classic["analysis"]["max_frequency"] == "Infinity" and classic["background"] == "#0000FF"
     assert api.get("/api/presets/nothing").status_code == 404
@@ -187,7 +190,7 @@ def test_every_language_has_the_same_messages_and_every_preset_key():
 def test_the_page_uses_only_messages_that_exist():
     page = (STATIC / "index.html").read_text(encoding="utf-8") + (STATIC / "app.js").read_text(encoding="utf-8")
     used = set(re.findall(r'data-i18n(?:-placeholder)?="([\w.]+)"', page))
-    used |= set(re.findall(r'\bt\("([\w.]+)"\)', page))
+    used |= set(re.findall(r'\bt\("([\w.]+)"', page))
     used |= {f"section.{name}" for name in re.findall(r'\["(\w+)", \[', page)}
     assert used, "no messages found in the page"
     assert used <= set(messages("en")["messages"])
@@ -221,3 +224,87 @@ def test_clips_are_short_videos_with_sound(tone):
     # The song is 2 s long, so a 5-second clip asked for at 1.5 s starts at 0 and covers the whole song.
     assert int(streams["video"]["nb_read_frames"]) == 60
     assert "audio" in streams
+
+
+def test_presets_can_be_saved_and_listed(user_presets):
+    api = client()
+    preset = api.get("/api/presets/bars").json() | {"name": "mine"}
+    saved = api.post("/api/presets", json={"preset": preset})
+    assert saved.status_code == 200 and saved.json()["path"] == str(user_presets / "mine.toml")
+    assert api.get("/api/presets").json()["user"] == ["mine"]
+    assert api.get("/api/presets/mine").json()["analysis"]["bands"] == 64
+    again = api.post("/api/presets", json={"preset": preset})
+    assert again.status_code == 400 and again.json()["code"] == "output_exists"
+    assert api.post("/api/presets", json={"preset": preset, "overwrite": True}).status_code == 200
+    builtin_name = api.post("/api/presets", json={"preset": preset | {"name": "default"}})
+    assert builtin_name.status_code == 400 and builtin_name.json()["code"] == "preset_invalid"
+
+
+def wait_for_render(api, seconds=120) -> dict:
+    deadline = time.monotonic() + seconds
+    while time.monotonic() < deadline:
+        status = api.get("/api/render").json()
+        if status["state"] != "running":
+            return status
+        time.sleep(0.1)
+    raise AssertionError("the render did not finish")
+
+
+def render_body(api, **options) -> dict:
+    return {"preset": api.get("/api/presets/default").json(), "width": 320, "height": 180} | options
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_renders_run_in_the_background_and_report_progress(tone, monkeypatch):
+    calls = []
+    monkeypatch.setattr("audio_spectrum.gui.app.subprocess.run", lambda command, **_: calls.append(command))
+    api = client()
+    assert api.post("/api/reveal", json={}).status_code == 404
+    assert api.post("/api/render", json=render_body(api)).json()["code"] == "no_song"
+    api.post("/api/song", json={"path": str(tone)})
+    assert api.post("/api/render", json=render_body(api, format="h264", transparent=True)).status_code == 400
+    started = api.post("/api/render", json=render_body(api))
+    assert started.status_code == 200 and started.json()["state"] == "running"
+    status = wait_for_render(api)
+    output = tone.with_name("tone_spectrum.mp4")
+    assert status["state"] == "done" and status["output"] == str(output) and status["frame"] == status["frames"] == 60
+    assert output.exists()
+    exists = api.post("/api/render", json=render_body(api))
+    assert exists.status_code == 409 and exists.json()["output"] == str(output)
+    assert api.post("/api/reveal", json={}).json() == {"path": str(output)}
+    assert calls and calls[0][1:] == ["-R", str(output)]
+    assert api.post("/api/render", json=render_body(api, overwrite=True, output_dir=str(tone.parent / "out")))
+    assert wait_for_render(api)["state"] == "done"
+    assert (tone.parent / "out" / "tone_spectrum.mp4").exists()
+
+
+@pytest.fixture
+def long_tone(tmp_path):
+    path = tmp_path / "long.wav"
+    sf.write(path, sine(220, 60.0, 0.5), SAMPLE_RATE)
+    return path
+
+
+def leftovers(folder) -> list[str]:
+    return sorted(path.name for path in folder.iterdir() if path.suffix in (".mp4", ".mov"))
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_a_render_can_be_cancelled_and_only_one_runs_at_a_time(long_tone):
+    api = client()
+    api.post("/api/song", json={"path": str(long_tone)})
+    body = render_body(api, width=1280, height=720)
+    assert api.post("/api/render", json=body).status_code == 200
+    busy = api.post("/api/render", json=body)
+    assert busy.status_code == 409 and busy.json()["code"] == "busy"
+    api.post("/api/render/cancel", json={})
+    assert wait_for_render(api)["state"] == "cancelled"
+    assert leftovers(long_tone.parent) == []
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_stopping_the_server_cancels_a_running_render(long_tone):
+    with TestClient(create_app(TOKEN, {HOST}, FakeDialogs()), headers={"X-Token": TOKEN}) as api:
+        api.post("/api/song", json={"path": str(long_tone)})
+        assert api.post("/api/render", json=render_body(api, width=1280, height=720)).status_code == 200
+    assert leftovers(long_tone.parent) == []

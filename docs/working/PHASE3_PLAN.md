@@ -168,7 +168,8 @@ files through the GUI's server.
 |---|---|
 | CLI | `gui` command (needs the `gui` extra); `--start` and `--duration` on `render`; `--preset NAME` also finds user presets; `presets list` shows them (P6) |
 | JSON events and exit codes | None |
-| Public API | `RenderJob.start`, `RenderJob.duration`, `Preview`, `preset_to_toml`, `preset_schema`, `preset_warnings`, `encode_png` |
+| Public API | `RenderJob.start`, `RenderJob.duration`, `Preview`, `preset_to_toml`, `preset_schema`, `preset_warnings`, `encode_png`, `save_user_preset`, `user_preset_names`, `shadowed_user_preset_names`, `user_preset_folder` |
+| Environment | `AUDIO_SPECTRUM_PRESET_DIR` overrides the user preset folder |
 | Preset format | None (`schema_version` stays 1) |
 
 ## Milestones and commits
@@ -210,6 +211,7 @@ Answered by the owner on 2026-10-26: the recommended options are approved.
 - P6. A user preset folder, `~/Library/Application Support/audio-spectrum/presets/`, listed by name in the GUI and
   in `presets list`, and accepted by `--preset NAME`. Built-in names are reserved, so `--preset default` always means
   the built-in preset, which keeps scripts and embedding apps stable: the GUI refuses to save under a built-in name,
-  and a user file with a built-in name is skipped with a warning in `presets list`. (Proposed by Claude, since the
-  owner did not choose between the two; 要確認.)
+  and a user file with a built-in name is skipped with a warning in `presets list`. (Proposed by Claude; confirmed
+  by the owner on 2026-10-31.) The environment variable `AUDIO_SPECTRUM_PRESET_DIR` can name another folder, for
+  tests and embedding apps.
 - P7. Clip previews are 5 seconds long.

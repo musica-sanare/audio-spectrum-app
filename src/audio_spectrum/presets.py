@@ -6,6 +6,7 @@ Built-in presets ship as TOML files in `builtin_presets/`. Missing keys take the
 
 import json
 import math
+import os
 import tomllib
 from collections.abc import Iterable
 from importlib import resources
@@ -26,10 +27,13 @@ from pydantic import (
 )
 
 from audio_spectrum.analysis import AnalysisSettings
-from audio_spectrum.errors import PresetError
+from audio_spectrum.errors import OutputExistsError, PresetError
 
 SCHEMA_VERSION = 1
 BUILTIN_PRESET_PACKAGE = "audio_spectrum.builtin_presets"
+USER_PRESET_ENVIRONMENT = "AUDIO_SPECTRUM_PRESET_DIR"
+DEFAULT_USER_PRESET_FOLDER = "~/Library/Application Support/audio-spectrum/presets"
+MAX_NAME_LENGTH = 100
 
 
 def parse_color(value: object) -> object:
@@ -244,8 +248,68 @@ def builtin_preset_text(name: str) -> str:
     return resources.files(BUILTIN_PRESET_PACKAGE).joinpath(f"{name}.toml").read_text(encoding="utf-8")
 
 
+def user_preset_folder() -> Path:
+    """Where saved presets live: the folder in $AUDIO_SPECTRUM_PRESET_DIR, or
+    ~/Library/Application Support/audio-spectrum/presets. It may not exist yet."""
+    return Path(os.environ.get(USER_PRESET_ENVIRONMENT) or DEFAULT_USER_PRESET_FOLDER).expanduser()
+
+
+def user_preset_names() -> list[str]:
+    """Names of the presets in the user folder. Files named like a built-in preset are left out: built-in names are
+    reserved, so `--preset default` always means the built-in one (see `shadowed_user_preset_names`)."""
+    builtin = set(builtin_preset_names())
+    return [name for name in _user_preset_stems() if name not in builtin]
+
+
+def shadowed_user_preset_names() -> list[str]:
+    """User preset files that are ignored because a built-in preset has the same name."""
+    builtin = set(builtin_preset_names())
+    return [name for name in _user_preset_stems() if name in builtin]
+
+
+def _user_preset_stems() -> list[str]:
+    folder = user_preset_folder()
+    if not folder.is_dir():
+        return []
+    return sorted(path.stem for path in folder.glob("*.toml") if not path.name.startswith("."))
+
+
+def save_user_preset(preset: Preset, overwrite: bool = False) -> Path:
+    """Write the preset into the user folder as `<name>.toml`, with only the keys that differ from `default`, and
+    return its path. Built-in names and names that cannot be file names raise PresetError; an existing file raises
+    OutputExistsError unless `overwrite`."""
+    _check_user_preset_name(preset.name)
+    folder = user_preset_folder()
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"{preset.name}.toml"
+    if path.exists() and not overwrite:
+        raise OutputExistsError(f"user preset {preset.name!r} already exists ({path})")
+    partial = path.with_name(f".{path.name}.partial-{os.getpid()}")
+    try:
+        partial.write_text(preset_to_toml(preset), encoding="utf-8")
+        partial.replace(path)
+    finally:
+        partial.unlink(missing_ok=True)
+    return path
+
+
+def _check_user_preset_name(name: str) -> None:
+    if name in builtin_preset_names():
+        raise PresetError(f"{name!r} is the name of a built-in preset; choose another name")
+    if (
+        not name.strip() or name != name.strip() or len(name) > MAX_NAME_LENGTH or name.startswith(".")
+        or name.endswith(".toml") or any(character in name for character in "/\\:")
+        or any(ord(character) < 32 for character in name)
+    ):
+        raise PresetError(
+            f"{name!r} cannot be a preset name: use up to {MAX_NAME_LENGTH} characters without slashes, colons, "
+            "leading or trailing spaces, or a leading dot"
+        )
+
+
 def load_preset(name_or_path: str | Path) -> Preset:
-    """Load a built-in preset by name, or a preset file by path (anything ending in .toml or containing a slash)."""
+    """Load a preset by name, built-in first, then from the user folder; or a preset file by path (anything ending
+    in .toml or containing a slash)."""
     text = str(name_or_path)
     if isinstance(name_or_path, Path) or text.endswith(".toml") or "/" in text:
         path = Path(name_or_path)
@@ -254,7 +318,16 @@ def load_preset(name_or_path: str | Path) -> Preset:
         except OSError as error:
             raise PresetError(f"cannot read preset file {path}: {error.strerror}") from None
         return parse_preset(source, origin=str(path))
-    return parse_preset(builtin_preset_text(text), origin=f"built-in preset {text!r}")
+    if text in builtin_preset_names():
+        return parse_preset(builtin_preset_text(text), origin=f"built-in preset {text!r}")
+    if text in user_preset_names():
+        path = user_preset_folder() / f"{text}.toml"
+        return parse_preset(path.read_text(encoding="utf-8"), origin=f"user preset {text!r} ({path})")
+    user = user_preset_names()
+    raise PresetError(
+        f"unknown preset {text!r}; built-in presets: {', '.join(builtin_preset_names())}"
+        + (f"; user presets: {', '.join(user)}" if user else "")
+    )
 
 
 def parse_preset(source: str, origin: str = "preset") -> Preset:

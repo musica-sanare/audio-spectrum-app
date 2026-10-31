@@ -38,7 +38,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 |---|---|
 | `audio.py` | Decodes audio with libsndfile, or ffmpeg for other formats; selects or mixes channels |
 | `analysis.py` | One spectrum per frame time `n / fps`: window centered on that time, FFT (optionally a longer one for low bands, level-matched and cross-faded), frequency bands, dB scale, tilt, attack/release smoothing |
-| `presets.py` | Preset schema (pydantic) and its JSON schema, loading of built-in and user TOML files, writing presets as TOML, overrides and keying warnings |
+| `presets.py` | Preset schema (pydantic) and its JSON schema, loading of built-in, user and other TOML files, the user preset folder, writing presets as TOML, overrides and keying warnings |
 | `builtin_presets/` | The built-in presets as TOML files |
 | `geometry.py` | Turns one frame of band values into quads in pixel coordinates, per look (flat, perspective) and style (bars, blocks); places fill gradients |
 | `raster.py` | Fills quads with anti-aliasing (Skia) into an RGB frame, in a solid color or a linear gradient; with a transparent background, an RGBA frame with straight alpha |

@@ -32,6 +32,10 @@ from audio_spectrum.presets import (
     preset_schema,
     preset_to_toml,
     preset_warnings,
+    save_user_preset,
+    shadowed_user_preset_names,
+    user_preset_folder,
+    user_preset_names,
 )
 
 __all__ = [
@@ -59,4 +63,8 @@ __all__ = [
     "preset_warnings",
     "render_stills",
     "render_video",
+    "save_user_preset",
+    "shadowed_user_preset_names",
+    "user_preset_folder",
+    "user_preset_names",
 ]

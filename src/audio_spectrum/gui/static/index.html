@@ -27,6 +27,8 @@
       <legend data-i18n="preset.heading">Preset</legend>
       <label class="row"><span data-i18n="preset.start_from">Start from</span> <select id="builtin"></select></label>
       <div id="name-field"></div>
+      <button id="save-preset" type="button" data-i18n="preset.save">Save preset</button>
+      <p id="preset-status" class="note" aria-live="polite"></p>
     </fieldset>
 
     <fieldset>
@@ -52,7 +54,6 @@
     </fieldset>
 
     <div id="sections"></div>
-    <p class="note" data-i18n="next.note"></p>
   </section>
 
   <section class="preview">
@@ -73,6 +74,21 @@
       <h3 data-i18n="warnings.heading">Warnings</h3>
       <ul id="warning-list"></ul>
     </div>
+
+    <fieldset class="render">
+      <legend data-i18n="render.heading">Render</legend>
+      <div class="row"><span data-i18n="render.folder">Output folder</span>
+        <span class="controls"><span id="output-folder" class="path"></span>
+          <button id="choose-folder" type="button" class="small" data-i18n="render.choose_folder">Choose folder…</button>
+        </span></div>
+      <div class="controls">
+        <button id="start-render" type="button" data-i18n="render.start" disabled>Render video</button>
+        <button id="cancel-render" type="button" data-i18n="render.cancel" hidden>Cancel</button>
+        <progress id="render-progress" max="1" value="0" hidden></progress>
+      </div>
+      <p id="render-status" class="note" aria-live="polite"></p>
+      <button id="reveal" type="button" class="small" data-i18n="render.reveal" hidden>Show in Finder</button>
+    </fieldset>
   </section>
 </main>
 <script type="module" src="/static/app.js"></script>

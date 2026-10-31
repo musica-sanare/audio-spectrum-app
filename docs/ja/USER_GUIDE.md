@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 6fdebe533204c23a71b9a7b367519b758ceaec26 -->
+<!-- source: docs/en/USER_GUIDE.md blob 4c16f4cbd9956a3cd2d9da1e796f8cc705cc4c55 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -99,7 +99,7 @@ audio-spectrum render AUDIO... [options]
 | `-o, --output FILE` | 入力の隣 | 出力ファイル。入力が1つのときだけ指定可能 |
 | `--out-dir DIR` | 各入力の隣 | 出力フォルダ(なければ作成)。出力名は `<入力名>_spectrum.mp4`(または `.mov`) |
 | `--overwrite` | オフ | 既存の出力を置き換える。付けない場合、既存の出力はそのファイルのエラーとなり、元のファイルは変更されません |
-| `--preset NAME_OR_FILE` | `default` | 組み込みプリセット名、または `.toml` プリセットファイルのパス |
+| `--preset NAME_OR_FILE` | `default` | 組み込みかユーザーのプリセット名、または `.toml` プリセットファイルのパス |
 | `--set KEY=VALUE` | | プリセットの項目を1つ変える。例:`look.max_height=0.4`。複数指定可(4章参照) |
 | `--background COLOR` | プリセットの値 | `blue`、`green`、`#RRGGBB`、または `transparent`(`--codec prores4444` が必要。2章参照) |
 | `--size SIZE` | `1080p` | `720p`、`1080p`、`1440p`、`2160p`、または `幅x高さ`(偶数) |
@@ -154,13 +154,17 @@ audio-spectrum gui [--port PORT] [--no-browser]
   表示)。「5 秒の動画を再生」は、その時刻から 5 秒を音声付きで書き出して再生します。動画は常にプリセットの背景色で
   表示します。`presets check` の警告は下に表示します。
 
-この画面からの動画の書き出しとプリセットの保存は、次のバージョンで追加します。それまでは、変えた項目を `--set` で
-`render` に渡してください。
+- **プリセットを保存**:今の設定を、「名前」欄の名前でユーザープリセットとして保存します(4章)。保存したものは一覧の
+  「ユーザープリセット」に表示され、コマンドラインでも `--preset 名前` で使えます。
+- **書き出し**:今の設定と出力の設定で、曲全体を書き出します。出力先は曲と同じフォルダか、「フォルダを選ぶ…」で選んだ
+  フォルダです。書き出し中は進み具合を表示し、「中止」で止めるとファイルは残りません。終わったら「Finder で表示」で
+  動画を選択した状態の Finder を開きます。書き出しは一度に1つです。Ctrl+C でサーバーを止めると、書き出し中のものは
+  きれいに中止されます。
 
 ### `presets`
 
 ```
-audio-spectrum presets list          # built-in presets
+audio-spectrum presets list          # built-in presets, then user presets
 audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
@@ -200,6 +204,17 @@ audio-spectrum presets check FILE    # validate a preset file
 | `blocks` | LED メーターのようにブロックに区切った棒 48 本。下寄りの基準線から上へ伸びる |
 | `glow` | `default` にやわらかい発光を加えたもの。キーイングを確認するか、透明な背景を使う(4章) |
 | `unity-classic` | 以前の Unity 版に近い見た目:傾いた遠近法、リニアな周波数軸、左チャンネル |
+
+### ユーザープリセット
+
+GUI から保存したプリセットはユーザープリセットです。`~/Library/Application Support/audio-spectrum/presets/`
+(環境変数 `AUDIO_SPECTRUM_PRESET_DIR` があればそのフォルダ)に TOML ファイルとして入ります。組み込みと同じように名前で
+使え(`--preset "My look"`)、`presets list` では組み込みの後に表示します。中身は `default` と違う項目だけです。
+組み込みの名前は予約済みです。`default` などの名前では保存できず、組み込みと同じ名前のファイルは警告を出して無視します。
+そのため、スクリプトの中で `default` と書けば、いつも同じ見た目になります。プリセットファイルを手でこのフォルダに
+コピーしても使えます。
+
+### 自分で作るプリセットファイル
 
 自分用のプリセットは、組み込みのものをもとに作ります:
 
@@ -352,6 +367,9 @@ if __name__ == "__main__":  # required, see below
 - `preset_to_toml(preset)` は、`default` と違う項目だけを書いた TOML を返します(`full=True` なら全項目)。
   `load_preset` で読み直すと、同じプリセットになります。
 - `encode_png(frame)` はコマ(RGB、またはアルファ付きの RGBA)を、劣化のない PNG のバイト列で返します。
+- `save_user_preset(preset, overwrite=False)` はプリセットをユーザーのフォルダに書き、そのパスを返します。
+  フォルダの様子は `user_preset_names()`、`shadowed_user_preset_names()`、`user_preset_folder()` で分かります。
+  `load_preset(name)` は、組み込みの次にユーザープリセットを名前で探します。
 - `preset_schema()` はプリセットの JSON スキーマを返します。型、範囲、既定値、全項目の説明を含み、色は `"#RRGGBB"`
   の文字列です。`preset_warnings(preset)` は `presets check` の警告をリストで返します。
 - 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`

@@ -76,6 +76,11 @@ button.small { padding: 0 6px; font-size: 12px; }
 .timeline input[type="range"] { flex: 1; }
 .timeline input[type="number"] { width: 80px; }
 
+.render { margin-top: 12px; }
+.render progress { flex: 1; }
+.path { overflow-wrap: anywhere; font-size: 12px; }
+#save-preset { margin-top: 4px; }
+
 #warnings { margin-top: 10px; padding: 8px 12px; border-radius: 8px; background: var(--warn-bg); }
 #warning-list { margin: 0; padding-left: 18px; }
 .error { margin: 12px 20px 0; padding: 8px 12px; border-radius: 8px; background: var(--danger-bg); color: var(--danger); }
