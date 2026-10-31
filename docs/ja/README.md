@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 7fa888cd66652848e2bcdc55e8c867f5980750ed -->
+<!-- source: docs/en/README.md blob b4b3f1ad820f2b49df0145b4c0ac8b31c13df7e7 -->
 [English](../en/README.md) | 日本語 | [Español](../es/README.md) · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -34,3 +34,4 @@
 | [Phase 2 acceptance](../working/PHASE2_ACCEPTANCE.md)（英語のみ） | Phase 2 の受入報告：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |
 | [Phase 3 plan](../working/PHASE3_PLAN.md)（英語のみ） | ローカル Web UI としての GUI：コアへの追加（時間範囲、プレビュー、プリセットの書き出しとスキーマ）、画面、ファイル選択、書き出し、ローカルの安全対策。 |
 | [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md)（英語のみ） | Phase 3 の受入報告：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |
+| [Phase 4 plan](../working/PHASE4_PLAN.md)（英語のみ） | ほかのアプリが用意したコマ（背景）の上にスペクトラムを描く機能。歌詞動画アプリのため。 |
