@@ -1,4 +1,4 @@
-<!-- source: README.md blob 42e804fac95fd165af3f806a144ba42022e8a7c3 -->
+<!-- source: README.md blob cd701c72e826517de6d46d598fdbac97a2702861 -->
 [English](README.md) | [日本語](README.ja.md) | Español
 
 > Este documento es una traducción de la [versión en inglés](README.md). Si el contenido difiere, prevalece la versión
@@ -14,8 +14,8 @@ sincronizados.
 **Estado:** fase 3 (interfaz gráfica) implementada, versión 0.4.0; las fases 2 y 3 están pendientes de aceptación. La
 CLI exporta con efectos y estilos (degradados, brillo, barras y bloques, graves más nítidos, ProRes 4444 transparente);
 `audio-spectrum gui` abre una página web local en japonés, inglés o español para ajustar el aspecto con vista previa,
-exportar y guardar preajustes. Consulta el informe de aceptación de la [fase 2](docs/working/PHASE2_ACCEPTANCE.md)
-(borrador) y el [plan de la fase 3](docs/working/PHASE3_PLAN.md) (solo en inglés).
+exportar y guardar preajustes. Consulta los informes de aceptación de la [fase 2](docs/working/PHASE2_ACCEPTANCE.md) y de la
+[fase 3](docs/working/PHASE3_ACCEPTANCE.md) (ambos borradores, solo en inglés).
 
 ## Inicio rápido
 

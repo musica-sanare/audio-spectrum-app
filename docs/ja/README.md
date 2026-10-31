@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 60656d7e893f90b44acdf2178a4e7357776f6e96 -->
+<!-- source: docs/en/README.md blob 2ad8b62e1e6ab0a1284c8f2f1636e0bb390c3154 -->
 [English](../en/README.md) | 日本語 | [Español](../es/README.md) · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -33,3 +33,4 @@
 | [Phase 2 plan](../working/PHASE2_PLAN.md)（英語のみ） | エフェクトとスタイル：グラデーション、発光、バーのスタイル、周波数範囲、低音部の解像度改善、`--set` と `still`。 |
 | [Phase 2 acceptance](../working/PHASE2_ACCEPTANCE.md)（英語のみ） | Phase 2 の受入報告（下書き）：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |
 | [Phase 3 plan](../working/PHASE3_PLAN.md)（英語のみ） | ローカル Web UI としての GUI：コアへの追加（時間範囲、プレビュー、プリセットの書き出しとスキーマ）、画面、ファイル選択、書き出し、ローカルの安全対策。 |
+| [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md)（英語のみ） | Phase 3 の受入報告（下書き）：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |

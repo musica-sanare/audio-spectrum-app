@@ -9,8 +9,8 @@ timeline, so audio and video stay in exact sync.
 **Status:** Phase 3 (GUI) implemented, version 0.4.0; Phases 2 and 3 await acceptance. The CLI renders with
 effects and styles (gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444); `audio-spectrum gui`
 opens a local web page in Japanese, English or Spanish to adjust the look with previews, render, and save presets.
-See the acceptance reports for [Phase 2](docs/working/PHASE2_ACCEPTANCE.md) (draft) and the
-[Phase 3 plan](docs/working/PHASE3_PLAN.md).
+See the acceptance reports for [Phase 2](docs/working/PHASE2_ACCEPTANCE.md) and
+[Phase 3](docs/working/PHASE3_ACCEPTANCE.md) (both drafts).
 
 ## Quick start
 

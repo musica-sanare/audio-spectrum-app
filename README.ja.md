@@ -1,4 +1,4 @@
-<!-- source: README.md blob 42e804fac95fd165af3f806a144ba42022e8a7c3 -->
+<!-- source: README.md blob cd701c72e826517de6d46d598fdbac97a2702861 -->
 [English](README.md) | 日本語 | [Español](README.es.md)
 
 > この文書は[英語版](README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -12,8 +12,8 @@
 **ステータス:** Phase 3（GUI）実装済み、バージョン 0.4.0。Phase 2 と Phase 3 は受け入れ待ち。CLI はエフェクトとスタイル
 （グラデーション、発光、太い棒とブロック、くっきりした低音、透明な背景の ProRes 4444）付きで書き出せます。
 `audio-spectrum gui` で開くローカルの Web ページ（日本語・英語・スペイン語）では、プレビューを見ながら見た目を調整し、
-書き出しとプリセットの保存ができます。[Phase 2 の受入報告](docs/working/PHASE2_ACCEPTANCE.md)（下書き、英語のみ）と
-[Phase 3 の計画](docs/working/PHASE3_PLAN.md)（英語のみ）を参照してください。
+書き出しとプリセットの保存ができます。[Phase 2](docs/working/PHASE2_ACCEPTANCE.md) と
+[Phase 3](docs/working/PHASE3_ACCEPTANCE.md) の受入報告（どちらも下書き、英語のみ）を参照してください。
 
 ## クイックスタート
 
