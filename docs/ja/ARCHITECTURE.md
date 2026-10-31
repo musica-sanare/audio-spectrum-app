@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob de0dd2d0308d67f0958fbc66aa2fcd05efc362c3 -->
+<!-- source: docs/en/ARCHITECTURE.md blob e9126e6d7e52e8bf4ffb1b5bd020312c21427428 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -80,6 +80,6 @@ H.264 エンコーダーが律速で、M1 では4分の曲を 1080p30 で約2分
 | 発光などのエフェクト | 描画の下回り(`raster.py`)が図形と一緒に描く。設定はプリセットの `[fx]` 表(ADR-011)。前のコマに依存するエフェクトは解析側に置く |
 | 新しい出力形式 | `encode.py` の `EncodeSettings` と `build_command`、`cli.py` の `--codec` の選択肢 |
 | GPU や 3D のレンダラー | 同じ `render(values) -> frame` の呼び出しの裏にある、別の rasterizer や renderer |
-| GUI | 公開 API だけを使う別のパッケージモジュール。依存は任意のオプションに入れる |
+| GUI の機能 | 公開 API を呼ぶエンドポイントを `gui/app.py` に、操作部品を `gui/static/app.js` に足す(API に足りないものがあれば先に API へ)。プリセットの新しい項目は `preset_schema()` から自動でフォームに出るが、各 `gui/static/i18n/*.json` に名前と説明が必要。設計は ADR-012 |
 
 プリセットの形式を互換性のない形で変えるときは、`schema_version` を上げ、バージョン 1 のファイルも読めるようにしておきます。

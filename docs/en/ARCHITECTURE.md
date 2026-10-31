@@ -79,6 +79,6 @@ ffmpeg so memory stays bounded. With parallel workers the H.264 encoder is the l
 | Effects such as glow | Drawn by the raster backend together with the shapes (`raster.py`), configured in the preset's `[fx]` table (ADR-011). Effects that depend on earlier frames belong in the analysis |
 | A new output format | `EncodeSettings` and `build_command` in `encode.py`, plus a `--codec` choice in `cli.py` |
 | A GPU or 3D renderer | Another rasterizer or renderer behind the same `render(values) -> frame` call |
-| The GUI | A separate package module using only the public API, with its dependencies in an optional extra |
+| A GUI feature | An endpoint in `gui/app.py` calling the public API (add to the API first if it lacks something), and its controls in `gui/static/app.js`. New preset keys appear in the forms by themselves, from `preset_schema()`; they need a label and help text in each `gui/static/i18n/*.json`. Design: ADR-012 |
 
 When a change alters the preset format incompatibly, raise `schema_version` and keep reading version 1 files.

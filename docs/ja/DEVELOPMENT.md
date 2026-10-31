@@ -1,4 +1,4 @@
-<!-- source: docs/en/DEVELOPMENT.md blob 0dac18e7790d7f013642e504a9a7458c39a4cb58 -->
+<!-- source: docs/en/DEVELOPMENT.md blob 1473970c26382b66c9e523cf3ca272432e28e6bf -->
 [English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -58,7 +58,19 @@ uv run python bench/render_compare.py song.wav --preset default --bands 256 1024
 見た目を意図して変えたときや、Skia・NumPy の更新でバイト列が変わったときは、まずコマを目で確かめ、そのあとテストが表示する
 ハッシュ値に更新します。
 
-## 4. 規約
+## 4. GUI を動かす
+
+```bash
+AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
+```
+
+`--no-browser` を付けると、合言葉付きのアドレスを表示するので、好きなブラウザで開けます。`AUDIO_SPECTRUM_PRESET_DIR` を
+`work/` に向けておくと、試しに保存したプリセットが本来のユーザーフォルダに入りません。自動テストは常に一時フォルダを
+使います(`tests/conftest.py`)。画面にはビルドの手順がないので、`gui/static/` を直して再読み込みするだけです。
+サーバーのエンドポイントは `test_gui.py` で FastAPI のテストクライアントを使って確かめ、画面そのものはブラウザで
+手で確かめます。
+
+## 5. 規約
 
 - コード、コメント、コミットメッセージ、文書は英語で書きます。日本語は `docs/ja/` の翻訳と `README.ja.md` だけです。
 - [不変条件](ARCHITECTURE.md#3-不変条件)を守ります。

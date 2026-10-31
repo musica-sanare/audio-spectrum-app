@@ -17,7 +17,8 @@ uv sync
 uv run audio-spectrum --version
 ```
 
-`uv sync` installs Python 3.13 and the libraries into `.venv/` inside the folder. Nothing else on the system changes.
+`uv sync` installs Python 3.13 and the libraries into `.venv/` inside the folder, including those of the GUI.
+Nothing else on the system changes.
 
 ## 2. Everyday use
 
@@ -53,6 +54,33 @@ uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the 
 ```
 
 A still is exactly the frame the video shows at that time.
+
+### Using the GUI
+
+The same settings, with previews, are also available in a local web page:
+
+```bash
+uv run audio-spectrum gui
+```
+
+It opens in the default browser and runs until you press Ctrl+C in the terminal. The page is in Japanese, English
+or Spanish, chosen at the top right; the first visit follows the browser's language.
+
+- **Song**: open an audio file with the Finder dialog, or paste its path and press Enter.
+- **Preset**: start from a built-in preset and change any key in the sections below (colors, analysis, look,
+  effects). Every key shows its label and a short help text; ranges are checked as in preset files, and a value out
+  of range is marked next to its field.
+- **Output**: size, frame rate, format, and a transparent background with ProRes 4444. They set the preview's size
+  and frame rate.
+- **Preview**: the frame at the chosen time, updated as settings change, drawn by the same code as the video (a
+  transparent background shows on a checkerboard). "Play 5-second clip" renders five seconds with sound from that
+  time; clips are always shown on the preset's background. Warnings from `presets check` appear below.
+- **Save preset**: saves the current settings under the name in the Preset box as a user preset (section 4). It
+  then appears under "Your presets" in the list, and `--preset NAME` finds it on the command line.
+- **Render**: renders the whole song with the current settings and output options, next to the song or into a
+  folder chosen with "Choose folder…". The progress shows while it runs; "Cancel" stops it and leaves no file.
+  When it is done, "Show in Finder" selects the video. One render runs at a time; stopping the server with Ctrl+C
+  cancels a running render cleanly.
 
 ### Using the video in iMovie
 
@@ -138,29 +166,11 @@ audio; 2 for bad options or an invalid preset.
 audio-spectrum gui [--port PORT] [--no-browser]
 ```
 
-Starts the local web UI and opens it in the default browser. It needs the `gui` extra: `uv sync --extra gui`
-(without it, `gui` exits with code 2 and says so). The server listens on `127.0.0.1` only, on a free port unless
-`--port` is given, and stops with Ctrl+C. The address it prints carries a session token; other web pages cannot use
-the server without it.
-
-The page, in Japanese, English or Spanish (chosen at the top right; the first visit follows the browser's language):
-
-- **Song**: open an audio file with the Finder dialog, or paste its path and press Enter.
-- **Preset**: start from a built-in preset and change any key in the sections below (colors, analysis, look,
-  effects). Every key shows its label and a short help text; ranges are checked as in preset files, and a value out
-  of range is marked next to its field.
-- **Output**: size, frame rate, format, and a transparent background with ProRes 4444. They set the preview's size
-  and frame rate.
-- **Preview**: the frame at the chosen time, updated as settings change, drawn by the same code as the video (a
-  transparent background shows on a checkerboard). "Play 5-second clip" renders five seconds with sound from that
-  time; clips are always shown on the preset's background. Warnings from `presets check` appear below.
-
-- **Save preset**: saves the current settings under the name in the Preset box as a user preset (section 4). It
-  then appears under "Your presets" in the list, and `--preset NAME` finds it on the command line.
-- **Render**: renders the whole song with the current settings and output options, next to the song or into a
-  folder chosen with "Choose folder…". The progress shows while it runs; "Cancel" stops it and leaves no file.
-  When it is done, "Show in Finder" selects the video. One render runs at a time; stopping the server with Ctrl+C
-  cancels a running render cleanly.
+Starts the local web UI (section 2, "Using the GUI") and opens it in the default browser. It needs the `gui` extra,
+which `uv sync` in this folder installs; elsewhere use `uv sync --extra gui` (without it, `gui` exits with code 2
+and says so). The server listens on `127.0.0.1` only, on a free port unless `--port` is given, and stops with
+Ctrl+C. The address it prints carries a session token; other web pages cannot use the server without it.
+`--no-browser` prints the address without opening it.
 
 ### `presets`
 
@@ -392,3 +402,7 @@ if __name__ == "__main__":  # required, see below
 | A preset error naming a key | Fix that key; `presets check FILE` shows all problems at once |
 | Lines look soft or bluish after keying | Try `--codec prores4444` |
 | Colored lines look washed out or bluish | Thin colored lines lose color in H.264: use `--codec prores4444`, or fewer bands with a larger `look.bar_fill` |
+| `the GUI needs the gui extra` | `uv sync --extra gui` |
+| `cannot listen on 127.0.0.1:PORT` | Another program uses that port: leave out `--port` to take a free one |
+| The page says access was refused | The server was restarted, so its token changed: open the address it printed again |
+| The file dialog does not appear | It may be behind the browser window; or paste the file's path into the field and press Enter |

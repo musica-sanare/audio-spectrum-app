@@ -57,7 +57,19 @@ example by hashing rendered frames, and say so in the commit message. `tests/tes
 built-in presets on a generated signal. When a look changes on purpose, or a Skia or NumPy upgrade changes the bytes,
 check the frames visually first and then renew the hashes it prints.
 
-## 4. Conventions
+## 4. Running the GUI
+
+```bash
+AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
+```
+
+`--no-browser` prints the address with its session token, to open in any browser. Pointing
+`AUDIO_SPECTRUM_PRESET_DIR` into `work/` keeps presets saved while trying things out of the real user folder; the
+automated tests always use a temporary folder (`tests/conftest.py`). The page has no build step: edit
+`gui/static/` and reload. The server's endpoints are tested in `test_gui.py` with FastAPI's test client; the page
+itself is checked by hand in a browser.
+
+## 5. Conventions
 
 - Code, comments, commit messages and docs are in English. Japanese appears only in the `docs/ja/` translations and
   `README.ja.md`.

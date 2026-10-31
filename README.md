@@ -6,9 +6,11 @@ Renders an audio spectrum video on a solid blue or green background from an audi
 meant to be overlaid on a background video with a chroma key in a video editor. Frames are computed from the audio
 timeline, so audio and video stay in exact sync.
 
-**Status:** Phase 2 (effects and styles) implemented, version 0.3.0, acceptance pending. On top of the Phase 1 CLI:
-gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444 output, still frames and `--set` overrides.
-The GUI comes in Phase 3. See the [Phase 2 acceptance report](docs/working/PHASE2_ACCEPTANCE.md) (draft).
+**Status:** Phase 3 (GUI) implemented, version 0.4.0; Phases 2 and 3 await acceptance. The CLI renders with
+effects and styles (gradients, glow, bars and blocks, sharper bass, transparent ProRes 4444); `audio-spectrum gui`
+opens a local web page in Japanese, English or Spanish to adjust the look with previews, render, and save presets.
+See the acceptance reports for [Phase 2](docs/working/PHASE2_ACCEPTANCE.md) (draft) and the
+[Phase 3 plan](docs/working/PHASE3_PLAN.md).
 
 ## Quick start
 
@@ -17,6 +19,7 @@ brew install uv ffmpeg
 uv sync
 uv run audio-spectrum render song.wav                       # writes song_spectrum.mp4 (1080p30, blue back)
 uv run audio-spectrum render song.wav --background green --codec prores4444
+uv run audio-spectrum gui                                   # the same in a local web page, with previews
 ```
 
 Run `uv run audio-spectrum render --help` for all options and `uv run pytest` for the tests.

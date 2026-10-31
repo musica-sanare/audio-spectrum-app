@@ -1,4 +1,4 @@
-<!-- source: README.md blob 733c148234bca86cf6a4ad7d3114aa0d5999e81a -->
+<!-- source: README.md blob 13dedd38aec53eb790ce1219955153847d43a0b5 -->
 [English](README.md) | 日本語
 
 > この文書は[英語版](README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -9,9 +9,11 @@
 動画編集ソフトでクロマキーを使い、背景動画に重ねて使うことを想定しています。各コマは音声の時間軸から計算するため、
 音と映像は正確に同期します。
 
-**ステータス:** Phase 2（エフェクトとスタイル）実装済み、バージョン 0.3.0、受け入れ待ち。Phase 1 の CLI に加えて、
-グラデーション、発光、太い棒とブロック、くっきりした低音、透明な背景の ProRes 4444 出力、静止画、`--set` による上書きが
-使えます。GUI は Phase 3 で追加します。[Phase 2 の受入報告](docs/working/PHASE2_ACCEPTANCE.md)（下書き、英語のみ）を参照してください。
+**ステータス:** Phase 3（GUI）実装済み、バージョン 0.4.0。Phase 2 と Phase 3 は受け入れ待ち。CLI はエフェクトとスタイル
+（グラデーション、発光、太い棒とブロック、くっきりした低音、透明な背景の ProRes 4444）付きで書き出せます。
+`audio-spectrum gui` で開くローカルの Web ページ（日本語・英語・スペイン語）では、プレビューを見ながら見た目を調整し、
+書き出しとプリセットの保存ができます。[Phase 2 の受入報告](docs/working/PHASE2_ACCEPTANCE.md)（下書き、英語のみ）と
+[Phase 3 の計画](docs/working/PHASE3_PLAN.md)（英語のみ）を参照してください。
 
 ## クイックスタート
 
@@ -20,6 +22,7 @@ brew install uv ffmpeg
 uv sync
 uv run audio-spectrum render song.wav                       # writes song_spectrum.mp4 (1080p30, blue back)
 uv run audio-spectrum render song.wav --background green --codec prores4444
+uv run audio-spectrum gui                                   # the same in a local web page, with previews
 ```
 
 すべてのオプションは `uv run audio-spectrum render --help`、テストは `uv run pytest` で確認できます。
