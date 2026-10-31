@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob 7ab1ba741d19c699b967b83f58b0378eec532850 -->
+<!-- source: docs/en/ARCHITECTURE.md blob 4792e8665b072a243966a474ce46de913e3399c5 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -49,7 +49,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
-| `gui/` | `app.py`:HTTP の API と画面、Host と合言葉の確認。`dialogs.py`:macOS 標準のファイル選択画面。`server.py`:起動。`static/`:画面 |
+| `gui/` | `app.py`:HTTP の API と画面、Host と合言葉の確認。`dialogs.py`:macOS 標準のファイル選択画面。`server.py`:起動。`static/`:画面(`index.html`、`app.js`、`app.css`。ビルド不要)と、`i18n/` の文言(`en`、`ja`、`es`) |
 
 ## 3. 不変条件
 

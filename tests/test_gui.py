@@ -1,7 +1,11 @@
 """The GUI server: local security rules and the API the page uses. Skipped without the gui extra."""
 
+import json
+import re
+import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -159,3 +163,61 @@ def test_gui_command_reports_a_busy_port(capsys):
         port = taken.getsockname()[1]
         assert main(["gui", "--no-browser", "--port", str(port)]) == 2
     assert f"cannot listen on 127.0.0.1:{port}" in capsys.readouterr().err
+
+
+STATIC = Path(__file__).parent.parent / "src" / "audio_spectrum" / "gui" / "static"
+LANGUAGES = ("en", "ja", "es")
+
+
+def messages(language: str) -> dict:
+    return json.loads((STATIC / "i18n" / f"{language}.json").read_text(encoding="utf-8"))
+
+
+def test_every_language_has_the_same_messages_and_every_preset_key():
+    from test_presets import schema_leaves
+    keys = set(schema_leaves(preset_schema())) - {"schema_version"}
+    english = messages("en")
+    for language in LANGUAGES:
+        texts = messages(language)
+        assert set(texts["messages"]) == set(english["messages"]), language
+        assert set(texts["keys"]) == keys, language
+        assert all(entry["label"] and entry["help"] for entry in texts["keys"].values()), language
+
+
+def test_the_page_uses_only_messages_that_exist():
+    page = (STATIC / "index.html").read_text(encoding="utf-8") + (STATIC / "app.js").read_text(encoding="utf-8")
+    used = set(re.findall(r'data-i18n(?:-placeholder)?="([\w.]+)"', page))
+    used |= set(re.findall(r'\bt\("([\w.]+)"\)', page))
+    used |= {f"section.{name}" for name in re.findall(r'\["(\w+)", \[', page)}
+    assert used, "no messages found in the page"
+    assert used <= set(messages("en")["messages"])
+    codes = {f"error.{code}" for code in ("preset_invalid", "decode_failed", "time_out_of_range", "no_song", "busy")}
+    assert codes <= set(messages("en")["messages"])
+
+
+def test_static_files_are_served_without_the_token():
+    api = client(token=None)
+    for path in ("/static/app.js", "/static/app.css", "/static/i18n/ja.json"):
+        assert api.get(path).status_code == 200, path
+    assert client(token=None).get("/static/app.js", headers={"Host": "evil.example"}).status_code == 403
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs ffmpeg")
+def test_clips_are_short_videos_with_sound(tone):
+    api = client()
+    preset = api.get("/api/presets/default").json()
+    assert api.post("/api/clip", json={"preset": preset, "start": 0.0}).status_code == 409
+    api.post("/api/song", json={"path": str(tone)})
+    response = api.post("/api/clip", json={"preset": preset, "start": 1.5, "width": 320, "height": 180})
+    assert response.status_code == 200 and response.headers["content-type"] == "video/mp4"
+    path = tone.with_name("clip.mp4")
+    path.write_bytes(response.content)
+    probe = subprocess.run(
+        ["ffprobe", "-v", "error", "-count_frames", "-show_entries", "stream=codec_type,nb_read_frames,duration",
+         "-of", "json", str(path)],
+        capture_output=True, check=True, text=True,
+    )
+    streams = {stream["codec_type"]: stream for stream in json.loads(probe.stdout)["streams"]}
+    # The song is 2 s long, so a 5-second clip asked for at 1.5 s starts at 0 and covers the whole song.
+    assert int(streams["video"]["nb_read_frames"]) == 60
+    assert "audio" in streams

@@ -141,8 +141,22 @@ audio-spectrum gui [--port PORT] [--no-browser]
 Starts the local web UI and opens it in the default browser. It needs the `gui` extra: `uv sync --extra gui`
 (without it, `gui` exits with code 2 and says so). The server listens on `127.0.0.1` only, on a free port unless
 `--port` is given, and stops with Ctrl+C. The address it prints carries a session token; other web pages cannot use
-the server without it. The page is still a placeholder in this version: it opens a song and shows stills of the
-built-in presets.
+the server without it.
+
+The page, in Japanese, English or Spanish (chosen at the top right; the first visit follows the browser's language):
+
+- **Song**: open an audio file with the Finder dialog, or paste its path and press Enter.
+- **Preset**: start from a built-in preset and change any key in the sections below (colors, analysis, look,
+  effects). Every key shows its label and a short help text; ranges are checked as in preset files, and a value out
+  of range is marked next to its field.
+- **Output**: size, frame rate, format, and a transparent background with ProRes 4444. They set the preview's size
+  and frame rate.
+- **Preview**: the frame at the chosen time, updated as settings change, drawn by the same code as the video (a
+  transparent background shows on a checkerboard). "Play 5-second clip" renders five seconds with sound from that
+  time; clips are always shown on the preset's background. Warnings from `presets check` appear below.
+
+Rendering videos and saving presets from the page come in the next version; until then, use `render` with
+`--set` for the keys you changed.
 
 ### `presets`
 

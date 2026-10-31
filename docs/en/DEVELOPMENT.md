@@ -62,6 +62,8 @@ check the frames visually first and then renew the hashes it prints.
 - Code, comments, commit messages and docs are in English. Japanese appears only in the `docs/ja/` translations and
   `README.ja.md`.
 - Keep the [invariants](ARCHITECTURE.md#3-invariants).
+- A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`
+  and `es.json`, and new page texts need an entry in all three; `test_gui.py` fails otherwise.
 - Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` that records the English blob hash on its first
   line. Working docs (plans, results, decisions) live in `docs/working/` in English only.
 - Work proceeds in phases: a plan in `docs/working/PHASE<N>_PLAN.md` approved by the owner, then implementation with a

@@ -4,63 +4,77 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>audio-spectrum</title>
-<style>
-  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; margin: 24px; color: #222; background: #fafafa; }
-  button { font: inherit; padding: 4px 12px; }
-  #still { display: block; max-width: 100%; margin-top: 16px; background: #ddd; }
-  #status { color: #555; }
-</style>
+<link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
-<!-- Placeholder for Phase 3 milestone 2: checks the server end to end. The full page comes in milestone 3. -->
-<h1>audio-spectrum</h1>
-<p><button id="open">Open audio file…</button> <span id="status">No song open.</span></p>
-<p><label>Time (s) <input id="time" type="number" value="30" min="0" step="0.5"></label>
-   <label>Preset <select id="preset"></select></label></p>
-<img id="still" alt="">
-<script>
-const params = new URLSearchParams(location.search);
-if (params.has("token")) {
-  sessionStorage.setItem("token", params.get("token"));
-  history.replaceState(null, "", location.pathname);
-}
-const token = sessionStorage.getItem("token");
-const status = document.getElementById("status");
+<header>
+  <h1 data-i18n="app.title">audio-spectrum</h1>
+  <label class="language"><span data-i18n="lang.label">Language</span> <select id="language"></select></label>
+</header>
 
-async function api(path, body) {
-  const options = { headers: { "X-Token": token } };
-  if (body !== undefined) {
-    options.method = "POST";
-    options.headers["Content-Type"] = "application/json";
-    options.body = JSON.stringify(body);
-  }
-  const response = await fetch(path, options);
-  if (!response.ok) throw new Error((await response.json()).message || response.statusText);
-  return response;
-}
+<div id="error" class="error" role="alert" hidden><strong id="error-title"></strong><span id="error-message"></span></div>
 
-async function showStill() {
-  const preset = await (await api("/api/presets/" + document.getElementById("preset").value)).json();
-  const time = Number(document.getElementById("time").value);
-  const image = await (await api("/api/still", { preset, time, width: 1920, height: 1080 })).blob();
-  document.getElementById("still").src = URL.createObjectURL(image);
-}
+<main>
+  <section class="settings">
+    <fieldset>
+      <legend data-i18n="song.heading">Song</legend>
+      <button id="open-song" type="button" data-i18n="song.open">Open audio file…</button>
+      <input id="song-path" type="text" data-i18n-placeholder="song.path" spellcheck="false" autocomplete="off">
+      <p id="song-info" class="note" data-i18n="song.none">No song open.</p>
+    </fieldset>
 
-document.getElementById("open").onclick = async () => {
-  try {
-    const { path } = await (await api("/api/dialogs/audio", { prompt: "Choose an audio file" })).json();
-    if (!path) return;
-    const song = await (await api("/api/song", { path })).json();
-    status.textContent = `${song.name} (${song.duration.toFixed(1)} s)`;
-    await showStill();
-  } catch (error) { status.textContent = error.message; }
-};
-document.getElementById("time").onchange = () => showStill().catch(error => status.textContent = error.message);
-document.getElementById("preset").onchange = document.getElementById("time").onchange;
+    <fieldset>
+      <legend data-i18n="preset.heading">Preset</legend>
+      <label class="row"><span data-i18n="preset.start_from">Start from</span> <select id="builtin"></select></label>
+      <div id="name-field"></div>
+    </fieldset>
 
-api("/api/presets").then(r => r.json()).then(({ builtin }) => {
-  document.getElementById("preset").innerHTML = builtin.map(name => `<option>${name}</option>`).join("");
-}).catch(error => status.textContent = error.message);
-</script>
+    <fieldset>
+      <legend data-i18n="output.heading">Output</legend>
+      <label class="row"><span data-i18n="output.size">Size</span>
+        <select id="size">
+          <option value="1280x720">720p</option><option value="1920x1080" selected>1080p</option>
+          <option value="2560x1440">1440p</option><option value="3840x2160">2160p</option>
+        </select></label>
+      <label class="row"><span data-i18n="output.fps">Frame rate</span>
+        <select id="fps">
+          <option>24</option><option>25</option><option value="29.97">29.97</option><option selected>30</option>
+          <option>50</option><option>60</option>
+        </select></label>
+      <label class="row"><span data-i18n="output.format">Format</span>
+        <select id="format">
+          <option value="h264" data-i18n="output.format.h264">H.264</option>
+          <option value="prores" data-i18n="output.format.prores">ProRes 422</option>
+          <option value="prores4444" data-i18n="output.format.prores4444">ProRes 4444</option>
+        </select></label>
+      <label class="check"><input id="transparent" type="checkbox" disabled>
+        <span data-i18n="output.transparent">Transparent background</span></label>
+    </fieldset>
+
+    <div id="sections"></div>
+    <p class="note" data-i18n="next.note"></p>
+  </section>
+
+  <section class="preview">
+    <h2 data-i18n="preview.heading">Preview</h2>
+    <div id="frame" class="frame">
+      <img id="still" alt="">
+      <video id="clip" controls hidden></video>
+      <p id="preview-empty" class="empty" data-i18n="preview.empty">Open a song to see the preview.</p>
+    </div>
+    <div class="timeline">
+      <label for="time-range" data-i18n="preview.time">Time (s)</label>
+      <input id="time-range" type="range" min="0" max="0" step="0.1" value="0" disabled>
+      <input id="time" type="number" min="0" step="0.1" value="0" disabled>
+      <button id="play-clip" type="button" data-i18n="preview.clip" disabled>Play 5-second clip</button>
+    </div>
+    <p id="preview-status" class="note" aria-live="polite"></p>
+    <div id="warnings" hidden>
+      <h3 data-i18n="warnings.heading">Warnings</h3>
+      <ul id="warning-list"></ul>
+    </div>
+  </section>
+</main>
+<script type="module" src="/static/app.js"></script>
 </body>
 </html>

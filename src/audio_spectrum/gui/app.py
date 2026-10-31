@@ -2,29 +2,37 @@
 token, so other web pages in the browser cannot drive the server (see the Phase 3 plan, "Local security")."""
 
 import hmac
+import tempfile
 import threading
-from importlib import resources
 from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, ValidationError
 
 from audio_spectrum import (
     AudioSpectrumError,
+    EncodeSettings,
     FfmpegNotFoundError,
     Preset,
     Preview,
+    RenderJob,
     builtin_preset_names,
     encode_png,
     load_preset,
     preset_schema,
     preset_warnings,
+    render_video,
 )
 from audio_spectrum.gui.dialogs import DialogUnavailable, Dialogs, MacDialogs
 
 TOKEN_HEADER = "x-token"
 MAX_SIZE = 7680
+STATIC = Path(__file__).parent / "static"
+CLIP_SECONDS = 5.0
+# Clips are only for looking at motion in the page: fast settings, played by any browser.
+CLIP_ENCODING = EncodeSettings(codec="h264", crf=20, x264_preset="veryfast")
 
 
 class PromptRequest(BaseModel):
@@ -44,12 +52,20 @@ class StillRequest(BaseModel):
     transparent: bool = False
 
 
+class ClipRequest(BaseModel):
+    preset: dict
+    start: float = Field(ge=0.0)
+    width: int = Field(1920, ge=16, le=MAX_SIZE)
+    height: int = Field(1080, ge=16, le=MAX_SIZE)
+
+
 class Session:
-    """What the page is working on: the open song. FastAPI runs plain handlers in a thread pool, hence the lock."""
+    """What the page is working on: the open song. FastAPI runs plain handlers in a thread pool, hence the locks."""
 
     def __init__(self) -> None:
         self.lock = threading.Lock()
         self.preview: Preview | None = None
+        self.clip_lock = threading.Lock()
 
 
 def create_app(token: str, allowed_hosts: set[str], dialogs: Dialogs | None = None) -> FastAPI:
@@ -79,7 +95,9 @@ def create_app(token: str, allowed_hosts: set[str], dialogs: Dialogs | None = No
 
     @app.get("/", response_class=HTMLResponse)
     def page() -> str:
-        return resources.files("audio_spectrum.gui").joinpath("static/index.html").read_text(encoding="utf-8")
+        return (STATIC / "index.html").read_text(encoding="utf-8")
+
+    app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
     @app.get("/api/presets")
     def presets() -> dict:
@@ -130,6 +148,33 @@ def create_app(token: str, allowed_hosts: set[str], dialogs: Dialogs | None = No
                 checked, [request.time], request.width, request.height, request.transparent
             )[0]
         return Response(encode_png(frame), media_type="image/png")
+
+    @app.post("/api/clip")
+    def clip(request: ClipRequest) -> Response:
+        """A short H.264 video with sound from `start`, rendered like the final output, to preview motion."""
+        checked = _validate(request.preset)
+        if isinstance(checked, Response):
+            return checked
+        with session.lock:
+            preview = session.preview
+        if preview is None:
+            return _error(409, "no_song", "open a song first")
+        if not session.clip_lock.acquire(blocking=False):
+            return _error(409, "busy", "a clip is already being rendered")
+        try:
+            with tempfile.TemporaryDirectory(prefix="audio-spectrum-clip-") as folder:
+                output = Path(folder) / "clip.mp4"
+                # One process: for 150 frames, starting worker processes costs more than it saves (4.6 s against
+                # 5.1 s for a 1080p clip, and about 15 s the first time while the workers load their libraries).
+                job = RenderJob(
+                    preview.audio_path, output, checked, request.width, request.height, preview.fps, CLIP_ENCODING,
+                    workers=1, start=min(request.start, max(preview.duration - CLIP_SECONDS, 0.0)),
+                    duration=CLIP_SECONDS,
+                )
+                render_video(job)
+                return Response(output.read_bytes(), media_type="video/mp4")
+        finally:
+            session.clip_lock.release()
 
     return app
 

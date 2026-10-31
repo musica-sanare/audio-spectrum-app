@@ -1,4 +1,4 @@
-<!-- source: docs/en/DEVELOPMENT.md blob 5aa2ca2e24cf2ad3e8feb302cab00943616fc866 -->
+<!-- source: docs/en/DEVELOPMENT.md blob 0dac18e7790d7f013642e504a9a7458c39a4cb58 -->
 [English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -62,6 +62,8 @@ uv run python bench/render_compare.py song.wav --preset default --bands 256 1024
 
 - コード、コメント、コミットメッセージ、文書は英語で書きます。日本語は `docs/ja/` の翻訳と `README.ja.md` だけです。
 - [不変条件](ARCHITECTURE.md#3-不変条件)を守ります。
+- プリセットに項目を足したら、`src/audio_spectrum/gui/static/i18n/` の `en.json`、`ja.json`、`es.json` のそれぞれに名前と
+  説明を足します。画面の文言を足したときも3つすべてに入れます。足りないと `test_gui.py` が失敗します。
 - 正式な文書は `docs/en/` に置き、`docs/ja/` に日本語版を置きます。日本語版の1行目には、英語版の blob ハッシュを記録します。
   作業用の文書(計画、結果、設計判断)は `docs/working/` に英語だけで置きます。
 - 作業はフェーズ単位で進めます:`docs/working/PHASE<N>_PLAN.md` の計画をオーナーが承認し、マイルストーンごとにコミットして
