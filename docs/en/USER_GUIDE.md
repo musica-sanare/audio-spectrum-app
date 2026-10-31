@@ -138,7 +138,7 @@ rate, format) are command options, so one preset works for any output.
 | `default` | 512 white lines on blue, mirrored around a centered baseline, low to high frequencies left to right |
 | `bars` | 64 solid white bars, mirrored around a centered baseline |
 | `blocks` | 48 bars split into blocks like an LED meter, rising from a baseline near the bottom |
-| `glow` | `default` with a soft glow; check keying, or use a transparent background ([section 5](#5-presets)) |
+| `glow` | `default` with a soft glow; check keying, or use a transparent background ([Transparent background](#transparent-background)) |
 | `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
 
 ### User presets

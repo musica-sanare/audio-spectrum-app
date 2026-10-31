@@ -1,4 +1,4 @@
-<!-- source: docs/en/EMBEDDING.md blob 32afba04b03cc81ebc912542fd67eb539a11c8b8 -->
+<!-- source: docs/en/EMBEDDING.md blob 8629f16a4be37342e48c37362f7fb74410aa331a -->
 [English](../en/EMBEDDING.md) | 日本語 | [Español](../es/EMBEDDING.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/EMBEDDING.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -70,8 +70,8 @@ if __name__ == "__main__":  # required, see above
 ```
 
 - `render_video` は失敗すると `AudioSpectrumError` の派生クラスを送出する：`PresetError`、`DecodeError`、
-  `EncodeError`、`OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、`BackdropError`、または `cancel` が
-  真を返したときの `Cancelled`。どの場合も出力ファイルは残らない。
+  `EncodeError`、`OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、`BackdropError`、`TimeRangeError`（コード `time_out_of_range`。
+  `start` が音声の範囲外のとき）、または `cancel` が真を返したときの `Cancelled`。どの場合も出力ファイルは残らない。
 - `RenderJob(..., start=10.0, duration=5.0)` は、`--start` と `--duration` と同じく曲の一部を書き出す。コマは
   全体の動画のものと同一で、音声も同じ位置で切る。
 - 透明な背景は出力の設定だ。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` を

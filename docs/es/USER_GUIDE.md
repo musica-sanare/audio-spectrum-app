@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 389adefccf4897192d3e9c86b97db20274905669 -->
+<!-- source: docs/en/USER_GUIDE.md blob 0f7f1cf1dfcf574cade2125fbab5e372b13da9ca -->
 [English](../en/USER_GUIDE.md) | [日本語](../ja/USER_GUIDE.md) | Español · [Volver al índice](README.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/USER_GUIDE.md). Si el contenido difiere,
@@ -148,7 +148,7 @@ fotogramas por segundo, formato) son opciones del comando, así que un preajuste
 | `default` | 512 líneas blancas sobre azul, simétricas respecto a una línea base centrada, de graves a agudos de izquierda a derecha |
 | `bars` | 64 barras blancas sólidas, simétricas respecto a una línea base centrada |
 | `blocks` | 48 barras divididas en bloques como un medidor LED, que suben desde una línea base cerca de la parte inferior |
-| `glow` | `default` con un brillo suave; comprueba el recorte o usa un fondo transparente ([sección 5](#5-preajustes)) |
+| `glow` | `default` con un brillo suave; comprueba el recorte o usa un fondo transparente ([Fondo transparente](#fondo-transparente)) |
 | `unity-classic` | Una aproximación al aspecto anterior basado en Unity: perspectiva inclinada, frecuencias lineales, canal izquierdo |
 
 ### Preajustes de usuario

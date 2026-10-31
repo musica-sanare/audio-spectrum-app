@@ -66,7 +66,7 @@ class WrongSize:
 
 
 class StillImage:
-    """The example of the user guide: one image file under the whole video, loaded once per process."""
+    """The example of the embedding guide: one image file under the whole video, loaded once per process."""
 
     def __init__(self, path):
         self.path = str(path)

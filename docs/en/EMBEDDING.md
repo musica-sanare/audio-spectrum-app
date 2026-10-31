@@ -67,8 +67,8 @@ if __name__ == "__main__":  # required, see above
 ```
 
 - On failure, `render_video` raises a subclass of `AudioSpectrumError`: `PresetError`, `DecodeError`,
-  `EncodeError`, `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, or `Cancelled` when
-  `cancel` returns true. No output file is left behind in any of these cases.
+  `EncodeError`, `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, `TimeRangeError` (code `time_out_of_range`, a
+  `start` outside the audio), or `Cancelled` when `cancel` returns true. No output file is left behind in any of these cases.
 - `RenderJob(..., start=10.0, duration=5.0)` renders part of a song, like `--start` and `--duration`. The frames
   are identical to those of the full video, and the audio is cut at the same time.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in

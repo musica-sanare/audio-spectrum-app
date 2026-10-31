@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob e429001072f99e8c6e6e1a2037c0e58dd94ba30c -->
+<!-- source: docs/en/ARCHITECTURE.md blob e3ce4692a90e44c202573553966e43e9f79333f0 -->
 [English](../en/ARCHITECTURE.md) | 日本語 | [Español](../es/ARCHITECTURE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -88,7 +88,7 @@ M1 では 4 分の曲を 1080p30 で約 2 分で書き出せる。並列時は H
 
 | 追加するもの | 場所 |
 |---|---|
-| 新しい見た目（例：円形、ブロック） | `presets.py` に新しい `kind` の見た目モデル、`geometry.py` にその四角形の生成を足す。描画の下回りなどはそのまま |
+| 新しい見た目（例：円形） | `presets.py` に新しい `kind` の見た目モデル、`geometry.py` にその四角形の生成を足す。描画の下回りなどはそのまま |
 | 新しい解析オプション | `AnalysisSettings` の項目と、`analysis.py` での利用。古いプリセットが動くよう、項目には既定値を付ける |
 | 発光などのエフェクト | 描画の下回り（`raster.py`）が図形と一緒に描き、プリセットの `[fx]` 表で設定する（ADR-011）。前のコマに依存するエフェクトは解析側に置く |
 | 新しい出力形式 | `encode.py` の `EncodeSettings` と `build_command`、`cli.py` の `--codec` の選択肢 |

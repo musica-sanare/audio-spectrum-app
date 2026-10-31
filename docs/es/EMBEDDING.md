@@ -1,4 +1,4 @@
-<!-- source: docs/en/EMBEDDING.md blob 32afba04b03cc81ebc912542fd67eb539a11c8b8 -->
+<!-- source: docs/en/EMBEDDING.md blob 8629f16a4be37342e48c37362f7fb74410aa331a -->
 [English](../en/EMBEDDING.md) | [日本語](../ja/EMBEDDING.md) | Español · [Volver al índice](README.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/EMBEDDING.md). Si el contenido difiere,
@@ -72,8 +72,8 @@ if __name__ == "__main__":  # required, see above
 ```
 
 - Si falla, `render_video` lanza una subclase de `AudioSpectrumError`: `PresetError`, `DecodeError`, `EncodeError`,
-  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, o `Cancelled` cuando `cancel` devuelve
-  verdadero. En ninguno de estos casos queda un archivo de salida.
+  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, `TimeRangeError` (código `time_out_of_range`, un
+  `start` fuera del audio), o `Cancelled` cuando `cancel` devuelve verdadero. En ninguno de estos casos queda un archivo de salida.
 - `RenderJob(..., start=10.0, duration=5.0)` exporta parte de una canción, como `--start` y `--duration`. Los
   fotogramas son idénticos a los del vídeo completo, y el audio se corta en el mismo momento.
 - Un fondo transparente es un ajuste de salida: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` en

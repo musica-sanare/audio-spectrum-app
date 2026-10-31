@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 389adefccf4897192d3e9c86b97db20274905669 -->
+<!-- source: docs/en/USER_GUIDE.md blob 0f7f1cf1dfcf574cade2125fbab5e372b13da9ca -->
 [English](../en/USER_GUIDE.md) | 日本語 | [Español](../es/USER_GUIDE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -139,7 +139,7 @@ M1 Mac では、4 分の曲を 1080p30 で約 2 分で書き出せる。
 | `default` | 青背景に白い線 512 本。中央の基準線から上下対称に伸び、左から右へ低音から高音 |
 | `bars` | 白い太い棒 64 本。中央の基準線から上下対称に伸びる |
 | `blocks` | LED メーターのようにブロックに区切った棒 48 本。下寄りの基準線から上へ伸びる |
-| `glow` | `default` にやわらかい発光を加えたもの。キーイングを確かめるか、透明な背景を使う（[5 章](#5-プリセット)） |
+| `glow` | `default` にやわらかい発光を加えたもの。キーイングを確かめるか、透明な背景を使う（[透明な背景](#透明な背景)） |
 | `unity-classic` | 以前の Unity 版に近い見た目：傾いた遠近法、リニアな周波数軸、左チャンネル |
 
 ### ユーザープリセット

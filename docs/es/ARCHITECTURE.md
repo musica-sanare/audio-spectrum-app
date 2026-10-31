@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob e429001072f99e8c6e6e1a2037c0e58dd94ba30c -->
+<!-- source: docs/en/ARCHITECTURE.md blob e3ce4692a90e44c202573553966e43e9f79333f0 -->
 [English](../en/ARCHITECTURE.md) | [日本語](../ja/ARCHITECTURE.md) | Español · [Volver al índice](README.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/ARCHITECTURE.md). Si el contenido difiere,
@@ -97,7 +97,7 @@ Mediciones: [resultados de la fase 0](../working/PHASE0_RESULTS.md) (solo en ing
 
 | Para añadir | Dónde |
 |---|---|
-| Un aspecto nuevo (por ejemplo circular, bloques) | Un modelo de aspecto en `presets.py` con un `kind` nuevo, y su generador de cuadriláteros en `geometry.py`. El relleno y lo demás no cambian |
+| Un aspecto nuevo (por ejemplo circular) | Un modelo de aspecto en `presets.py` con un `kind` nuevo, y su generador de cuadriláteros en `geometry.py`. El relleno y lo demás no cambian |
 | Opciones de análisis nuevas | Campos en `AnalysisSettings` y su uso en `analysis.py`. Dales valores predeterminados, para que los preajustes antiguos sigan funcionando |
 | Efectos como el brillo | Los dibuja el relleno junto con las formas (`raster.py`), configurados en la tabla `[fx]` del preajuste (ADR-011). Los efectos que dependen de fotogramas anteriores van en el análisis |
 | Un formato de salida nuevo | `EncodeSettings` y `build_command` en `encode.py`, más una opción de `--codec` en `cli.py` |

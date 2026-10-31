@@ -86,7 +86,7 @@ Measurements: [Phase 0 results](../working/PHASE0_RESULTS.md).
 
 | To add | Where |
 |---|---|
-| A new look (for example circular, blocks) | A look model in `presets.py` with a new `kind`, and its quad builder in `geometry.py`. The raster backend and the rest stay unchanged |
+| A new look (for example circular) | A look model in `presets.py` with a new `kind`, and its quad builder in `geometry.py`. The raster backend and the rest stay unchanged |
 | New analysis options | Fields in `AnalysisSettings` and their use in `analysis.py`. Give the fields defaults, so old presets keep working |
 | Effects such as glow | Drawn by the raster backend together with the shapes (`raster.py`), configured in the preset's `[fx]` table (ADR-011). Effects that depend on earlier frames belong in the analysis |
 | A new output format | `EncodeSettings` and `build_command` in `encode.py`, plus a `--codec` choice in `cli.py` |
