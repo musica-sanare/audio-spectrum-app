@@ -1,7 +1,7 @@
 // The audio-spectrum page: settings built from the preset schema, previews rendered by the server.
 // Every frame comes from the same code as the final video; this file only collects settings and shows results.
 
-const LANGUAGES = { ja: "日本語", en: "English", es: "Español" };
+const LANGUAGES = { ja: "日本語", en: "English", es: "Español", fr: "Français" };
 const SECTIONS = [
   ["colors", ["background", "foreground", "fill"]],
   ["analysis", ["analysis"]],
