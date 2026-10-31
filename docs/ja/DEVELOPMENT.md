@@ -1,5 +1,5 @@
-<!-- source: docs/en/DEVELOPMENT.md blob 01077e83d87a5305897bc06f3e05f27384a738cc -->
-[English](../en/DEVELOPMENT.md) | 日本語 | [Español](../es/DEVELOPMENT.md) · [目次に戻る](README.md)
+<!-- source: docs/en/DEVELOPMENT.md blob c5c7aaf426551b918a17fddab5e3ea1551886990 -->
+[English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳。内容が異なる場合は英語版が優先する。
 
@@ -84,14 +84,14 @@ AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
 
 ## 5. 規約
 
-- コード、コメント、コミットメッセージ、文書は英語で書く。日本語とスペイン語を使うのは、翻訳（`docs/ja/`、
-  `docs/es/`、`README.ja.md`、`README.es.md`）と GUI の画面の文言だけ。
+- コード、コメント、コミットメッセージ、文書は英語で書く。日本語を使うのは翻訳（`docs/ja/`、`README.ja.md`）と
+  GUI の画面の文言だけ。スペイン語は GUI の画面の文言だけで使う。
 - [不変条件](ARCHITECTURE.md#3-不変条件)を守る。
 - プリセットに項目を足したら、`src/audio_spectrum/gui/static/i18n/` の `en.json`、`ja.json`、`es.json` のそれぞれに
   名前と説明を足す。画面の文言を足したときも 3 つすべてに入れる。足りないと `test_gui.py` が失敗する。
-- 正式な文書は `docs/en/` に置き、日本語版を `docs/ja/` に、スペイン語版を `docs/es/` に置く。
-  - どちらの翻訳も、1 行目に英語版の blob ハッシュを記録する。
-  - どちらの翻訳も、英語版と同じコミットで更新する。
+- 正式な文書は `docs/en/` に置き、日本語版を `docs/ja/` に置く。
+  - 翻訳は 1 行目に英語版の blob ハッシュを記録する。
+  - 翻訳は英語版と同じコミットで更新する。
 - 作業用の文書（計画、結果、設計判断）は `docs/working/` に英語だけで置く。
 - 作業はフェーズ単位で進める。
   1. `docs/working/PHASE<N>_PLAN.md` の計画をオーナーが承認する。

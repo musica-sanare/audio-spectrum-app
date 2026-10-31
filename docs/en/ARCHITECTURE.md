@@ -1,4 +1,4 @@
-English | [日本語](../ja/ARCHITECTURE.md) | [Español](../es/ARCHITECTURE.md) · [Docs index](README.md)
+English | [日本語](../ja/ARCHITECTURE.md) · [Docs index](README.md)
 
 # Architecture
 

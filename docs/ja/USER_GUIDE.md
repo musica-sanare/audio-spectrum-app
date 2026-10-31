@@ -1,5 +1,5 @@
-<!-- source: docs/en/USER_GUIDE.md blob 0f7f1cf1dfcf574cade2125fbab5e372b13da9ca -->
-[English](../en/USER_GUIDE.md) | 日本語 | [Español](../es/USER_GUIDE.md) · [目次に戻る](README.md)
+<!-- source: docs/en/USER_GUIDE.md blob 0f8489f9f7a7eb9accacc45949488d17e1704006 -->
+[English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳。内容が異なる場合は英語版が優先する。
 

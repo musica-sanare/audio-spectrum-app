@@ -1,4 +1,4 @@
-English | [日本語](../ja/DEVELOPMENT.md) | [Español](../es/DEVELOPMENT.md) · [Docs index](README.md)
+English | [日本語](../ja/DEVELOPMENT.md) · [Docs index](README.md)
 
 # Development
 
@@ -84,12 +84,12 @@ AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
 
 ## 5. Conventions
 
-- Code, comments, commit messages and docs are in English. Japanese and Spanish appear only in the translations
-  (`docs/ja/`, `docs/es/`, `README.ja.md`, `README.es.md`) and in the GUI's page texts.
+- Code, comments, commit messages and docs are in English. Japanese appears only in the translations (`docs/ja/`,
+  `README.ja.md`) and in the GUI's page texts; Spanish only in the GUI's page texts.
 - Keep the [invariants](ARCHITECTURE.md#3-invariants).
 - A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`
   and `es.json`. New page texts need an entry in all three. `test_gui.py` fails otherwise.
-- Stable docs live in `docs/en/`, with a Japanese twin in `docs/ja/` and a Spanish twin in `docs/es/`.
+- Stable docs live in `docs/en/`, with a Japanese twin in `docs/ja/`.
   - Each translation records the English blob hash on its first line.
   - Each translation is updated in the same commit as the English file.
 - Working docs (plans, results, decisions) live in `docs/working/` in English only.

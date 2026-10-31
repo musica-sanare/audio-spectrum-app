@@ -34,10 +34,6 @@ If any path does not exist, report it rather than silently inventing its content
   embedding apps ([Embedding guide](docs/en/EMBEDDING.md)). Change them only deliberately and update that guide.
 
 ## Documentation
-- Stable docs and the root README also have a Spanish translation (`docs/es/`, `README.es.md`), kept like the
-  Japanese one: same file names, the English blob hash on the first line, a translation notice, updated in the same
-  commit as the English file, and every doc listed in `docs/es/README.md`. Language switchers read
-  `English | 日本語 | Español`. This adds to the shared documentation rule, which covers English and Japanese only.
 - The GUI's page texts are in Japanese, English and Spanish (`src/audio_spectrum/gui/static/i18n/`).
 
 ## Workflow

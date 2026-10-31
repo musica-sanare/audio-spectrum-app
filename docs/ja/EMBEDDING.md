@@ -1,5 +1,5 @@
-<!-- source: docs/en/EMBEDDING.md blob 8629f16a4be37342e48c37362f7fb74410aa331a -->
-[English](../en/EMBEDDING.md) | 日本語 | [Español](../es/EMBEDDING.md) · [目次に戻る](README.md)
+<!-- source: docs/en/EMBEDDING.md blob ae223b7942baada1f1b8052165671f9d24cd6e8d -->
+[English](../en/EMBEDDING.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/EMBEDDING.md)の翻訳。内容が異なる場合は英語版が優先する。
 

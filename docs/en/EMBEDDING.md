@@ -1,4 +1,4 @@
-English | [日本語](../ja/EMBEDDING.md) | [Español](../es/EMBEDDING.md) · [Docs index](README.md)
+English | [日本語](../ja/EMBEDDING.md) · [Docs index](README.md)
 
 # Embedding guide
 
