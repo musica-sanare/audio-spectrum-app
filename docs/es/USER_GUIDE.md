@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 985d236acd7b91e09bdf6fe3e4833db4b5905162 -->
+<!-- source: docs/en/USER_GUIDE.md blob 6a57acebcfd00592abaf744b986762066ca36256 -->
 [English](../en/USER_GUIDE.md) | [日本語](../ja/USER_GUIDE.md) | Español · [Volver al índice](README.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/USER_GUIDE.md). Si el contenido difiere, prevalece
@@ -342,7 +342,8 @@ Con `--progress json`, la CLI imprime un objeto JSON por línea en stdout. El te
 | `interrupted` | | La ejecución se interrumpió |
 
 Códigos de error: `decode_failed`, `encode_failed`, `output_exists`, `worker_failed`, `preset_invalid`,
-`ffmpeg_not_found`, `time_out_of_range` (`--start` más allá del final de una canción).
+`ffmpeg_not_found`, `time_out_of_range` (`--start` más allá del final de una canción), `backdrop_failed` (solo en
+la API, ver abajo).
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -378,7 +379,7 @@ if __name__ == "__main__":  # required, see below
 ```
 
 - `render_video` lanza una subclase de `AudioSpectrumError` si falla: `PresetError`, `DecodeError`, `EncodeError`,
-  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, o `Cancelled` cuando `cancel` devuelve verdadero. En
+  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, o `Cancelled` cuando `cancel` devuelve verdadero. En
   ninguno de estos casos queda un archivo de salida.
 - `override_preset(preset, ["look.max_height=0.4"])` aplica cambios como `--set` y devuelve un preajuste nuevo. Lanza
   `PresetError` si el resultado no es válido.
@@ -404,6 +405,38 @@ if __name__ == "__main__":  # required, see below
   `presets check` como una lista.
 - Un fondo transparente es un ajuste de salida: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` en
   `RenderJob.encode`. Otros códecs con `alpha=True` lanzan `ValueError`.
+- `RenderJob(..., backdrop=...)` dibuja el espectro sobre imágenes que aporta tu aplicación en lugar del color de
+  fondo del preajuste, por ejemplo una imagen de fondo con los subtítulos de la letra. El fondo (backdrop) es
+  cualquier objeto con un método `frame(index, seconds, width, height)` que devuelva una matriz RGB `uint8` de forma
+  `(height, width, 3)`: `index` es el fotograma de la canción completa y `seconds` su momento (`index / fps`), también
+  cuando solo se exporta una parte. Se envía a cada proceso de trabajo, así que debe poder serializarse con pickle:
+  guarda en él rutas y ajustes y carga las imágenes cuando hagan falta. `render_stills` y `Preview.frames` aceptan el
+  mismo `backdrop`. Un fondo que lanza un error o devuelve una imagen de tamaño incorrecto detiene la exportación con
+  un `BackdropError` (código `backdrop_failed`) y no deja ningún archivo; no se puede combinar con un fondo
+  transparente. Ejemplo:
+
+```python
+import numpy as np
+import skia
+
+
+class StillImage:
+    """One image file under the whole video, loaded once per worker process."""
+
+    def __init__(self, path):
+        self.path = str(path)
+        self._picture = None
+
+    def frame(self, index, seconds, width, height) -> np.ndarray:
+        if self._picture is None:
+            image = skia.Image.open(self.path).resize(width, height)
+            self._picture = image.toarray(colorType=skia.kRGBA_8888_ColorType)[:, :, :3].copy()
+        return self._picture
+
+
+job = RenderJob(..., backdrop=StillImage("background.png"))
+```
+
 - Los fotogramas se dibujan en varios procesos, que vuelven a importar el script que llama. Por eso un script debe
   llamar a la API dentro de `if __name__ == "__main__":`. Sin ello, la exportación falla con un `WorkerError` que lo
   explica. Con `workers=1` no se usan procesos adicionales.

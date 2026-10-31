@@ -329,7 +329,8 @@ With `--progress json`, the CLI prints one JSON object per line on stdout. Error
 | `interrupted` | | The run was interrupted |
 
 Error codes: `decode_failed`, `encode_failed`, `output_exists`, `worker_failed`, `preset_invalid`,
-`ffmpeg_not_found`, `time_out_of_range` (`--start` beyond the end of a song).
+`ffmpeg_not_found`, `time_out_of_range` (`--start` beyond the end of a song), `backdrop_failed` (API only, see
+below).
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -365,7 +366,7 @@ if __name__ == "__main__":  # required, see below
 ```
 
 - `render_video` raises a subclass of `AudioSpectrumError` on failure: `PresetError`, `DecodeError`, `EncodeError`,
-  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, or `Cancelled` when `cancel` returns true. No output
+  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, or `Cancelled` when `cancel` returns true. No output
   file is left behind in any of these cases.
 - `override_preset(preset, ["look.max_height=0.4"])` applies overrides like `--set` and returns a new preset. It
   raises `PresetError` for an invalid result.
@@ -388,6 +389,37 @@ if __name__ == "__main__":  # required, see below
   with colors as `"#RRGGBB"` strings. `preset_warnings(preset)` returns the warnings of `presets check` as a list.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in
   `RenderJob.encode`. Other codecs with `alpha=True` raise `ValueError`.
+- `RenderJob(..., backdrop=...)` draws the spectrum over pictures that your app supplies instead of the preset's
+  background color, for example a background image with lyrics captions. The backdrop is any object with a method
+  `frame(index, seconds, width, height)` returning a `(height, width, 3)` `uint8` RGB array: `index` is the frame of
+  the whole song and `seconds` its time (`index / fps`), also when only part of the song is rendered. It is sent to
+  every worker process, so it must be picklable: keep paths and settings in it and load pictures lazily.
+  `render_stills` and `Preview.frames` take the same `backdrop`. A backdrop that raises or returns a picture of the
+  wrong size stops the render with a `BackdropError` (code `backdrop_failed`) and leaves no file; it cannot be
+  combined with a transparent background. Example:
+
+```python
+import numpy as np
+import skia
+
+
+class StillImage:
+    """One image file under the whole video, loaded once per worker process."""
+
+    def __init__(self, path):
+        self.path = str(path)
+        self._picture = None
+
+    def frame(self, index, seconds, width, height) -> np.ndarray:
+        if self._picture is None:
+            image = skia.Image.open(self.path).resize(width, height)
+            self._picture = image.toarray(colorType=skia.kRGBA_8888_ColorType)[:, :, :3].copy()
+        return self._picture
+
+
+job = RenderJob(..., backdrop=StillImage("background.png"))
+```
+
 - Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API
   under `if __name__ == "__main__":`. Without it the render fails with a `WorkerError` that says so. Passing
   `workers=1` avoids extra processes.

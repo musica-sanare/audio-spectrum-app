@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob 985d236acd7b91e09bdf6fe3e4833db4b5905162 -->
+<!-- source: docs/en/USER_GUIDE.md blob 6a57acebcfd00592abaf744b986762066ca36256 -->
 [English](../en/USER_GUIDE.md) | 日本語 | [Español](../es/USER_GUIDE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -325,7 +325,7 @@ CLI と Python API は、このツールを組み込むスクリプトやアプ�
 | `interrupted` | | 実行が中断された |
 
 エラーコード:`decode_failed`、`encode_failed`、`output_exists`、`worker_failed`、`preset_invalid`、
-`ffmpeg_not_found`、`time_out_of_range`(`--start` が曲の終わりより後)
+`ffmpeg_not_found`、`time_out_of_range`(`--start` が曲の終わりより後)、`backdrop_failed`(API のみ。下記参照)
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -361,7 +361,7 @@ if __name__ == "__main__":  # required, see below
 ```
 
 - `render_video` は失敗すると `AudioSpectrumError` の派生クラスを送出します:`PresetError`、`DecodeError`、`EncodeError`、
-  `OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、および `cancel` が真を返したときの `Cancelled`。
+  `OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、`BackdropError`、および `cancel` が真を返したときの `Cancelled`。
   いずれの場合も出力ファイルは残りません。
 - `override_preset(preset, ["look.max_height=0.4"])` は `--set` と同じ上書きをして、新しいプリセットを返します。
   結果が不正なら `PresetError` を送出します。
@@ -384,6 +384,36 @@ if __name__ == "__main__":  # required, see below
   の文字列です。`preset_warnings(preset)` は `presets check` の警告をリストで返します。
 - 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`
   を指定します。ほかのコーデックで `alpha=True` にすると `ValueError` を送出します。
+- `RenderJob(..., backdrop=...)` を使うと、プリセットの背景色の代わりに、あなたのアプリが用意した絵(例:背景画像と
+  歌詞の帯)の上にスペクトラムを描きます。背景(backdrop)は、`frame(index, seconds, width, height)` というメソッドを持ち、
+  `(height, width, 3)` の `uint8` RGB 配列を返すオブジェクトなら何でも構いません。`index` は曲全体でのコマ番号、
+  `seconds` はその時刻(`index / fps`)で、曲の一部だけを書き出すときも同じです。各ワーカープロセスに送られるので、
+  pickle できる必要があります。パスや設定だけを持ち、絵は必要になってから読み込んでください。`render_stills` と
+  `Preview.frames` にも同じ `backdrop` を渡せます。背景がエラーを出したり、大きさの違う絵を返したりすると、
+  `BackdropError`(コード `backdrop_failed`)で書き出しが止まり、ファイルは残りません。透明な背景とは組み合わせられません。例:
+
+```python
+import numpy as np
+import skia
+
+
+class StillImage:
+    """One image file under the whole video, loaded once per worker process."""
+
+    def __init__(self, path):
+        self.path = str(path)
+        self._picture = None
+
+    def frame(self, index, seconds, width, height) -> np.ndarray:
+        if self._picture is None:
+            image = skia.Image.open(self.path).resize(width, height)
+            self._picture = image.toarray(colorType=skia.kRGBA_8888_ColorType)[:, :, :3].copy()
+        return self._picture
+
+
+job = RenderJob(..., backdrop=StillImage("background.png"))
+```
+
 - コマは複数のプロセスで描かれ、それらは呼び出し元のスクリプトを読み込み直します。そのため、スクリプトからは
   `if __name__ == "__main__":` の中で API を呼んでください。これがないと、その旨を伝える `WorkerError` で失敗します。
   `workers=1` を指定すれば、追加のプロセスは使いません。

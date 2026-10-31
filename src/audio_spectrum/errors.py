@@ -53,3 +53,9 @@ class TimeRangeError(AudioSpectrumError):
     """A still was requested at a time outside the audio."""
 
     code = "time_out_of_range"
+
+
+class BackdropError(AudioSpectrumError):
+    """The backdrop given to a render failed or returned a picture of the wrong size or type."""
+
+    code = "backdrop_failed"

@@ -23,11 +23,12 @@ class Rasterizer(Protocol):
 
     def draw(
         self, quads: np.ndarray, background: Color | None, foreground: Color, gradient: Gradient | None = None,
-        glow: Glow | None = None,
+        glow: Glow | None = None, under: np.ndarray | None = None,
     ) -> np.ndarray:
         """Return a frame with shape (height, width, 3), uint8 RGB, or (height, width, 4) RGBA with straight alpha
-        when the background is None (transparent). A gradient, if given, replaces the foreground; a glow adds a soft
-        halo in the same colors under the shapes."""
+        when the background is None (transparent). `under`, a (height, width, 3) uint8 RGB picture, replaces the
+        background color. A gradient, if given, replaces the foreground; a glow adds a soft halo in the same colors
+        under the shapes."""
         ...
 
 
@@ -41,7 +42,7 @@ class SkiaRasterizer:
 
     def draw(
         self, quads: np.ndarray, background: Color | None, foreground: Color, gradient: Gradient | None = None,
-        glow: Glow | None = None,
+        glow: Glow | None = None, under: np.ndarray | None = None,
     ) -> np.ndarray:
         path = skia.Path()
         for quad in quads.tolist():
@@ -51,9 +52,14 @@ class SkiaRasterizer:
         if gradient is not None:
             paint = skia.Paint(self._paint)
             paint.setShader(_shader(gradient))
+        if under is not None:
+            # Writing the picture into the surface's pixels equals clearing to a color when the picture is one color.
+            self._pixels[:, :, :3] = under
+            self._pixels[:, :, 3] = 255
         with self._surface as canvas:
             # The surface stores straight (unpremultiplied) alpha, as ffmpeg's rgba input and PNG expect.
-            canvas.clear(skia.ColorTRANSPARENT if background is None else skia.Color(*background))
+            if under is None:
+                canvas.clear(skia.ColorTRANSPARENT if background is None else skia.Color(*background))
             if glow is not None:
                 canvas.drawPath(path, _glow_paint(paint, glow))
             canvas.drawPath(path, paint)

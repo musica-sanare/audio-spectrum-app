@@ -14,6 +14,7 @@ __version__ = "0.4.0"
 from audio_spectrum.encode import EncodeSettings, encode_png
 from audio_spectrum.errors import (
     AudioSpectrumError,
+    BackdropError,
     Cancelled,
     DecodeError,
     EncodeError,
@@ -23,7 +24,7 @@ from audio_spectrum.errors import (
     TimeRangeError,
     WorkerError,
 )
-from audio_spectrum.pipeline import Preview, RenderJob, RenderResult, render_stills, render_video
+from audio_spectrum.pipeline import Backdrop, Preview, RenderJob, RenderResult, render_stills, render_video
 from audio_spectrum.presets import (
     Preset,
     builtin_preset_names,
@@ -40,6 +41,8 @@ from audio_spectrum.presets import (
 
 __all__ = [
     "AudioSpectrumError",
+    "Backdrop",
+    "BackdropError",
     "Cancelled",
     "DecodeError",
     "EncodeError",
