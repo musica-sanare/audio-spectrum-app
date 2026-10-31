@@ -1,5 +1,5 @@
-<!-- source: docs/en/ARCHITECTURE.md blob e9126e6d7e52e8bf4ffb1b5bd020312c21427428 -->
-[English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
+<!-- source: docs/en/ARCHITECTURE.md blob 86491a32b0f9cd7da554cf7a5f6579efc1f754cf -->
+[English](../en/ARCHITECTURE.md) | 日本語 | [Español](../es/ARCHITECTURE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
 

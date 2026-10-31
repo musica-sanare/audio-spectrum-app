@@ -1,4 +1,4 @@
-English | [日本語](../ja/DEVELOPMENT.md) · [Docs index](README.md)
+English | [日本語](../ja/DEVELOPMENT.md) | [Español](../es/DEVELOPMENT.md) · [Docs index](README.md)
 
 # Development
 
@@ -71,12 +71,13 @@ itself is checked by hand in a browser.
 
 ## 5. Conventions
 
-- Code, comments, commit messages and docs are in English. Japanese appears only in the `docs/ja/` translations and
-  `README.ja.md`.
+- Code, comments, commit messages and docs are in English. Japanese and Spanish appear only in the translations
+  (`docs/ja/`, `docs/es/`, `README.ja.md`, `README.es.md`) and in the GUI's page texts.
 - Keep the [invariants](ARCHITECTURE.md#3-invariants).
 - A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`
   and `es.json`, and new page texts need an entry in all three; `test_gui.py` fails otherwise.
-- Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` that records the English blob hash on its first
-  line. Working docs (plans, results, decisions) live in `docs/working/` in English only.
+- Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` and a Spanish twin in `docs/es/`; each
+  translation records the English blob hash on its first line and is updated in the same commit as the English
+  file. Working docs (plans, results, decisions) live in `docs/working/` in English only.
 - Work proceeds in phases: a plan in `docs/working/PHASE<N>_PLAN.md` approved by the owner, then implementation with a
   commit per milestone, then an acceptance report.
