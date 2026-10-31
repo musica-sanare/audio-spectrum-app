@@ -2,7 +2,7 @@
 
 # Phase 3 plan: GUI as a local web UI
 
-Status: approved by the owner on 2026-10-26 with the recommended options. P3, P6 and P7 are open (`要確認`); see
+Status: approved by the owner on 2026-10-26 with the recommended options; P3, P6 and P7 answered on 2026-10-31. See
 "Decisions on open questions".
 
 ## Goal
@@ -19,7 +19,7 @@ Inputs: [Requirements](REQUIREMENTS.md) F14, F15, N6; [Decisions](DECISIONS.md) 
 
 Phase 2 is implemented but not yet accepted (Q1 and the editor checks). Phase 3 can start in parallel: nothing in
 it depends on those answers. The Phase 2 acceptance is closed in its own commit whenever the owner has checked.
-(要確認 P1)
+(P1)
 
 ## Scope
 
@@ -36,7 +36,7 @@ it depends on those answers. The Phase 2 acceptance is closed in its own commit 
 ### Out (later or not planned)
 
 - F15: a native window (pywebview) and a Finder quick action. The page is built so a native window can show it
-  later without changes. (要確認 P2)
+  later without changes. (P2)
 - HEVC output, peak hold, glow for the perspective look.
 - Several renders at once: rendering already uses all CPU cores, so the GUI runs one job at a time.
 
@@ -88,7 +88,20 @@ Forms:
 Layout: settings on the left, preview on the right (a still at the chosen time, with a time slider, and a "play
 clip" button), render controls and progress at the bottom. Warnings from `preset_warnings` show next to the preview.
 
-UI language: 要確認 P3 (Japanese, English, or both with a switch).
+UI language (P3): Japanese, English and Spanish, switched in the page.
+
+- All page text comes from one message file per language (`gui/static/i18n/ja.json`, `en.json`, `es.json`), keyed
+  by message id. Help texts for preset keys are keyed by the dotted key (`look.bar_fill`), so the schema's English
+  descriptions are the fallback.
+- The first visit follows the browser's language (Japanese, Spanish, otherwise English); the choice is remembered in
+  the browser.
+- A test checks that every message id and every preset key has an entry in all three files, so a new key cannot ship
+  untranslated.
+- Only the page is translated. CLI messages, errors from the core, preset key names and values (`"blocks"`,
+  `"#FF00C8"`) stay as they are; error messages shown in the page get a translated title with the core's English
+  text below it.
+- Translations are written by Claude; the owner reviews Japanese, and Spanish wording may need a review by a native
+  speaker (要確認).
 
 ### 4. Choosing files
 
@@ -101,7 +114,7 @@ folder at all.
 | B. Upload the file into the server | Works in any browser and system | Copies every song; output still needs a folder; more code for temporary files | Not recommended |
 | C. A file browser drawn in the page | Platform-independent | Much UI to build; exposes directory listings over HTTP | Not recommended |
 
-(要確認 P4)
+(P4)
 
 ### 5. Previews
 
@@ -116,14 +129,14 @@ folder at all.
 - `preset_to_toml` writes TOML with a small writer of our own (the standard library reads TOML but cannot write it;
   our presets use only numbers, booleans, strings, lists and tables). A round-trip test loads every built-in preset,
   writes it and reads it back. Alternative: the `tomli-w` package (small and widely used, but one more dependency).
-- What to write (要確認 P5):
+- What to write (P5):
 
 | Option | For | Against | Recommendation |
 |---|---|---|---|
 | A. Only the keys that differ from `default`, plus `name` and `schema_version` | Short files that show what makes the look; follows later changes of defaults | A reader must know the defaults (`presets show default`) | **Recommended** |
 | B. Every key | Self-contained | Long; freezes every default | Possible as an option |
 
-- Where to save (要確認 P6):
+- Where to save (P6):
 
 | Option | For | Against | Recommendation |
 |---|---|---|---|
@@ -153,7 +166,7 @@ files through the GUI's server.
 
 | Area | Change |
 |---|---|
-| CLI | `gui` command (needs the `gui` extra); `--start` and `--duration` on `render`; with P6 B, `--preset NAME` also finds user presets |
+| CLI | `gui` command (needs the `gui` extra); `--start` and `--duration` on `render`; `--preset NAME` also finds user presets; `presets list` shows them (P6) |
 | JSON events and exit codes | None |
 | Public API | `RenderJob.start`, `RenderJob.duration`, `Preview`, `preset_to_toml`, `preset_schema`, `preset_warnings` |
 | Preset format | None (`schema_version` stays 1) |
@@ -167,7 +180,7 @@ files through the GUI's server.
    stills. Tests with FastAPI's test client (`httpx` in the dev group).
 3. **Page.** Forms from the schema, main settings, still preview, clip preview, warnings. Checked in the browser.
 4. **Renders and saving.** Jobs with progress and cancel, output folder, "Show in Finder", saving presets (and the
-   user preset folder if P6 B).
+   user preset folder (P6).
 5. **Docs and version.** User guide chapter for the GUI, architecture (layers, `gui` subpackage), development guide
    (running the GUI, its tests), ADR-012 for the GUI design, version 0.4.0.
 6. **Acceptance.** `docs/working/PHASE3_ACCEPTANCE.md`.
@@ -191,10 +204,12 @@ Answered by the owner on 2026-10-26: the recommended options are approved.
 
 - P1. Phase 3 starts before Phase 2 is accepted; Phase 2 is closed in its own commit after the owner's checks.
 - P2. F14 only; a native window (F15) is out of this phase.
-- P3. UI language: open, `要確認`. Milestone 3 (the page) waits for it.
+- P3. UI language: Japanese, English and Spanish, switchable in the page (section 3).
 - P4. Files are chosen through native macOS dialogs, plus a path field.
 - P5. Saved presets contain only the keys that differ from `default`, plus `name` and `schema_version`.
-- P6. Where saved presets live: open, `要確認`. Milestone 4 (saving) waits for it.
-- P7. Clip preview length: open, `要確認`; 5 seconds until decided.
-
-Milestones 1 and 2 do not depend on the open answers.
+- P6. A user preset folder, `~/Library/Application Support/audio-spectrum/presets/`, listed by name in the GUI and
+  in `presets list`, and accepted by `--preset NAME`. Built-in names are reserved, so `--preset default` always means
+  the built-in preset, which keeps scripts and embedding apps stable: the GUI refuses to save under a built-in name,
+  and a user file with a built-in name is skipped with a warning in `presets list`. (Proposed by Claude, since the
+  owner did not choose between the two; 要確認.)
+- P7. Clip previews are 5 seconds long.
