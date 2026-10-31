@@ -13,7 +13,10 @@ uv sync
 ```
 
 Python 3.13 and all dependencies are managed by `uv` (`pyproject.toml`, `uv.lock`). Add a dependency with
-`uv add <package>`; keep the core's dependencies few and widely used.
+`uv add <package>`; keep the core's dependencies few and widely used. GUI dependencies belong to the `gui` extra
+(`uv add --optional gui <package>`). The `dev` group includes that extra, so `uv sync` installs everything needed
+for development and the tests; an app that embeds this one installs it without the `dev` group and gets the core
+dependencies only.
 
 ## 2. Tests
 
@@ -35,6 +38,7 @@ uv run pytest
 | `test_cli_contract.py` | JSON events, exit codes, overwrite rules, safe output, cancellation, Ctrl+C and SIGTERM |
 | `test_stills.py` | `still` and `render_stills` (identical to video frames), `--set` and `override_preset` |
 | `test_golden.py` | Golden hashes of the built-in presets' frames, so a settled look cannot change by accident |
+| `test_gui.py` | GUI server: token and host checks, presets, schema, warnings, dialogs (faked), stills; the core never imports the GUI packages. Skipped without the `gui` extra |
 
 ## 3. Visual checks
 

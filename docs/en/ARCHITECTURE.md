@@ -8,7 +8,7 @@ their reasons are in the [decision log](../working/DECISIONS.md).
 ## 1. Layers
 
 ```
-  GUI (later, optional extra)        CLI (cli.py)              other apps and scripts
+  GUI (gui/, optional extra)         CLI (cli.py)              other apps and scripts
             \                           |                            /
              +------------- public Python API (audio_spectrum) -----+
                                         |
@@ -18,8 +18,9 @@ their reasons are in the [decision log](../working/DECISIONS.md).
 - **Core library.** Analysis, rendering and encoding. No UI code and no UI dependencies.
 - **CLI.** A thin layer that parses arguments, calls the core and reports progress, errors and exit codes. It is the
   stable contract for tools in other languages.
-- **GUI.** Planned as a local web UI on the same API, installed as an optional extra
-  ([Requirements](../working/REQUIREMENTS.md) F14, ADR-008).
+- **GUI.** A local web UI on the same API, in the `audio_spectrum.gui` subpackage with its dependencies (FastAPI,
+  uvicorn) in the optional `gui` extra ([Requirements](../working/REQUIREMENTS.md) F14, ADR-008). It imports only the
+  public API, listens on `127.0.0.1` only and requires a per-session token. Importing the core never imports it.
 
 ## 2. Data flow
 
@@ -46,6 +47,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `pipeline.py` | `render_video`: load, analyze, render frames (in parallel worker processes), encode; progress and cancellation. `render_stills` and `Preview`: single frames for checks and GUIs, `Preview` keeping the analysis |
 | `errors.py` | Error types with stable codes |
 | `cli.py` | Commands, progress output, exit codes, signal handling |
+| `gui/` | `app.py`: HTTP API and page, with the host and token checks; `dialogs.py`: native macOS file dialogs; `server.py`: start-up; `static/`: the page |
 
 ## 3. Invariants
 

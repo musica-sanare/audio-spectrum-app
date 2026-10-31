@@ -1,4 +1,4 @@
-<!-- source: docs/en/USER_GUIDE.md blob a377d3e7076a074466c8b90921bb20ebdd8ee812 -->
+<!-- source: docs/en/USER_GUIDE.md blob b5e1f98927b86d1d86798823c35ceb3d72a88a48 -->
 [English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -132,6 +132,18 @@ audio-spectrum still AUDIO --at SECONDS [--at SECONDS ...] [options]
 
 終了コードは `render` と同じです。画像が既にある、音声を読めない、時刻が音声の範囲外のときは 1、オプションの誤りや
 不正なプリセットのときは 2 です。
+
+### `gui`
+
+```
+audio-spectrum gui [--port PORT] [--no-browser]
+```
+
+ローカルの Web UI を起動し、既定のブラウザで開きます。`gui` という追加パッケージが必要です(`uv sync --extra gui`)。
+入っていない場合は、その旨を表示して終了コード 2 で終わります。サーバーは `127.0.0.1` でだけ待ち受け、`--port` を
+指定しなければ空いているポートを使い、Ctrl+C で止まります。表示されるアドレスにはセッションの合言葉(トークン)が
+含まれ、ほかのウェブページはこれなしではサーバーを使えません。このバージョンの画面はまだ仮のもので、曲を開いて
+組み込みプリセットの静止画を表示できるだけです。
 
 ### `presets`
 
@@ -327,6 +339,7 @@ if __name__ == "__main__":  # required, see below
   1080p のコマを約 20 ミリ秒で描けます。`preview.duration` は曲の長さです。スレッドセーフではありません。
 - `preset_to_toml(preset)` は、`default` と違う項目だけを書いた TOML を返します(`full=True` なら全項目)。
   `load_preset` で読み直すと、同じプリセットになります。
+- `encode_png(frame)` はコマ(RGB、またはアルファ付きの RGBA)を、劣化のない PNG のバイト列で返します。
 - `preset_schema()` はプリセットの JSON スキーマを返します。型、範囲、既定値、全項目の説明を含み、色は `"#RRGGBB"`
   の文字列です。`preset_warnings(preset)` は `presets check` の警告をリストで返します。
 - 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`

@@ -163,18 +163,22 @@ class VideoWriter:
         return lines[-1] if lines else f"exit code {self._process.returncode}"
 
 
-def write_png(path: Path, frame: np.ndarray) -> None:
-    """Write a (height, width, 3) uint8 RGB frame, or (height, width, 4) RGBA with straight alpha, as a lossless PNG,
-    through a temporary file like videos."""
-    path = Path(path)
+def encode_png(frame: np.ndarray) -> bytes:
+    """A (height, width, 3) uint8 RGB frame, or (height, width, 4) RGBA with straight alpha, as lossless PNG bytes."""
     if frame.shape[2] == 3:
         frame = np.dstack([frame, np.full(frame.shape[:2], 255, dtype=np.uint8)])
     image = skia.Image.fromarray(
         np.ascontiguousarray(frame), colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
     )
+    return bytes(image.encodeToData(skia.kPNG, 100))
+
+
+def write_png(path: Path, frame: np.ndarray) -> None:
+    """Write a frame as a lossless PNG (see `encode_png`), through a temporary file like videos."""
+    path = Path(path)
     partial = partial_path(path)
     try:
-        partial.write_bytes(bytes(image.encodeToData(skia.kPNG, 100)))
+        partial.write_bytes(encode_png(frame))
         partial.replace(path)
     finally:
         partial.unlink(missing_ok=True)

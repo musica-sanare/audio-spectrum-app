@@ -168,7 +168,7 @@ files through the GUI's server.
 |---|---|
 | CLI | `gui` command (needs the `gui` extra); `--start` and `--duration` on `render`; `--preset NAME` also finds user presets; `presets list` shows them (P6) |
 | JSON events and exit codes | None |
-| Public API | `RenderJob.start`, `RenderJob.duration`, `Preview`, `preset_to_toml`, `preset_schema`, `preset_warnings` |
+| Public API | `RenderJob.start`, `RenderJob.duration`, `Preview`, `preset_to_toml`, `preset_schema`, `preset_warnings`, `encode_png` |
 | Preset format | None (`schema_version` stays 1) |
 
 ## Milestones and commits

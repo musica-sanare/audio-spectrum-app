@@ -1,4 +1,4 @@
-<!-- source: docs/en/DEVELOPMENT.md blob 484013fb57e5be46082ef4991d7849a78c9251dd -->
+<!-- source: docs/en/DEVELOPMENT.md blob 5aa2ca2e24cf2ad3e8feb302cab00943616fc866 -->
 [English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -16,7 +16,9 @@ uv sync
 ```
 
 Python 3.13 とすべての依存は `uv` で管理しています(`pyproject.toml`、`uv.lock`)。依存は `uv add <package>` で追加します。
-コアの依存は、少なく、広く使われているものに限ります。
+コアの依存は、少なく、広く使われているものに限ります。GUI 用の依存は追加パッケージ `gui` に入れます
+(`uv add --optional gui <package>`)。`dev` グループがこの追加パッケージを含むので、`uv sync` で開発とテストに必要なものが
+すべて入ります。このアプリを組み込むアプリは `dev` グループなしでインストールするので、コアの依存だけが入ります。
 
 ## 2. テスト
 
@@ -38,6 +40,7 @@ uv run pytest
 | `test_cli_contract.py` | JSON イベント、終了コード、上書きのルール、安全な書き出し、キャンセル、Ctrl+C と SIGTERM |
 | `test_stills.py` | `still` と `render_stills`(動画のコマと同一であること)、`--set` と `override_preset` |
 | `test_golden.py` | 組み込みプリセットのコマの基準ハッシュ値。確定した見た目が意図せず変わらないようにする |
+| `test_gui.py` | GUI のサーバー:合言葉と Host の確認、プリセット、スキーマ、警告、ファイル選択(代役で確認)、静止画。コアが GUI 用の依存を読み込まないこと。追加パッケージ `gui` がなければスキップ |
 
 ## 3. 見た目の確認
 

@@ -15,8 +15,16 @@ dependencies = [
 [project.scripts]
 audio-spectrum = "audio_spectrum.cli:main"
 
+[project.optional-dependencies]
+gui = [
+    "fastapi>=0.162.0",
+    "uvicorn>=0.54.0",
+]
+
 [dependency-groups]
 dev = [
+    "audio-spectrum-app[gui]",
+    "httpx>=0.28.1",
     "pytest",
 ]
 

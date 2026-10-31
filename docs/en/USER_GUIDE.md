@@ -132,6 +132,18 @@ video rendered with the same options.
 Exit codes are those of `render`: 1 when an image exists, the audio cannot be decoded or a time is outside the
 audio; 2 for bad options or an invalid preset.
 
+### `gui`
+
+```
+audio-spectrum gui [--port PORT] [--no-browser]
+```
+
+Starts the local web UI and opens it in the default browser. It needs the `gui` extra: `uv sync --extra gui`
+(without it, `gui` exits with code 2 and says so). The server listens on `127.0.0.1` only, on a free port unless
+`--port` is given, and stops with Ctrl+C. The address it prints carries a session token; other web pages cannot use
+the server without it. The page is still a placeholder in this version: it opens a song and shows stills of the
+built-in presets.
+
 ### `presets`
 
 ```
@@ -329,6 +341,7 @@ if __name__ == "__main__":  # required, see below
   1080p frame in about 20 ms. `preview.duration` is the song's length. Not thread-safe.
 - `preset_to_toml(preset)` returns the preset as TOML with only the keys that differ from `default`
   (`full=True` writes every key); `load_preset` reads it back to an equal preset.
+- `encode_png(frame)` returns a frame (RGB, or RGBA with alpha) as lossless PNG bytes.
 - `preset_schema()` returns the JSON schema of a preset: types, ranges, defaults and a description of every key,
   with colors as `"#RRGGBB"` strings. `preset_warnings(preset)` returns the warnings of `presets check` as a list.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in

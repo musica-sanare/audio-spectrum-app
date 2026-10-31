@@ -139,6 +139,10 @@ def build_parser() -> argparse.ArgumentParser:
     still.add_argument("--overwrite", action="store_true", help="replace existing images")
     add_look_arguments(still)
 
+    gui = commands.add_parser("gui", help="open the local web UI in the browser (needs the gui extra)")
+    gui.add_argument("--port", type=int, default=0, help="port on 127.0.0.1 (default: a free port)")
+    gui.add_argument("--no-browser", action="store_true", help="print the address instead of opening the browser")
+
     presets = commands.add_parser("presets", help="list, show or check presets")
     preset_commands = presets.add_subparsers(dest="preset_command", required=True)
     preset_commands.add_parser("list", help="list built-in presets")
@@ -329,6 +333,20 @@ class Reporter:
         print(json.dumps(event, ensure_ascii=False), flush=True)
 
 
+def run_gui(args: argparse.Namespace) -> int:
+    try:
+        from audio_spectrum.gui.server import run
+    except ImportError:
+        print("audio-spectrum: the GUI needs the gui extra: uv sync --extra gui", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        run(port=args.port, open_browser=not args.no_browser)
+    except OSError as error:
+        print(f"audio-spectrum: cannot listen on 127.0.0.1:{args.port}: {error.strerror}", file=sys.stderr)
+        return EXIT_USAGE
+    return EXIT_OK
+
+
 def run_presets(args: argparse.Namespace) -> int:
     if args.preset_command == "list":
         for name in builtin_preset_names():
@@ -355,6 +373,8 @@ def main(argv: list[str] | None = None) -> int:
             return run_render(args, reporter)
         if args.command == "still":
             return run_still(args, reporter)
+        if args.command == "gui":
+            return run_gui(args)
         if args.command == "presets":
             return run_presets(args)
     except PresetError as error:

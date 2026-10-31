@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>audio-spectrum</title>
+<style>
+  body { font: 15px/1.5 -apple-system, system-ui, sans-serif; margin: 24px; color: #222; background: #fafafa; }
+  button { font: inherit; padding: 4px 12px; }
+  #still { display: block; max-width: 100%; margin-top: 16px; background: #ddd; }
+  #status { color: #555; }
+</style>
+</head>
+<body>
+<!-- Placeholder for Phase 3 milestone 2: checks the server end to end. The full page comes in milestone 3. -->
+<h1>audio-spectrum</h1>
+<p><button id="open">Open audio file…</button> <span id="status">No song open.</span></p>
+<p><label>Time (s) <input id="time" type="number" value="30" min="0" step="0.5"></label>
+   <label>Preset <select id="preset"></select></label></p>
+<img id="still" alt="">
+<script>
+const params = new URLSearchParams(location.search);
+if (params.has("token")) {
+  sessionStorage.setItem("token", params.get("token"));
+  history.replaceState(null, "", location.pathname);
+}
+const token = sessionStorage.getItem("token");
+const status = document.getElementById("status");
+
+async function api(path, body) {
+  const options = { headers: { "X-Token": token } };
+  if (body !== undefined) {
+    options.method = "POST";
+    options.headers["Content-Type"] = "application/json";
+    options.body = JSON.stringify(body);
+  }
+  const response = await fetch(path, options);
+  if (!response.ok) throw new Error((await response.json()).message || response.statusText);
+  return response;
+}
+
+async function showStill() {
+  const preset = await (await api("/api/presets/" + document.getElementById("preset").value)).json();
+  const time = Number(document.getElementById("time").value);
+  const image = await (await api("/api/still", { preset, time, width: 1920, height: 1080 })).blob();
+  document.getElementById("still").src = URL.createObjectURL(image);
+}
+
+document.getElementById("open").onclick = async () => {
+  try {
+    const { path } = await (await api("/api/dialogs/audio", { prompt: "Choose an audio file" })).json();
+    if (!path) return;
+    const song = await (await api("/api/song", { path })).json();
+    status.textContent = `${song.name} (${song.duration.toFixed(1)} s)`;
+    await showStill();
+  } catch (error) { status.textContent = error.message; }
+};
+document.getElementById("time").onchange = () => showStill().catch(error => status.textContent = error.message);
+document.getElementById("preset").onchange = document.getElementById("time").onchange;
+
+api("/api/presets").then(r => r.json()).then(({ builtin }) => {
+  document.getElementById("preset").innerHTML = builtin.map(name => `<option>${name}</option>`).join("");
+}).catch(error => status.textContent = error.message);
+</script>
+</body>
+</html>

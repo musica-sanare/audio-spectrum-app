@@ -63,7 +63,8 @@ WHITE = (255, 255, 255)
 
 
 class _Settings(BaseModel):
-    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True)
+    # JSON has no infinity, so `inf` (max_frequency) is written as "Infinity", which validation reads back.
+    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True, ser_json_inf_nan="strings")
 
 
 class FlatLook(_Settings):

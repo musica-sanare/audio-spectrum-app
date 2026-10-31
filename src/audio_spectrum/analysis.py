@@ -22,7 +22,8 @@ TILT_REFERENCE_FREQUENCY = 1000.0
 class AnalysisSettings(BaseModel):
     """How audio becomes band values. Defaults are the `default` preset's values."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True)
+    # JSON has no infinity, so `inf` (max_frequency) is written as "Infinity", which validation reads back.
+    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True, ser_json_inf_nan="strings")
 
     fft_size: int = Field(4096, ge=256, le=32768)
     """FFT length in samples, a power of two. Longer resolves low notes better but reacts more slowly."""

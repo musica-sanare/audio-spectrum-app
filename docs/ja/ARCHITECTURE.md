@@ -1,4 +1,4 @@
-<!-- source: docs/en/ARCHITECTURE.md blob ae92239c0babca9ea420198af798aff13432d131 -->
+<!-- source: docs/en/ARCHITECTURE.md blob 7ab1ba741d19c699b967b83f58b0378eec532850 -->
 [English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -11,7 +11,7 @@
 ## 1. 層構成
 
 ```
-  GUI (later, optional extra)        CLI (cli.py)              other apps and scripts
+  GUI (gui/, optional extra)         CLI (cli.py)              other apps and scripts
             \                           |                            /
              +------------- public Python API (audio_spectrum) -----+
                                         |
@@ -20,8 +20,9 @@
 
 - **コアライブラリ。** 解析・描画・書き出し。UI のコードも UI 用の依存も持ちません。
 - **CLI。** 引数を解釈してコアを呼び、進捗・エラー・終了コードを伝える薄い層です。ほかの言語のツールに対する安定した約束事です。
-- **GUI。** 同じ API の上に作るローカル Web UI として計画しています。インストールは任意のオプションです
-  ([要件](../working/REQUIREMENTS.md) F14、ADR-008。いずれも英語のみ)。
+- **GUI。** 同じ API の上に作るローカル Web UI です。`audio_spectrum.gui` サブパッケージにあり、その依存(FastAPI、uvicorn)は
+  任意の追加パッケージ `gui` に入れます([要件](../working/REQUIREMENTS.md) F14、ADR-008。いずれも英語のみ)。公開 API だけを
+  使い、`127.0.0.1` でだけ待ち受け、セッションごとの合言葉(トークン)を求めます。コアを読み込んでも GUI は読み込まれません。
 
 ## 2. データの流れ
 
@@ -48,6 +49,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 | `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
+| `gui/` | `app.py`:HTTP の API と画面、Host と合言葉の確認。`dialogs.py`:macOS 標準のファイル選択画面。`server.py`:起動。`static/`:画面 |
 
 ## 3. 不変条件
 

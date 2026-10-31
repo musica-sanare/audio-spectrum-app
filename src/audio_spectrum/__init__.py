@@ -11,7 +11,7 @@ Public API: the names in `__all__`. Everything else is internal and may change w
 
 __version__ = "0.3.0"
 
-from audio_spectrum.encode import EncodeSettings
+from audio_spectrum.encode import EncodeSettings, encode_png
 from audio_spectrum.errors import (
     AudioSpectrumError,
     Cancelled,
@@ -51,6 +51,7 @@ __all__ = [
     "WorkerError",
     "__version__",
     "builtin_preset_names",
+    "encode_png",
     "load_preset",
     "override_preset",
     "preset_schema",
