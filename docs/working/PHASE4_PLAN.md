@@ -2,7 +2,8 @@
 
 # Phase 4 plan: drawing the spectrum over another app's frames
 
-Status: approved by the owner on 2026-10-31 with the recommended option B. P4-1 is open (`要確認`).
+Status: approved by the owner on 2026-10-31 with the recommended option B; accepted the same day
+([Phase 4 acceptance](PHASE4_ACCEPTANCE.md)). P4-1 is open (`要確認`).
 
 ## Goal
 

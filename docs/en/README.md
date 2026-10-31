@@ -32,3 +32,4 @@ How the offline audio spectrum video renderer is specified, designed and develop
 | [Phase 3 plan](../working/PHASE3_PLAN.md) | GUI as a local web UI: core additions (time range, previews, preset writing and schema), page, file dialogs, renders, local security. |
 | [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md) | Phase 3 acceptance report: criteria, requirements coverage, contract changes, measurements, open items. |
 | [Phase 4 plan](../working/PHASE4_PLAN.md) | Drawing the spectrum over frames supplied by another app (a backdrop), for the lyrics video app. |
+| [Phase 4 acceptance](../working/PHASE4_ACCEPTANCE.md) | Phase 4 acceptance report: criteria, contract changes, measurements with a real song, findings. |

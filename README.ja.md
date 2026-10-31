@@ -1,4 +1,4 @@
-<!-- source: README.md blob 306da3a14b951f4aada9aca16fc3f6c57b247bbd -->
+<!-- source: README.md blob 4725f68c818b5da7a7b61e7325c499634ca79765 -->
 [English](README.md) | 日本語 | [Español](README.es.md)
 
 > この文書は[英語版](README.md)の翻訳です。内容が異なる場合は英語版が優先されます。
@@ -9,12 +9,12 @@
 動画編集ソフトでクロマキーを使い、背景動画に重ねて使うことを想定しています。各コマは音声の時間軸から計算するため、
 音と映像は正確に同期します。
 
-**ステータス:** Phase 1〜3 受け入れ済み。Phase 4(組み込み先のアプリ向けの背景の API)実装済み、バージョン 0.5.0。
+**ステータス:** Phase 1〜4 受け入れ済み、バージョン 0.5.0。Phase 4 では組み込み先のアプリ向けの背景の API を追加しました。
 CLI はエフェクトとスタイル
 （グラデーション、発光、太い棒とブロック、くっきりした低音、透明な背景の ProRes 4444）付きで書き出せます。
 `audio-spectrum gui` で開くローカルの Web ページ（日本語・英語・スペイン語）では、プレビューを見ながら見た目を調整し、
 書き出しとプリセットの保存ができます。[Phase 2](docs/working/PHASE2_ACCEPTANCE.md) と
-[Phase 3](docs/working/PHASE3_ACCEPTANCE.md) の受入報告（英語のみ）を参照してください。
+[Phase 3](docs/working/PHASE3_ACCEPTANCE.md)・[Phase 4](docs/working/PHASE4_ACCEPTANCE.md) の受入報告（英語のみ）を参照してください。
 
 ## クイックスタート
 

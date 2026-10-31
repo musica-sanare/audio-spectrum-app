@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob b4b3f1ad820f2b49df0145b4c0ac8b31c13df7e7 -->
+<!-- source: docs/en/README.md blob db07d129f00c3682cb3ae8754fbaa32d8492d2ee -->
 [English](../en/README.md) | [日本語](../ja/README.md) | Español · [README del repositorio](../../README.es.md)
 
 > Este documento es una traducción de la [versión en inglés](../en/README.md). Si el contenido difiere, prevalece la
@@ -37,3 +37,4 @@ cada fase.
 | [Phase 3 plan](../working/PHASE3_PLAN.md) (solo en inglés) | Interfaz gráfica como interfaz web local: añadidos a la biblioteca (rangos de tiempo, vista previa, escritura y esquema de preajustes), página, diálogos de archivos, exportación, seguridad local. |
 | [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 3: criterios, cobertura de requisitos, cambios de contrato, mediciones, puntos abiertos. |
 | [Phase 4 plan](../working/PHASE4_PLAN.md) (solo en inglés) | Dibujar el espectro sobre fotogramas que aporta otra aplicación (un fondo), para la aplicación de vídeos con letra. |
+| [Phase 4 acceptance](../working/PHASE4_ACCEPTANCE.md) (solo en inglés) | Informe de aceptación de la fase 4: criterios, cambios de contrato, mediciones con una canción real, hallazgos. |
