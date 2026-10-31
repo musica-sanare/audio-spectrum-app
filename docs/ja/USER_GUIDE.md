@@ -1,5 +1,5 @@
-<!-- source: docs/en/USER_GUIDE.md blob 2b2c8c3e23fe2025df6a8d8ad5d675b5741c88da -->
-[English](../en/USER_GUIDE.md) | 日本語 · [目次に戻る](README.md)
+<!-- source: docs/en/USER_GUIDE.md blob 6a57acebcfd00592abaf744b986762066ca36256 -->
+[English](../en/USER_GUIDE.md) | 日本語 | [Español](../es/USER_GUIDE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/USER_GUIDE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
 
@@ -20,7 +20,8 @@ uv sync
 uv run audio-spectrum --version
 ```
 
-`uv sync` は Python 3.13 とライブラリを、フォルダ内の `.venv/` にインストールします。システムのほかの部分は変更しません。
+`uv sync` は Python 3.13 とライブラリ(GUI 用のものを含む)を、フォルダ内の `.venv/` にインストールします。
+システムのほかの部分は変更しません。
 
 ## 2. 普段の使い方
 
@@ -55,6 +56,31 @@ uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the 
 ```
 
 静止画は、動画がその時刻に表示するコマとまったく同じです。
+
+### GUI で使う
+
+同じ設定は、プレビュー付きのローカルの Web ページでも変えられます:
+
+```bash
+uv run audio-spectrum gui
+```
+
+既定のブラウザで開き、ターミナルで Ctrl+C を押すまで動きます。画面は日本語・英語・スペイン語で使えます
+(右上で切り替え。最初はブラウザの言語に合わせます)。
+
+- **曲**:Finder の選択画面で音声ファイルを開くか、パスを貼り付けて Enter を押します。
+- **プリセット**:組み込みプリセットを元にして、下の各欄(色、解析、見た目、エフェクト)で項目を変えます。どの項目にも
+  名前と短い説明が付きます。範囲はプリセットファイルと同じように確かめ、範囲外の値はその欄に表示します。
+- **出力**:サイズ、フレームレート、形式、ProRes 4444 での透明な背景。プレビューのサイズとフレームレートにも使います。
+- **プレビュー**:選んだ時刻のコマを、設定を変えるたびに更新します。動画と同じコードで描きます(透明な背景は市松模様の上に
+  表示)。「5 秒の動画を再生」は、その時刻から 5 秒を音声付きで書き出して再生します。動画は常にプリセットの背景色で
+  表示します。`presets check` の警告は下に表示します。
+- **プリセットを保存**:今の設定を、「名前」欄の名前でユーザープリセットとして保存します(4章)。保存したものは一覧の
+  「ユーザープリセット」に表示され、コマンドラインでも `--preset 名前` で使えます。
+- **書き出し**:今の設定と出力の設定で、曲全体を書き出します。出力先は曲と同じフォルダか、「フォルダを選ぶ…」で選んだ
+  フォルダです。書き出し中は進み具合を表示し、「中止」で止めるとファイルは残りません。終わったら「Finder で表示」で
+  動画を選択した状態の Finder を開きます。書き出しは一度に1つです。Ctrl+C でサーバーを止めると、書き出し中のものは
+  きれいに中止されます。
 
 ### iMovie で使う
 
@@ -99,7 +125,7 @@ audio-spectrum render AUDIO... [options]
 | `-o, --output FILE` | 入力の隣 | 出力ファイル。入力が1つのときだけ指定可能 |
 | `--out-dir DIR` | 各入力の隣 | 出力フォルダ(なければ作成)。出力名は `<入力名>_spectrum.mp4`(または `.mov`) |
 | `--overwrite` | オフ | 既存の出力を置き換える。付けない場合、既存の出力はそのファイルのエラーとなり、元のファイルは変更されません |
-| `--preset NAME_OR_FILE` | `default` | 組み込みプリセット名、または `.toml` プリセットファイルのパス |
+| `--preset NAME_OR_FILE` | `default` | 組み込みかユーザーのプリセット名、または `.toml` プリセットファイルのパス |
 | `--set KEY=VALUE` | | プリセットの項目を1つ変える。例:`look.max_height=0.4`。複数指定可(4章参照) |
 | `--background COLOR` | プリセットの値 | `blue`、`green`、`#RRGGBB`、または `transparent`(`--codec prores4444` が必要。2章参照) |
 | `--size SIZE` | `1080p` | `720p`、`1080p`、`1440p`、`2160p`、または `幅x高さ`(偶数) |
@@ -110,6 +136,8 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0`(自動) | 描画プロセス数。`1` で単一プロセス |
 | `--progress MODE` | `text` | stderr にテキスト(`text`)、stdout に JSON イベント(`json`)、または出力なし(`none`) |
 | `--fail-fast` | オフ | 最初に失敗したファイルで止める。付けない場合は残りのファイルも書き出します |
+| `--start SECONDS` | `0` | 各曲の一部だけを、この時刻から書き出す。全体の動画がその時刻に表示するコマから始まり、音声も同じ位置で切るので、同期は保たれます |
+| `--duration SECONDS` | 最後まで | その一部の長さ |
 
 ### `still`
 
@@ -131,10 +159,22 @@ audio-spectrum still AUDIO --at SECONDS [--at SECONDS ...] [options]
 終了コードは `render` と同じです。画像が既にある、音声を読めない、時刻が音声の範囲外のときは 1、オプションの誤りや
 不正なプリセットのときは 2 です。
 
+### `gui`
+
+```
+audio-spectrum gui [--port PORT] [--no-browser]
+```
+
+ローカルの Web UI(2章「GUI で使う」)を起動し、既定のブラウザで開きます。`gui` という追加パッケージが必要で、
+このフォルダでは `uv sync` で入ります。ほかの場所では `uv sync --extra gui` を使ってください(入っていない場合は、
+その旨を表示して終了コード 2 で終わります)。サーバーは `127.0.0.1` でだけ待ち受け、`--port` を指定しなければ空いている
+ポートを使い、Ctrl+C で止まります。表示されるアドレスにはセッションの合言葉(トークン)が含まれ、ほかのウェブページは
+これなしではサーバーを使えません。`--no-browser` を付けると、ブラウザを開かずにアドレスだけを表示します。
+
 ### `presets`
 
 ```
-audio-spectrum presets list          # built-in presets
+audio-spectrum presets list          # built-in presets, then user presets
 audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
@@ -174,6 +214,17 @@ audio-spectrum presets check FILE    # validate a preset file
 | `blocks` | LED メーターのようにブロックに区切った棒 48 本。下寄りの基準線から上へ伸びる |
 | `glow` | `default` にやわらかい発光を加えたもの。キーイングを確認するか、透明な背景を使う(4章) |
 | `unity-classic` | 以前の Unity 版に近い見た目:傾いた遠近法、リニアな周波数軸、左チャンネル |
+
+### ユーザープリセット
+
+GUI から保存したプリセットはユーザープリセットです。`~/Library/Application Support/audio-spectrum/presets/`
+(環境変数 `AUDIO_SPECTRUM_PRESET_DIR` があればそのフォルダ)に TOML ファイルとして入ります。組み込みと同じように名前で
+使え(`--preset "My look"`)、`presets list` では組み込みの後に表示します。中身は `default` と違う項目だけです。
+組み込みの名前は予約済みです。`default` などの名前では保存できず、組み込みと同じ名前のファイルは警告を出して無視します。
+そのため、スクリプトの中で `default` と書けば、いつも同じ見た目になります。プリセットファイルを手でこのフォルダに
+コピーしても使えます。
+
+### 自分で作るプリセットファイル
 
 自分用のプリセットは、組み込みのものをもとに作ります:
 
@@ -274,7 +325,7 @@ CLI と Python API は、このツールを組み込むスクリプトやアプ�
 | `interrupted` | | 実行が中断された |
 
 エラーコード:`decode_failed`、`encode_failed`、`output_exists`、`worker_failed`、`preset_invalid`、
-`ffmpeg_not_found`
+`ffmpeg_not_found`、`time_out_of_range`(`--start` が曲の終わりより後)、`backdrop_failed`(API のみ。下記参照)
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -310,7 +361,7 @@ if __name__ == "__main__":  # required, see below
 ```
 
 - `render_video` は失敗すると `AudioSpectrumError` の派生クラスを送出します:`PresetError`、`DecodeError`、`EncodeError`、
-  `OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、および `cancel` が真を返したときの `Cancelled`。
+  `OutputExistsError`、`WorkerError`、`FfmpegNotFoundError`、`BackdropError`、および `cancel` が真を返したときの `Cancelled`。
   いずれの場合も出力ファイルは残りません。
 - `override_preset(preset, ["look.max_height=0.4"])` は `--set` と同じ上書きをして、新しいプリセットを返します。
   結果が不正なら `PresetError` を送出します。
@@ -318,8 +369,51 @@ if __name__ == "__main__":  # required, see below
   `(height, width, 3)` の `uint8` RGB 配列で返します。ファイルは書きません。時刻が音声の範囲外なら `TimeRangeError`
   (コード `time_out_of_range`)を、読み込みの失敗には `render_video` と同じエラーを送出します。描画は呼び出し元のプロセスで行います。
   `transparent=True` を付けると、ストレートアルファの `(height, width, 4)` RGBA 配列を返します。
+- `RenderJob(..., start=10.0, duration=5.0)` は、`--start` と `--duration` と同じく曲の一部を書き出します。
+  コマは全体の動画のものと同一で、音声も同じ位置で切ります。
+- `Preview(audio_path, fps)` は曲を一度だけ読み込みます。そのあと `preview.frames(preset, times, width, height)` が
+  `render_stills` と同じコマを返します。直近のいくつかの解析設定の結果を保持するので、見た目だけを変えた場合は
+  1080p のコマを約 20 ミリ秒で描けます。`preview.duration` は曲の長さです。スレッドセーフではありません。
+- `preset_to_toml(preset)` は、`default` と違う項目だけを書いた TOML を返します(`full=True` なら全項目)。
+  `load_preset` で読み直すと、同じプリセットになります。
+- `encode_png(frame)` はコマ(RGB、またはアルファ付きの RGBA)を、劣化のない PNG のバイト列で返します。
+- `save_user_preset(preset, overwrite=False)` はプリセットをユーザーのフォルダに書き、そのパスを返します。
+  フォルダの様子は `user_preset_names()`、`shadowed_user_preset_names()`、`user_preset_folder()` で分かります。
+  `load_preset(name)` は、組み込みの次にユーザープリセットを名前で探します。
+- `preset_schema()` はプリセットの JSON スキーマを返します。型、範囲、既定値、全項目の説明を含み、色は `"#RRGGBB"`
+  の文字列です。`preset_warnings(preset)` は `presets check` の警告をリストで返します。
 - 透明な背景は出力の設定です。`RenderJob.encode` に `EncodeSettings(codec="prores", prores_profile=4, alpha=True)`
   を指定します。ほかのコーデックで `alpha=True` にすると `ValueError` を送出します。
+- `RenderJob(..., backdrop=...)` を使うと、プリセットの背景色の代わりに、あなたのアプリが用意した絵(例:背景画像と
+  歌詞の帯)の上にスペクトラムを描きます。背景(backdrop)は、`frame(index, seconds, width, height)` というメソッドを持ち、
+  `(height, width, 3)` の `uint8` RGB 配列を返すオブジェクトなら何でも構いません。`index` は曲全体でのコマ番号、
+  `seconds` はその時刻(`index / fps`)で、曲の一部だけを書き出すときも同じです。各ワーカープロセスに送られるので、
+  pickle できる必要があります。パスや設定だけを持ち、絵は必要になってから読み込んでください。`render_stills` と
+  `Preview.frames` にも同じ `backdrop` を渡せます。背景がエラーを出したり、大きさの違う絵を返したりすると、
+  `BackdropError`(コード `backdrop_failed`)で書き出しが止まり、ファイルは残りません。透明な背景とは組み合わせられません。例:
+
+```python
+import numpy as np
+import skia
+
+
+class StillImage:
+    """One image file under the whole video, loaded once per worker process."""
+
+    def __init__(self, path):
+        self.path = str(path)
+        self._picture = None
+
+    def frame(self, index, seconds, width, height) -> np.ndarray:
+        if self._picture is None:
+            image = skia.Image.open(self.path).resize(width, height)
+            self._picture = image.toarray(colorType=skia.kRGBA_8888_ColorType)[:, :, :3].copy()
+        return self._picture
+
+
+job = RenderJob(..., backdrop=StillImage("background.png"))
+```
+
 - コマは複数のプロセスで描かれ、それらは呼び出し元のスクリプトを読み込み直します。そのため、スクリプトからは
   `if __name__ == "__main__":` の中で API を呼んでください。これがないと、その旨を伝える `WorkerError` で失敗します。
   `workers=1` を指定すれば、追加のプロセスは使いません。
@@ -334,3 +428,7 @@ if __name__ == "__main__":  # required, see below
 | 項目名つきのプリセットエラー | その項目を直す。`presets check FILE` ですべての問題を一度に確認できる |
 | キーイング後に線がぼやける・青みがかる | `--codec prores4444` を試す |
 | 色付きの線が色あせる・青みがかる | 細い色付きの線は H.264 で色が失われる。`--codec prores4444` を使うか、帯の数を減らして `look.bar_fill` を大きくする |
+| `the GUI needs the gui extra` | `uv sync --extra gui` |
+| `cannot listen on 127.0.0.1:PORT` | ほかのプログラムがそのポートを使っている。`--port` を外して空いているポートを使う |
+| 画面にアクセスが拒否されたと表示される | サーバーを起動し直したので合言葉が変わった。表示されたアドレスから開き直す |
+| ファイルの選択画面が出てこない | ブラウザの後ろに隠れていることがある。またはファイルのパスを欄に貼り付けて Enter を押す |

@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>audio-spectrum</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header>
+  <h1 data-i18n="app.title">audio-spectrum</h1>
+  <label class="language"><span data-i18n="lang.label">Language</span> <select id="language"></select></label>
+</header>
+
+<div id="error" class="error" role="alert" hidden><strong id="error-title"></strong><span id="error-message"></span></div>
+
+<main>
+  <section class="settings">
+    <fieldset>
+      <legend data-i18n="song.heading">Song</legend>
+      <button id="open-song" type="button" data-i18n="song.open">Open audio file…</button>
+      <input id="song-path" type="text" data-i18n-placeholder="song.path" spellcheck="false" autocomplete="off">
+      <p id="song-info" class="note" data-i18n="song.none">No song open.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i18n="preset.heading">Preset</legend>
+      <label class="row"><span data-i18n="preset.start_from">Start from</span> <select id="builtin"></select></label>
+      <div id="name-field"></div>
+      <button id="save-preset" type="button" data-i18n="preset.save">Save preset</button>
+      <p id="preset-status" class="note" aria-live="polite"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend data-i18n="output.heading">Output</legend>
+      <label class="row"><span data-i18n="output.size">Size</span>
+        <select id="size">
+          <option value="1280x720">720p</option><option value="1920x1080" selected>1080p</option>
+          <option value="2560x1440">1440p</option><option value="3840x2160">2160p</option>
+        </select></label>
+      <label class="row"><span data-i18n="output.fps">Frame rate</span>
+        <select id="fps">
+          <option>24</option><option>25</option><option value="29.97">29.97</option><option selected>30</option>
+          <option>50</option><option>60</option>
+        </select></label>
+      <label class="row"><span data-i18n="output.format">Format</span>
+        <select id="format">
+          <option value="h264" data-i18n="output.format.h264">H.264</option>
+          <option value="prores" data-i18n="output.format.prores">ProRes 422</option>
+          <option value="prores4444" data-i18n="output.format.prores4444">ProRes 4444</option>
+        </select></label>
+      <label class="check"><input id="transparent" type="checkbox" disabled>
+        <span data-i18n="output.transparent">Transparent background</span></label>
+    </fieldset>
+
+    <div id="sections"></div>
+  </section>
+
+  <section class="preview">
+    <h2 data-i18n="preview.heading">Preview</h2>
+    <div id="frame" class="frame">
+      <img id="still" alt="">
+      <video id="clip" controls hidden></video>
+      <p id="preview-empty" class="empty" data-i18n="preview.empty">Open a song to see the preview.</p>
+    </div>
+    <div class="timeline">
+      <label for="time-range" data-i18n="preview.time">Time (s)</label>
+      <input id="time-range" type="range" min="0" max="0" step="0.1" value="0" disabled>
+      <input id="time" type="number" min="0" step="0.1" value="0" disabled>
+      <button id="play-clip" type="button" data-i18n="preview.clip" disabled>Play 5-second clip</button>
+    </div>
+    <p id="preview-status" class="note" aria-live="polite"></p>
+    <div id="warnings" hidden>
+      <h3 data-i18n="warnings.heading">Warnings</h3>
+      <ul id="warning-list"></ul>
+    </div>
+
+    <fieldset class="render">
+      <legend data-i18n="render.heading">Render</legend>
+      <div class="row"><span data-i18n="render.folder">Output folder</span>
+        <span class="controls"><span id="output-folder" class="path"></span>
+          <button id="choose-folder" type="button" class="small" data-i18n="render.choose_folder">Choose folder…</button>
+        </span></div>
+      <div class="controls">
+        <button id="start-render" type="button" data-i18n="render.start" disabled>Render video</button>
+        <button id="cancel-render" type="button" data-i18n="render.cancel" hidden>Cancel</button>
+        <progress id="render-progress" max="1" value="0" hidden></progress>
+      </div>
+      <p id="render-status" class="note" aria-live="polite"></p>
+      <button id="reveal" type="button" class="small" data-i18n="render.reveal" hidden>Show in Finder</button>
+    </fieldset>
+  </section>
+</main>
+<script type="module" src="/static/app.js"></script>
+</body>
+</html>

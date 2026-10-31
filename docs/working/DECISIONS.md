@@ -103,3 +103,45 @@ Architecture decision log. Newest last. Each entry: context, decision, consequen
   depend on earlier frames go into the analysis, so frames stay independent for parallel rendering.
 - Consequences: No extra dependency; a glow adds about 10 % to the render time. The halo is correct on transparent
   backgrounds. On a key-color background it still mixes with the key color, which `presets check` warns about.
+
+## ADR-012: The GUI's design
+
+- Context: ADR-008 chose a local web UI on the core's public API. Phase 3 had to settle how the page is built, how it
+  reaches local files, how it is protected from other web pages, which languages it speaks and where saved presets
+  live ([Phase 3 plan](PHASE3_PLAN.md)).
+- Decision:
+  - FastAPI and uvicorn in the optional `gui` extra (also in the `dev` group); the `audio_spectrum.gui` subpackage
+    imports only the public API, and importing the core never imports it.
+  - The page is plain HTML, CSS and JavaScript without a build step. Its forms are generated from
+    `preset_schema()`, so new preset keys appear without GUI code.
+  - Local files are chosen through native macOS dialogs opened by the server (`osascript`), plus a path field,
+    because a web page cannot read local paths.
+  - The server listens on `127.0.0.1` only, refuses foreign `Host` headers (DNS rebinding) and API requests
+    without the per-session token, and sends no cross-origin headers.
+  - Page texts in Japanese, English and Spanish from one message file per language; a test keeps the files
+    complete. Core messages stay in English.
+  - Saved presets go to a user folder (`~/Library/Application Support/audio-spectrum/presets`, or
+    `$AUDIO_SPECTRUM_PRESET_DIR`) and hold only the keys that differ from `default`; built-in names are reserved.
+  - One render at a time, in a background thread, cancelled cleanly when the server stops. Clip previews render in
+    one process, which is faster than starting worker processes for 150 frames.
+- Consequences: No second toolchain; the GUI's output equals the CLI's frame for frame. File dialogs are macOS-only
+  (a path can always be typed). Every new preset key needs a label and help text in three languages. Rejected:
+  Qt, Electron and Tauri (ADR-008); a JavaScript framework with a build step; uploading songs into the server.
+
+## ADR-013: A backdrop under the spectrum for embedding apps
+
+- Context: The owner builds lyrics videos from a background image, lyrics captions and this app's spectrum, so far
+  by stacking layers in iMovie. A separate repository, lyrics-video-app, will automate that and embed this app
+  (ADR-008). Blending a transparent spectrum frame over another picture in NumPy took about 46 ms per 1080p frame,
+  more than drawing the spectrum (about 20 ms), and the internal renderer cannot be sent to worker processes
+  ([Phase 4 plan](PHASE4_PLAN.md)).
+- Decision: `RenderJob.backdrop` takes a picklable object whose `frame(index, seconds, width, height)` returns the RGB
+  picture under the spectrum for frame `index` of the whole song. The workers ask for it and draw the spectrum
+  directly over it, so `render_video` keeps one path for sync, parallel workers, progress, cancellation, parts of
+  songs, audio and safe output. `render_stills` and `Preview.frames` take the same backdrop. Failures raise
+  `BackdropError` and leave no file. A backdrop cannot be combined with a transparent background. No layer over the
+  spectrum and no CLI option for now.
+- Consequences: Lyrics, captions and layout stay in lyrics-video-app; this repository only gains an additive API.
+  Drawing over a one-color backdrop gives byte-identical frames, so existing outputs are unchanged. Rejected: making
+  the analysis, painter and encoder public for a second render loop (duplicates sync and safety logic), and lyrics
+  features in this repository.

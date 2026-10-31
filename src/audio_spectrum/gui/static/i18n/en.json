@@ -1,0 +1,235 @@
+{
+ "language": "English",
+ "messages": {
+  "app.title": "audio-spectrum",
+  "lang.label": "Language",
+  "song.heading": "Song",
+  "song.open": "Open audio file…",
+  "song.path": "or paste a path and press Enter",
+  "song.none": "No song open.",
+  "song.prompt": "Choose an audio file",
+  "preset.heading": "Preset",
+  "preset.start_from": "Start from",
+  "output.heading": "Output",
+  "output.size": "Size",
+  "output.fps": "Frame rate",
+  "output.format": "Format",
+  "output.format.h264": "H.264 (.mp4, small)",
+  "output.format.prores": "ProRes 422 (.mov)",
+  "output.format.prores4444": "ProRes 4444 (.mov, cleanest keying)",
+  "output.transparent": "Transparent background (ProRes 4444 only)",
+  "section.colors": "Colors",
+  "section.analysis": "Analysis",
+  "section.look": "Look",
+  "section.fx": "Effects",
+  "colors.add": "Add color",
+  "colors.remove": "Remove",
+  "preview.heading": "Preview",
+  "preview.time": "Time (s)",
+  "preview.clip": "Play 5-second clip",
+  "preview.clip_rendering": "Rendering the clip…",
+  "preview.clip_opaque": "Clips are shown on the preset's background.",
+  "preview.updating": "Updating…",
+  "preview.empty": "Open a song to see the preview.",
+  "warnings.heading": "Warnings",
+  "error.preset_invalid": "Some settings are not valid",
+  "error.decode_failed": "The audio file cannot be read",
+  "error.time_out_of_range": "The time is outside the song",
+  "error.dialog_unavailable": "The file dialog is not available",
+  "error.ffmpeg_not_found": "ffmpeg is not installed",
+  "error.encode_failed": "Encoding failed",
+  "error.worker_failed": "A render process stopped",
+  "error.no_song": "Open a song first",
+  "error.busy": "Still working on the previous clip",
+  "error.forbidden": "Access refused: reopen the page from the address printed by audio-spectrum gui",
+  "error.unknown": "Something went wrong",
+  "preset.save": "Save preset",
+  "preset.saved": "Saved as {path}",
+  "preset.overwrite": "A user preset named \"{name}\" already exists. Replace it?",
+  "preset.builtin_group": "Built-in",
+  "preset.user_group": "Your presets",
+  "preset.shadowed": "Ignored user presets (built-in names are reserved): {names}",
+  "render.heading": "Render",
+  "render.folder": "Output folder",
+  "render.next_to_song": "Next to the song",
+  "render.choose_folder": "Choose folder…",
+  "render.folder_prompt": "Choose the output folder",
+  "render.start": "Render video",
+  "render.cancel": "Cancel",
+  "render.progress": "{frame} / {frames} frames ({percent} %)",
+  "render.done": "Done in {seconds} s: {output}",
+  "render.cancelled": "Cancelled. No file was left behind.",
+  "render.reveal": "Show in Finder",
+  "render.overwrite": "{output} already exists. Replace it?",
+  "error.output_exists": "The file already exists",
+  "error.usage": "Check the output settings",
+  "error.no_output": "No finished video yet",
+  "error.preset_not_found": "The preset was not found"
+ },
+ "keys": {
+  "name": {
+   "label": "Name",
+   "help": "Name of the preset."
+  },
+  "background": {
+   "label": "Background",
+   "help": "Background color, usually the key color: pure blue or green."
+  },
+  "foreground": {
+   "label": "Line color",
+   "help": "Color of the lines when the fill mode is \"solid\"."
+  },
+  "analysis.fft_size": {
+   "label": "FFT size",
+   "help": "FFT length in samples, a power of two. Longer resolves low notes better but reacts more slowly."
+  },
+  "analysis.bands": {
+   "label": "Bands",
+   "help": "Number of frequency bands, one line or bar each."
+  },
+  "analysis.frequency_scale": {
+   "label": "Frequency axis",
+   "help": "\"log\" spreads low and high frequencies evenly across the width; \"linear\" gives every Hz the same width."
+  },
+  "analysis.min_frequency": {
+   "label": "Lowest frequency (Hz)",
+   "help": "Lower edge in Hz."
+  },
+  "analysis.max_frequency": {
+   "label": "Highest frequency (Hz)",
+   "help": "Upper edge in Hz; limited to the audio's Nyquist frequency (inf means up to Nyquist)."
+  },
+  "analysis.magnitude_scale": {
+   "label": "Level scale",
+   "help": "\"db\" shows levels on a decibel scale down to the dB floor; \"linear\" shows amplitudes directly."
+  },
+  "analysis.db_floor": {
+   "label": "dB floor",
+   "help": "Level shown as zero height on the dB scale; full scale is 0 dB."
+  },
+  "analysis.gain": {
+   "label": "Gain",
+   "help": "Multiplier on all levels before scaling."
+  },
+  "analysis.tilt_db_per_octave": {
+   "label": "Tilt (dB per octave)",
+   "help": "Boost per octave above 1 kHz (and cut below it), so the bands look more even."
+  },
+  "analysis.channel": {
+   "label": "Channel",
+   "help": "Which audio to analyze: \"mix\" of both channels, \"left\" or \"right\"."
+  },
+  "analysis.attack_seconds": {
+   "label": "Rise time (s)",
+   "help": "How fast lines rise, in seconds; 0 follows the audio directly."
+  },
+  "analysis.release_seconds": {
+   "label": "Fall time (s)",
+   "help": "How fast lines fall, in seconds; 0 follows the audio directly."
+  },
+  "analysis.low_fft_size": {
+   "label": "Bass FFT size",
+   "help": "0 = off. A longer FFT for the bands below the crossover, so bass notes show as separate peaks; bass lines then react a little earlier and fall a little later."
+  },
+  "analysis.low_crossover_frequency": {
+   "label": "Bass crossover (Hz)",
+   "help": "Bands below it use the bass FFT; the two are blended over one octave around it."
+  },
+  "look.kind": {
+   "label": "Look",
+   "help": "The look: \"flat\" lines or bars, or \"perspective\" as in the legacy Unity scene."
+  },
+  "look.margin_x": {
+   "label": "Side margin",
+   "help": "Empty space left and right, as a fraction of the frame width."
+  },
+  "look.baseline_y": {
+   "label": "Baseline position",
+   "help": "Baseline position, as a fraction of the frame height from the top."
+  },
+  "look.max_height": {
+   "label": "Height",
+   "help": "Height of a full-scale band on one side of the baseline, as a fraction of the frame height."
+  },
+  "look.mirror": {
+   "label": "Mirror",
+   "help": "Grow both up and down from the baseline."
+  },
+  "look.bar_fill": {
+   "label": "Line width",
+   "help": "Fraction of each band's slot covered by its line; the rest is the gap."
+  },
+  "look.min_bar_width_px": {
+   "label": "Minimum line width (px)",
+   "help": "Lines are never thinner than this, in pixels."
+  },
+  "look.min_height_px": {
+   "label": "Minimum height (px)",
+   "help": "Every band is at least this tall on each side, so the baseline stays visible."
+  },
+  "look.response": {
+   "label": "Response",
+   "help": "Exponent applied to band values: above 1 keeps quiet bands low and lets peaks stand out."
+  },
+  "look.style": {
+   "label": "Style",
+   "help": "\"bars\": one solid line or bar per band; \"blocks\": each bar split into segments, like an LED meter."
+  },
+  "look.block_height_px": {
+   "label": "Block height (px)",
+   "help": "Height of one segment. A segment shows only once the bar reaches its full height."
+  },
+  "look.block_gap_px": {
+   "label": "Block gap (px)",
+   "help": "Gap between segments, and around the baseline when mirrored."
+  },
+  "look.first_x": {
+   "label": "First box position",
+   "help": "Position of the first box along the row, in scene units."
+  },
+  "look.spacing": {
+   "label": "Spacing",
+   "help": "Distance between neighboring boxes, in scene units."
+  },
+  "look.box_size": {
+   "label": "Box size",
+   "help": "Slightly wider than the spacing so neighboring boxes overlap and no seams show between them."
+  },
+  "look.depth": {
+   "label": "Depth",
+   "help": "Distance of the row from the scene origin along the view direction, in scene units."
+  },
+  "look.height_scale": {
+   "label": "Height scale",
+   "help": "Box height for a band value of 1, in scene units."
+  },
+  "look.camera_position": {
+   "label": "Camera position",
+   "help": "Camera position (x, y, z) in scene units."
+  },
+  "look.camera_pitch_degrees": {
+   "label": "Camera tilt (°)",
+   "help": "How far the camera looks down, in degrees."
+  },
+  "look.vertical_fov_degrees": {
+   "label": "Field of view (°)",
+   "help": "Vertical field of view of the camera, in degrees."
+  },
+  "fill.mode": {
+   "label": "Fill",
+   "help": "\"solid\": the line color; \"frequency\": a gradient from left to right; \"height\": a gradient from the baseline to the tip."
+  },
+  "fill.colors": {
+   "label": "Gradient colors",
+   "help": "Gradient stops, evenly spaced: at least two colors for a gradient."
+  },
+  "fx.glow_radius_px": {
+   "label": "Glow size (px)",
+   "help": "How far a soft halo spreads around the lines; 0 turns the glow off. On a key color it mixes with the background."
+  },
+  "fx.glow_strength": {
+   "label": "Glow strength",
+   "help": "Opacity of the halo."
+  }
+ }
+}

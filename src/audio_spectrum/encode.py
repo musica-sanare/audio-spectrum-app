@@ -40,18 +40,25 @@ def ffmpeg_fps(fps: float) -> str:
 
 
 def build_command(
-    output: Path, width: int, height: int, fps: float, settings: EncodeSettings, audio_path: Path | None
+    output: Path, width: int, height: int, fps: float, settings: EncodeSettings, audio_path: Path | None,
+    audio_range: tuple[float, float] | None = None,
 ) -> list[str]:
+    """`audio_range` is (start, duration) in seconds of the audio to keep, for a video of part of a song."""
     ffmpeg = shutil.which("ffmpeg")
     if ffmpeg is None:
         raise FfmpegNotFoundError("ffmpeg is not installed (brew install ffmpeg)")
     command = [
         ffmpeg, "-y", "-v", "error",
-        "-f", "rawvideo", "-pix_fmt", "rgba" if settings.alpha else "rgb24", "-s", f"{width}x{height}", "-framerate", ffmpeg_fps(fps), "-i", "-",
+        "-f", "rawvideo", "-pix_fmt", "rgba" if settings.alpha else "rgb24", "-s", f"{width}x{height}",
+        "-framerate", ffmpeg_fps(fps), "-i", "-",
     ]
     if settings.include_audio and audio_path is not None:
         # Chapters from WAV cue chunks would otherwise become an extra text track.
         command += ["-i", str(audio_path), "-map", "0:v:0", "-map", "1:a:0", "-map_chapters", "-1"]
+        if audio_range is not None:
+            start, duration = audio_range
+            # atrim cuts at exact samples, and asetpts makes the kept audio start at time 0 like the frames.
+            command += ["-af", f"atrim=start={start!r}:duration={duration!r},asetpts=PTS-STARTPTS"]
     # Tag BT.709 so editors show the key color as the pure color that was drawn.
     color = ["-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709", "-color_range", "tv"]
     if settings.codec == "h264":
@@ -98,10 +105,11 @@ class VideoWriter:
     def __init__(
         self, output: Path, width: int, height: int, fps: float,
         settings: EncodeSettings = EncodeSettings(), audio_path: Path | None = None,
+        audio_range: tuple[float, float] | None = None,
     ):
         self._output = Path(output)
         self._partial = partial_path(self._output)
-        self._command = build_command(self._partial, width, height, fps, settings, audio_path)
+        self._command = build_command(self._partial, width, height, fps, settings, audio_path, audio_range)
         self._process: subprocess.Popen | None = None
         self._errors = None
 
@@ -155,18 +163,22 @@ class VideoWriter:
         return lines[-1] if lines else f"exit code {self._process.returncode}"
 
 
-def write_png(path: Path, frame: np.ndarray) -> None:
-    """Write a (height, width, 3) uint8 RGB frame, or (height, width, 4) RGBA with straight alpha, as a lossless PNG,
-    through a temporary file like videos."""
-    path = Path(path)
+def encode_png(frame: np.ndarray) -> bytes:
+    """A (height, width, 3) uint8 RGB frame, or (height, width, 4) RGBA with straight alpha, as lossless PNG bytes."""
     if frame.shape[2] == 3:
         frame = np.dstack([frame, np.full(frame.shape[:2], 255, dtype=np.uint8)])
     image = skia.Image.fromarray(
         np.ascontiguousarray(frame), colorType=skia.kRGBA_8888_ColorType, alphaType=skia.kUnpremul_AlphaType
     )
+    return bytes(image.encodeToData(skia.kPNG, 100))
+
+
+def write_png(path: Path, frame: np.ndarray) -> None:
+    """Write a frame as a lossless PNG (see `encode_png`), through a temporary file like videos."""
+    path = Path(path)
     partial = partial_path(path)
     try:
-        partial.write_bytes(bytes(image.encodeToData(skia.kPNG, 100)))
+        partial.write_bytes(encode_png(frame))
         partial.replace(path)
     finally:
         partial.unlink(missing_ok=True)

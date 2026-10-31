@@ -14,6 +14,8 @@ from audio_spectrum.presets import (
     load_preset,
     override_preset,
     parse_preset,
+    preset_schema,
+    preset_to_toml,
     preset_warnings,
 )
 
@@ -175,3 +177,115 @@ def test_presets_check_prints_warnings_on_stderr_and_still_succeeds(tmp_path, ca
     captured = capsys.readouterr()
     assert "valid preset 'pale'" in captured.out
     assert "warning: line color #8080FF is close to the background #0000FF" in captured.err
+
+
+def schema_leaves(schema: dict) -> dict[str, dict]:
+    """Every preset key as "table.key" (or "key"), with its schema."""
+    definitions = schema["$defs"]
+    leaves = {}
+    for key, field in schema["properties"].items():
+        references = [field] if "$ref" in field else field.get("oneOf", [])
+        tables = [definitions[item["$ref"].split("/")[-1]] for item in references if "$ref" in item]
+        if not tables:
+            leaves[key] = field
+        for table in tables:
+            for name, sub in table["properties"].items():
+                leaves[f"{key}.{name}"] = sub
+    return leaves
+
+
+def test_schema_describes_every_key():
+    leaves = schema_leaves(preset_schema())
+    assert "look.block_gap_px" in leaves and "fx.glow_radius_px" in leaves and "analysis.low_fft_size" in leaves
+    assert sorted(key for key, field in leaves.items() if not field.get("description")) == []
+
+
+def test_schema_writes_colors_as_hex_strings():
+    schema = preset_schema()
+    assert schema["properties"]["background"]["default"] == "#0000FF"
+    assert schema["properties"]["background"]["format"] == "color"
+    assert schema["$defs"]["Fill"]["properties"]["colors"]["items"]["format"] == "color"
+
+
+@pytest.mark.parametrize("name", builtin_preset_names())
+@pytest.mark.parametrize("full", [False, True])
+def test_presets_written_as_toml_read_back_equal(name, full):
+    preset = load_preset(name)
+    assert parse_preset(preset_to_toml(preset, full=full)) == preset
+
+
+def test_toml_lists_only_changed_keys_by_default():
+    preset = override_preset(
+        load_preset("default"),
+        ['name=Mine "2"', "background=#00FF00", "fill.mode=height", 'fill.colors=["#00FF66", "#FFE000"]'],
+    )
+    text = preset_to_toml(preset)
+    assert parse_preset(text) == preset
+    assert 'name = "Mine \\"2\\""' in text
+    assert 'background = "#00FF00"' in text and "foreground" not in text
+    assert "[analysis]" not in text and "[look]" not in text
+    assert 'colors = ["#00FF66", "#FFE000"]' in text
+
+
+def test_toml_keeps_the_look_kind_when_it_is_not_flat():
+    text = preset_to_toml(load_preset("unity-classic"))
+    assert 'kind = "perspective"' in text and "max_frequency = inf" in text
+
+
+def test_saved_user_presets_load_by_name(user_presets, capsys):
+    from audio_spectrum import save_user_preset, user_preset_names
+    preset = override_preset(load_preset("bars"), ["name=夜の青", "background=#00FF00"])
+    path = save_user_preset(preset)
+    assert path == user_presets / "夜の青.toml"
+    assert "[look]" in path.read_text(encoding="utf-8") and "foreground" not in path.read_text(encoding="utf-8")
+    assert user_preset_names() == ["夜の青"]
+    assert load_preset("夜の青") == preset
+    assert main(["presets", "list"]) == 0
+    assert capsys.readouterr().out.split() == ["bars", "blocks", "default", "glow", "unity-classic", "夜の青"]
+
+
+def test_saving_refuses_to_overwrite_unless_asked(user_presets):
+    from audio_spectrum import OutputExistsError, save_user_preset
+    first = override_preset(load_preset("default"), ["name=mine"])
+    second = override_preset(first, ["look.max_height=0.4"])
+    save_user_preset(first)
+    with pytest.raises(OutputExistsError):
+        save_user_preset(second)
+    assert load_preset("mine") == first
+    save_user_preset(second, overwrite=True)
+    assert load_preset("mine") == second
+    assert sorted(path.name for path in user_presets.iterdir()) == ["mine.toml"]
+
+
+@pytest.mark.parametrize("name", ["default", "glow", "", " padded", "a/b", "a\\\\b", "a:b", ".hidden", "x.toml", "x" * 101])
+def test_unusable_preset_names_are_refused(name, user_presets):
+    from audio_spectrum import save_user_preset
+    with pytest.raises(PresetError):
+        save_user_preset(Preset(name=name))
+    assert not user_presets.exists() or not list(user_presets.iterdir())
+
+
+def test_built_in_names_are_reserved(user_presets, capsys):
+    from audio_spectrum import shadowed_user_preset_names, user_preset_names
+    user_presets.mkdir()
+    (user_presets / "default.toml").write_text('name = "default"\nbackground = "#00FF00"\n', encoding="utf-8")
+    assert user_preset_names() == [] and shadowed_user_preset_names() == ["default"]
+    assert load_preset("default").background == (0, 0, 255)
+    assert main(["presets", "list"]) == 0
+    captured = capsys.readouterr()
+    assert captured.out.split() == ["bars", "blocks", "default", "glow", "unity-classic"]
+    assert "user preset 'default'" in captured.err and "reserved" in captured.err
+
+
+def test_unknown_names_list_user_presets_too(user_presets):
+    from audio_spectrum import save_user_preset
+    save_user_preset(Preset(name="mine"))
+    with pytest.raises(PresetError, match="user presets: mine"):
+        load_preset("nothing")
+
+
+def test_the_folder_comes_from_the_environment(user_presets, monkeypatch):
+    from audio_spectrum import user_preset_folder
+    assert user_preset_folder() == user_presets
+    monkeypatch.delenv("AUDIO_SPECTRUM_PRESET_DIR")
+    assert str(user_preset_folder()).endswith("Library/Application Support/audio-spectrum/presets")

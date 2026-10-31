@@ -103,7 +103,7 @@ low_fft_size = 0               # 0 = off; for example 16384: a longer FFT for th
 low_crossover_frequency = 250.0  # Hz; blended over about one octave around it
 ```
 
-Whether the `default` preset should adopt it is the owner's call after seeing stills and a clip (要確認 Q1). Adopting
+Whether the `default` preset should adopt it is the owner's call after seeing stills and a clip (Q1). Adopting
 it changes the settled default look, so it would get its own ADR and an intentional change of the reference hashes.
 
 ### 3. Fill colors
@@ -155,7 +155,7 @@ glow_strength = 1.0            # halo opacity multiplier
   keyer turns that into a soft, semi-transparent halo or into a hard edge with a blue fringe can only be checked in
   iMovie. Milestone 2 therefore starts with test clips (white and gradient glow, on blue and green, H.264 and ProRes
   4444) that the owner checks before glow is finished. If keying is poor, glow stays as a documented option for
-  editors with better keyers, or is dropped (要確認 Q2).
+  editors with better keyers, or is dropped (Q2).
 
 A spike still with glow and a frequency gradient is in `work/phase2_spike/glow_sigma12_gradient1.png`.
 
@@ -192,7 +192,7 @@ audio-spectrum still AUDIO --at 30 --at 61.5 [--preset ...] [--set ...] [--backg
 
 ### 8. Built-in presets
 
-Added as examples, each one documented in the user guide (要確認 Q4 for the exact set):
+Added as examples, each one documented in the user guide (Q4 for the exact set):
 
 | Name | Look |
 |---|---|
@@ -264,8 +264,8 @@ and Japanese) within their milestone.
 Answered by the owner on 2026-10-25.
 
 - Q1. Low frequencies: first deferred, then approved as planned: the multi-resolution analysis ships as opt-in
-  preset keys and `default` stays as it is. Adopting it in `default` later needs its own decision after stills and a
-  clip (`要確認`).
+  preset keys and `default` stays as it is. The owner closed Phase 2 on 2026-10-31 without adopting it in `default`;
+  doing so later needs its own decision.
 - Q2. Glow: first deferred, then approved as planned: off by default, with a `presets check` warning about keying on a
   key-color background, and the `glow` preset. Transparent output (Q6) is the clean way to use it.
 - Q3. Blur in the app: not needed. iMovie's blur-type effects (for example Romantic) work well.

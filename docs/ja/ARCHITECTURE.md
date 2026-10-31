@@ -1,5 +1,5 @@
-<!-- source: docs/en/ARCHITECTURE.md blob d600924a2ad1d4e2ac2681fbc4a5277346bec8b8 -->
-[English](../en/ARCHITECTURE.md) | 日本語 · [目次に戻る](README.md)
+<!-- source: docs/en/ARCHITECTURE.md blob 284aa16c1fe4a80188df09ff5a4bc7426afb4ccb -->
+[English](../en/ARCHITECTURE.md) | 日本語 | [Español](../es/ARCHITECTURE.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/ARCHITECTURE.md)の翻訳です。内容が異なる場合は英語版が優先されます。
 
@@ -11,7 +11,7 @@
 ## 1. 層構成
 
 ```
-  GUI (later, optional extra)        CLI (cli.py)              other apps and scripts
+  GUI (gui/, optional extra)         CLI (cli.py)              other apps and scripts
             \                           |                            /
              +------------- public Python API (audio_spectrum) -----+
                                         |
@@ -20,8 +20,9 @@
 
 - **コアライブラリ。** 解析・描画・書き出し。UI のコードも UI 用の依存も持ちません。
 - **CLI。** 引数を解釈してコアを呼び、進捗・エラー・終了コードを伝える薄い層です。ほかの言語のツールに対する安定した約束事です。
-- **GUI。** 同じ API の上に作るローカル Web UI として計画しています。インストールは任意のオプションです
-  ([要件](../working/REQUIREMENTS.md) F14、ADR-008。いずれも英語のみ)。
+- **GUI。** 同じ API の上に作るローカル Web UI です。`audio_spectrum.gui` サブパッケージにあり、その依存(FastAPI、uvicorn)は
+  任意の追加パッケージ `gui` に入れます([要件](../working/REQUIREMENTS.md) F14、ADR-008。いずれも英語のみ)。公開 API だけを
+  使い、`127.0.0.1` でだけ待ち受け、セッションごとの合言葉(トークン)を求めます。コアを読み込んでも GUI は読み込まれません。
 
 ## 2. データの流れ
 
@@ -30,6 +31,7 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
                                                      │
                                   for each frame n:  ▼
                               geometry (quads) ──raster (Skia)──▶ RGB frame (RGBA when transparent)
+                              (drawn over the backdrop's picture when the job has one)
                                                      │
                                                      ▼
                          ffmpeg (raw RGB pipe + source audio) ──▶ temporary file ──rename──▶ video
@@ -39,15 +41,16 @@ audio file ──load_audio──▶ samples ──analyze──▶ band values 
 |---|---|
 | `audio.py` | libsndfile(ほかの形式は ffmpeg)で音声を読み込み、チャンネルを選ぶか混ぜる |
 | `analysis.py` | コマの時刻 `n / fps` ごとに1つのスペクトラム:その時刻を中心にした窓、FFT(低い帯には、より長い FFT を選べる。レベルを合わせてなめらかにつなぐ)、周波数帯、dB 変換、傾き補正、上がり下がりの平滑化 |
-| `presets.py` | プリセットの定義(pydantic)、組み込み・ユーザーの TOML ファイルの読み込み、上書き、キーイングの警告 |
+| `presets.py` | プリセットの定義(pydantic)とその JSON スキーマ、組み込み・ユーザー・その他の TOML ファイルの読み込み、ユーザープリセットのフォルダ、プリセットの TOML への書き出し、上書き、キーイングの警告 |
 | `builtin_presets/` | 組み込みプリセットの TOML ファイル |
 | `geometry.py` | 1コマ分の帯の値を、見た目(flat、perspective)とスタイル(bars、blocks)ごとにピクセル座標の四角形へ変換。塗りのグラデーションの位置を決める |
 | `raster.py` | 四角形をアンチエイリアス付き(Skia)で、単色または線形グラデーションで RGB のコマに塗る。透明な背景では、ストレートアルファの RGBA のコマにする |
-| `renderer.py` | 1コマについて geometry と raster を組み合わせる |
-| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く |
-| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills`:確認用の1コマ |
+| `renderer.py` | 1コマについて geometry と raster を組み合わせる。プリセットの背景色か、渡された絵の上に描く |
+| `encode.py` | ffmpeg のコマンドを組み立てる。`VideoWriter` がコマを流し込み、一時ファイルに書いて成功時に名前を変える。`write_png` は静止画を同じ方法で書く。曲の一部では、音声をサンプル単位で正確に切る |
+| `pipeline.py` | `render_video`:読み込み、解析、コマの描画(並列のワーカープロセス)、書き出し。進捗とキャンセル。`render_stills` と `Preview`:確認や GUI のための1コマ。`Preview` は解析結果を保持する。`Backdrop`:組み込み先のアプリが用意する、スペクトラムの下の絵。ワーカーがコマごとに求める |
 | `errors.py` | 固定のコードを持つエラー型 |
 | `cli.py` | コマンド、進捗の出力、終了コード、シグナルの扱い |
+| `gui/` | `app.py`:HTTP の API と画面、Host と合言葉の確認。`dialogs.py`:macOS 標準のファイル選択画面。`server.py`:起動。`static/`:画面(`index.html`、`app.js`、`app.css`。ビルド不要)と、`i18n/` の文言(`en`、`ja`、`es`) |
 
 ## 3. 不変条件
 
@@ -78,6 +81,7 @@ H.264 エンコーダーが律速で、M1 では4分の曲を 1080p30 で約2分
 | 発光などのエフェクト | 描画の下回り(`raster.py`)が図形と一緒に描く。設定はプリセットの `[fx]` 表(ADR-011)。前のコマに依存するエフェクトは解析側に置く |
 | 新しい出力形式 | `encode.py` の `EncodeSettings` と `build_command`、`cli.py` の `--codec` の選択肢 |
 | GPU や 3D のレンダラー | 同じ `render(values) -> frame` の呼び出しの裏にある、別の rasterizer や renderer |
-| GUI | 公開 API だけを使う別のパッケージモジュール。依存は任意のオプションに入れる |
+| ほかのアプリからのスペクトラムの下の絵(背景、歌詞の帯) | そのアプリ側の `Backdrop` を `RenderJob.backdrop` に渡す。このリポジトリには歌詞や配置の処理を入れない(ADR-013)。スペクトラムの上の層は別の仕組みになる |
+| GUI の機能 | 公開 API を呼ぶエンドポイントを `gui/app.py` に、操作部品を `gui/static/app.js` に足す(API に足りないものがあれば先に API へ)。プリセットの新しい項目は `preset_schema()` から自動でフォームに出るが、各 `gui/static/i18n/*.json` に名前と説明が必要。設計は ADR-012 |
 
 プリセットの形式を互換性のない形で変えるときは、`schema_version` を上げ、バージョン 1 のファイルも読めるようにしておきます。

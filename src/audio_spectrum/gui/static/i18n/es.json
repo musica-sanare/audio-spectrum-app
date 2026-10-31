@@ -1,0 +1,235 @@
+{
+ "language": "Español",
+ "messages": {
+  "app.title": "audio-spectrum",
+  "lang.label": "Idioma",
+  "song.heading": "Canción",
+  "song.open": "Abrir archivo de audio…",
+  "song.path": "o pega una ruta y pulsa Intro",
+  "song.none": "No hay ninguna canción abierta.",
+  "song.prompt": "Elige un archivo de audio",
+  "preset.heading": "Preajuste",
+  "preset.start_from": "Partir de",
+  "output.heading": "Salida",
+  "output.size": "Tamaño",
+  "output.fps": "Fotogramas por segundo",
+  "output.format": "Formato",
+  "output.format.h264": "H.264 (.mp4, pequeño)",
+  "output.format.prores": "ProRes 422 (.mov)",
+  "output.format.prores4444": "ProRes 4444 (.mov, el recorte más limpio)",
+  "output.transparent": "Fondo transparente (solo ProRes 4444)",
+  "section.colors": "Colores",
+  "section.analysis": "Análisis",
+  "section.look": "Aspecto",
+  "section.fx": "Efectos",
+  "colors.add": "Añadir color",
+  "colors.remove": "Quitar",
+  "preview.heading": "Vista previa",
+  "preview.time": "Tiempo (s)",
+  "preview.clip": "Reproducir 5 segundos",
+  "preview.clip_rendering": "Generando el clip…",
+  "preview.clip_opaque": "Los clips se muestran sobre el fondo del preajuste.",
+  "preview.updating": "Actualizando…",
+  "preview.empty": "Abre una canción para ver la vista previa.",
+  "warnings.heading": "Advertencias",
+  "error.preset_invalid": "Algunos ajustes no son válidos",
+  "error.decode_failed": "No se puede leer el archivo de audio",
+  "error.time_out_of_range": "El tiempo está fuera de la canción",
+  "error.dialog_unavailable": "El diálogo de archivos no está disponible",
+  "error.ffmpeg_not_found": "ffmpeg no está instalado",
+  "error.encode_failed": "La codificación ha fallado",
+  "error.worker_failed": "Un proceso de render se ha detenido",
+  "error.no_song": "Abre primero una canción",
+  "error.busy": "Todavía se está generando el clip anterior",
+  "error.forbidden": "Acceso denegado: vuelve a abrir la página desde la dirección que muestra audio-spectrum gui",
+  "error.unknown": "Algo ha salido mal",
+  "preset.save": "Guardar preajuste",
+  "preset.saved": "Guardado en {path}",
+  "preset.overwrite": "Ya existe un preajuste de usuario llamado \"{name}\". ¿Reemplazarlo?",
+  "preset.builtin_group": "Incluidos",
+  "preset.user_group": "Tus preajustes",
+  "preset.shadowed": "Preajustes de usuario ignorados (los nombres incluidos están reservados): {names}",
+  "render.heading": "Exportar",
+  "render.folder": "Carpeta de salida",
+  "render.next_to_song": "Junto a la canción",
+  "render.choose_folder": "Elegir carpeta…",
+  "render.folder_prompt": "Elige la carpeta de salida",
+  "render.start": "Exportar vídeo",
+  "render.cancel": "Cancelar",
+  "render.progress": "{frame} / {frames} fotogramas ({percent} %)",
+  "render.done": "Terminado en {seconds} s: {output}",
+  "render.cancelled": "Cancelado. No ha quedado ningún archivo.",
+  "render.reveal": "Mostrar en el Finder",
+  "render.overwrite": "{output} ya existe. ¿Reemplazarlo?",
+  "error.output_exists": "El archivo ya existe",
+  "error.usage": "Revisa los ajustes de salida",
+  "error.no_output": "Todavía no hay ningún vídeo terminado",
+  "error.preset_not_found": "No se encontró el preajuste"
+ },
+ "keys": {
+  "name": {
+   "label": "Nombre",
+   "help": "Nombre del preajuste."
+  },
+  "background": {
+   "label": "Fondo",
+   "help": "Color de fondo, normalmente el color de croma: azul o verde puro."
+  },
+  "foreground": {
+   "label": "Color de las líneas",
+   "help": "Color de las líneas cuando el relleno es \"solid\"."
+  },
+  "analysis.fft_size": {
+   "label": "Tamaño de FFT",
+   "help": "Longitud de la FFT en muestras, potencia de dos. Más larga separa mejor los graves pero reacciona más despacio."
+  },
+  "analysis.bands": {
+   "label": "Bandas",
+   "help": "Número de bandas de frecuencia, una línea o barra cada una."
+  },
+  "analysis.frequency_scale": {
+   "label": "Eje de frecuencia",
+   "help": "\"log\" reparte graves y agudos por igual a lo ancho; \"linear\" da a cada Hz el mismo ancho."
+  },
+  "analysis.min_frequency": {
+   "label": "Frecuencia mínima (Hz)",
+   "help": "Límite inferior en Hz."
+  },
+  "analysis.max_frequency": {
+   "label": "Frecuencia máxima (Hz)",
+   "help": "Límite superior en Hz; limitado a la frecuencia de Nyquist del audio (inf significa hasta Nyquist)."
+  },
+  "analysis.magnitude_scale": {
+   "label": "Escala de nivel",
+   "help": "\"db\" muestra los niveles en decibelios hasta el mínimo; \"linear\" muestra las amplitudes directamente."
+  },
+  "analysis.db_floor": {
+   "label": "Mínimo en dB",
+   "help": "Nivel que se muestra con altura cero en la escala de dB; el máximo es 0 dB."
+  },
+  "analysis.gain": {
+   "label": "Ganancia",
+   "help": "Multiplicador de todos los niveles antes de escalar."
+  },
+  "analysis.tilt_db_per_octave": {
+   "label": "Inclinación (dB por octava)",
+   "help": "Realce por octava por encima de 1 kHz (y recorte por debajo), para que las bandas se vean más parejas."
+  },
+  "analysis.channel": {
+   "label": "Canal",
+   "help": "Qué audio analizar: \"mix\" de ambos canales, \"left\" (izquierdo) o \"right\" (derecho)."
+  },
+  "analysis.attack_seconds": {
+   "label": "Tiempo de subida (s)",
+   "help": "Lo rápido que suben las líneas, en segundos; 0 sigue al audio directamente."
+  },
+  "analysis.release_seconds": {
+   "label": "Tiempo de caída (s)",
+   "help": "Lo rápido que bajan las líneas, en segundos; 0 sigue al audio directamente."
+  },
+  "analysis.low_fft_size": {
+   "label": "Tamaño de FFT para graves",
+   "help": "0 = desactivado. Una FFT más larga para las bandas por debajo del cruce, para que las notas graves se vean como picos separados; esas líneas reaccionan un poco antes y bajan un poco después."
+  },
+  "analysis.low_crossover_frequency": {
+   "label": "Cruce de graves (Hz)",
+   "help": "Las bandas por debajo usan la FFT de graves; ambas se mezclan en una octava alrededor."
+  },
+  "look.kind": {
+   "label": "Tipo de aspecto",
+   "help": "\"flat\": líneas o barras planas; \"perspective\": en perspectiva, como la escena antigua de Unity."
+  },
+  "look.margin_x": {
+   "label": "Margen lateral",
+   "help": "Espacio vacío a izquierda y derecha, como fracción del ancho."
+  },
+  "look.baseline_y": {
+   "label": "Posición de la línea base",
+   "help": "Posición de la línea base, como fracción de la altura desde arriba."
+  },
+  "look.max_height": {
+   "label": "Altura",
+   "help": "Altura de una banda a escala completa a un lado de la línea base, como fracción de la altura."
+  },
+  "look.mirror": {
+   "label": "Simétrico",
+   "help": "Crecer hacia arriba y hacia abajo desde la línea base."
+  },
+  "look.bar_fill": {
+   "label": "Grosor de línea",
+   "help": "Fracción del espacio de cada banda que ocupa su línea; el resto es el hueco."
+  },
+  "look.min_bar_width_px": {
+   "label": "Grosor mínimo (px)",
+   "help": "Las líneas nunca son más finas que esto, en píxeles."
+  },
+  "look.min_height_px": {
+   "label": "Altura mínima (px)",
+   "help": "Cada banda tiene al menos esta altura a cada lado, para que la línea base siga visible."
+  },
+  "look.response": {
+   "label": "Respuesta",
+   "help": "Exponente aplicado a los valores: por encima de 1 mantiene bajas las bandas débiles y resalta los picos."
+  },
+  "look.style": {
+   "label": "Estilo",
+   "help": "\"bars\": una línea o barra por banda; \"blocks\": cada barra dividida en segmentos, como un medidor LED."
+  },
+  "look.block_height_px": {
+   "label": "Altura del bloque (px)",
+   "help": "Altura de un segmento. Solo aparece cuando la barra alcanza su altura completa."
+  },
+  "look.block_gap_px": {
+   "label": "Separación de bloques (px)",
+   "help": "Hueco entre segmentos, y alrededor de la línea base si es simétrico."
+  },
+  "look.first_x": {
+   "label": "Posición de la primera caja",
+   "help": "Posición de la primera caja en la fila, en unidades de escena."
+  },
+  "look.spacing": {
+   "label": "Separación",
+   "help": "Distancia entre cajas vecinas, en unidades de escena."
+  },
+  "look.box_size": {
+   "label": "Tamaño de caja",
+   "help": "Algo mayor que la separación, para que las cajas se solapen y no se vean juntas."
+  },
+  "look.depth": {
+   "label": "Profundidad",
+   "help": "Distancia de la fila al origen de la escena en la dirección de la vista, en unidades de escena."
+  },
+  "look.height_scale": {
+   "label": "Escala de altura",
+   "help": "Altura de la caja para un valor de banda de 1, en unidades de escena."
+  },
+  "look.camera_position": {
+   "label": "Posición de la cámara",
+   "help": "Posición de la cámara (x, y, z) en unidades de escena."
+  },
+  "look.camera_pitch_degrees": {
+   "label": "Inclinación de la cámara (°)",
+   "help": "Cuánto mira la cámara hacia abajo, en grados."
+  },
+  "look.vertical_fov_degrees": {
+   "label": "Campo de visión (°)",
+   "help": "Campo de visión vertical de la cámara, en grados."
+  },
+  "fill.mode": {
+   "label": "Relleno",
+   "help": "\"solid\": el color de las líneas; \"frequency\": degradado de izquierda a derecha; \"height\": degradado desde la línea base hasta la punta."
+  },
+  "fill.colors": {
+   "label": "Colores del degradado",
+   "help": "Colores del degradado, repartidos por igual: al menos dos."
+  },
+  "fx.glow_radius_px": {
+   "label": "Tamaño del brillo (px)",
+   "help": "Hasta dónde se extiende un halo suave alrededor de las líneas; 0 lo desactiva. Sobre un color de croma se mezcla con el fondo."
+  },
+  "fx.glow_strength": {
+   "label": "Intensidad del brillo",
+   "help": "Opacidad del halo."
+  }
+ }
+}

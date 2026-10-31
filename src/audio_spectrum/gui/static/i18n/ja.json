@@ -1,0 +1,235 @@
+{
+ "language": "日本語",
+ "messages": {
+  "app.title": "audio-spectrum",
+  "lang.label": "言語",
+  "song.heading": "曲",
+  "song.open": "音声ファイルを開く…",
+  "song.path": "またはパスを貼り付けて Enter",
+  "song.none": "曲が開かれていません。",
+  "song.prompt": "音声ファイルを選んでください",
+  "preset.heading": "プリセット",
+  "preset.start_from": "元にするプリセット",
+  "output.heading": "出力",
+  "output.size": "サイズ",
+  "output.fps": "フレームレート",
+  "output.format": "形式",
+  "output.format.h264": "H.264(.mp4、小さい)",
+  "output.format.prores": "ProRes 422(.mov)",
+  "output.format.prores4444": "ProRes 4444(.mov、最もきれいに抜ける)",
+  "output.transparent": "透明な背景(ProRes 4444 のみ)",
+  "section.colors": "色",
+  "section.analysis": "解析",
+  "section.look": "見た目",
+  "section.fx": "エフェクト",
+  "colors.add": "色を追加",
+  "colors.remove": "削除",
+  "preview.heading": "プレビュー",
+  "preview.time": "時刻(秒)",
+  "preview.clip": "5 秒の動画を再生",
+  "preview.clip_rendering": "動画を書き出しています…",
+  "preview.clip_opaque": "動画はプリセットの背景色で表示します。",
+  "preview.updating": "更新しています…",
+  "preview.empty": "曲を開くとプレビューが表示されます。",
+  "warnings.heading": "警告",
+  "error.preset_invalid": "正しくない設定があります",
+  "error.decode_failed": "音声ファイルを読み込めません",
+  "error.time_out_of_range": "時刻が曲の範囲外です",
+  "error.dialog_unavailable": "ファイル選択画面を開けません",
+  "error.ffmpeg_not_found": "ffmpeg がインストールされていません",
+  "error.encode_failed": "書き出しに失敗しました",
+  "error.worker_failed": "描画のプロセスが止まりました",
+  "error.no_song": "先に曲を開いてください",
+  "error.busy": "前の動画をまだ書き出しています",
+  "error.forbidden": "アクセスが拒否されました。audio-spectrum gui が表示したアドレスから開き直してください",
+  "error.unknown": "問題が発生しました",
+  "preset.save": "プリセットを保存",
+  "preset.saved": "{path} に保存しました",
+  "preset.overwrite": "「{name}」という名前のユーザープリセットがすでにあります。置き換えますか?",
+  "preset.builtin_group": "組み込み",
+  "preset.user_group": "ユーザープリセット",
+  "preset.shadowed": "無視したユーザープリセット(組み込みの名前は使えません):{names}",
+  "render.heading": "書き出し",
+  "render.folder": "出力先",
+  "render.next_to_song": "曲と同じフォルダ",
+  "render.choose_folder": "フォルダを選ぶ…",
+  "render.folder_prompt": "出力先のフォルダを選んでください",
+  "render.start": "動画を書き出す",
+  "render.cancel": "中止",
+  "render.progress": "{frame} / {frames} コマ({percent} %)",
+  "render.done": "{seconds} 秒で完了:{output}",
+  "render.cancelled": "中止しました。ファイルは残っていません。",
+  "render.reveal": "Finder で表示",
+  "render.overwrite": "{output} はすでにあります。置き換えますか?",
+  "error.output_exists": "ファイルがすでにあります",
+  "error.usage": "出力の設定を確認してください",
+  "error.no_output": "書き出し済みの動画がまだありません",
+  "error.preset_not_found": "プリセットが見つかりません"
+ },
+ "keys": {
+  "name": {
+   "label": "名前",
+   "help": "プリセットの名前。"
+  },
+  "background": {
+   "label": "背景色",
+   "help": "背景の色。ふつうはキーの色(純粋な青か緑)。"
+  },
+  "foreground": {
+   "label": "線の色",
+   "help": "塗り方が \"solid\" のときの線の色。"
+  },
+  "analysis.fft_size": {
+   "label": "FFT サイズ",
+   "help": "FFT の長さ(サンプル数、2 のべき乗)。長いほど低音を細かく分けられるが、反応は遅くなる。"
+  },
+  "analysis.bands": {
+   "label": "帯の数",
+   "help": "周波数帯の数。1 帯につき線か棒が 1 本。"
+  },
+  "analysis.frequency_scale": {
+   "label": "周波数軸",
+   "help": "\"log\" は低音から高音まで均等に並べる。\"linear\" はどの Hz も同じ幅にする。"
+  },
+  "analysis.min_frequency": {
+   "label": "最低周波数(Hz)",
+   "help": "下端の周波数(Hz)。"
+  },
+  "analysis.max_frequency": {
+   "label": "最高周波数(Hz)",
+   "help": "上端の周波数(Hz)。音声のナイキスト周波数までに制限される(inf はナイキスト周波数まで)。"
+  },
+  "analysis.magnitude_scale": {
+   "label": "音量の目盛り",
+   "help": "\"db\" はデシベルの目盛りで下限まで表示する。\"linear\" は振幅をそのまま表示する。"
+  },
+  "analysis.db_floor": {
+   "label": "dB の下限",
+   "help": "高さゼロとして表示する音量。最大音量は 0 dB。"
+  },
+  "analysis.gain": {
+   "label": "ゲイン",
+   "help": "目盛りに合わせる前に、すべての音量に掛ける倍率。"
+  },
+  "analysis.tilt_db_per_octave": {
+   "label": "傾き補正(dB/オクターブ)",
+   "help": "1 kHz より上をオクターブごとに持ち上げる(下は下げる)。帯の高さがそろって見える。"
+  },
+  "analysis.channel": {
+   "label": "チャンネル",
+   "help": "解析する音声。\"mix\" は両チャンネルの混合、\"left\" は左、\"right\" は右。"
+  },
+  "analysis.attack_seconds": {
+   "label": "上がる時間(秒)",
+   "help": "線が上がる速さ(秒)。0 なら音にそのまま追従する。"
+  },
+  "analysis.release_seconds": {
+   "label": "下がる時間(秒)",
+   "help": "線が下がる速さ(秒)。0 なら音にそのまま追従する。"
+  },
+  "analysis.low_fft_size": {
+   "label": "低音用の FFT サイズ",
+   "help": "0 でオフ。切り替え周波数より下の帯に長い FFT を使い、低音の音を別々の山として表示する。低音の線は少し早く上がり、少し遅く下がる。"
+  },
+  "analysis.low_crossover_frequency": {
+   "label": "低音の切り替え周波数(Hz)",
+   "help": "これより下の帯は低音用の FFT を使う。前後 1 オクターブでなめらかにつなぐ。"
+  },
+  "look.kind": {
+   "label": "見た目の種類",
+   "help": "\"flat\" は平面の線や棒、\"perspective\" は以前の Unity 版のような遠近法。"
+  },
+  "look.margin_x": {
+   "label": "左右の余白",
+   "help": "左右の空き。画面の幅に対する割合。"
+  },
+  "look.baseline_y": {
+   "label": "基準線の位置",
+   "help": "基準線の位置。上端からの、画面の高さに対する割合。"
+  },
+  "look.max_height": {
+   "label": "高さ",
+   "help": "最大音量の線の、基準線から片側の高さ。画面の高さに対する割合。"
+  },
+  "look.mirror": {
+   "label": "上下対称",
+   "help": "基準線から上下の両方に伸ばす。"
+  },
+  "look.bar_fill": {
+   "label": "線の太さ",
+   "help": "1 本分の幅のうち、線が占める割合。残りがすき間になる。"
+  },
+  "look.min_bar_width_px": {
+   "label": "線の最小の太さ(px)",
+   "help": "線はこれより細くならない(ピクセル)。"
+  },
+  "look.min_height_px": {
+   "label": "最小の高さ(px)",
+   "help": "どの帯も片側でこの高さ以上にする。基準線が見えたままになる。"
+  },
+  "look.response": {
+   "label": "反応のかたち",
+   "help": "帯の値に掛ける指数。1 より大きいと小さな音を低く抑え、ピークを目立たせる。"
+  },
+  "look.style": {
+   "label": "スタイル",
+   "help": "\"bars\" は 1 帯に 1 本の線か棒。\"blocks\" は棒をブロックに区切る(LED メーター風)。"
+  },
+  "look.block_height_px": {
+   "label": "ブロックの高さ(px)",
+   "help": "1 つのブロックの高さ。棒がその高さに完全に届いたときだけ表示される。"
+  },
+  "look.block_gap_px": {
+   "label": "ブロックのすき間(px)",
+   "help": "ブロック同士のすき間。上下対称のときは基準線のまわりにも空ける。"
+  },
+  "look.first_x": {
+   "label": "最初の箱の位置",
+   "help": "列の最初の箱の位置(シーンの単位)。"
+  },
+  "look.spacing": {
+   "label": "間隔",
+   "help": "隣り合う箱の間隔(シーンの単位)。"
+  },
+  "look.box_size": {
+   "label": "箱の大きさ",
+   "help": "間隔より少し大きくして、隣の箱と重ね、すき間が見えないようにする。"
+  },
+  "look.depth": {
+   "label": "奥行き",
+   "help": "視線方向での、列とシーンの原点との距離(シーンの単位)。"
+  },
+  "look.height_scale": {
+   "label": "高さの倍率",
+   "help": "帯の値が 1 のときの箱の高さ(シーンの単位)。"
+  },
+  "look.camera_position": {
+   "label": "カメラの位置",
+   "help": "カメラの位置(x, y, z。シーンの単位)。"
+  },
+  "look.camera_pitch_degrees": {
+   "label": "カメラの傾き(度)",
+   "help": "カメラが下を向く角度。"
+  },
+  "look.vertical_fov_degrees": {
+   "label": "視野角(度)",
+   "help": "カメラの縦方向の視野角。"
+  },
+  "fill.mode": {
+   "label": "塗り方",
+   "help": "\"solid\" は線の色、\"frequency\" は左から右へのグラデーション、\"height\" は基準線から先端へのグラデーション。"
+  },
+  "fill.colors": {
+   "label": "グラデーションの色",
+   "help": "グラデーションの色。均等に並ぶ。グラデーションには 2 色以上が必要。"
+  },
+  "fx.glow_radius_px": {
+   "label": "発光の広がり(px)",
+   "help": "線のまわりに光が広がる距離。0 でオフ。キーの色の背景では背景と混ざる。"
+  },
+  "fx.glow_strength": {
+   "label": "発光の強さ",
+   "help": "光の不透明度。"
+  }
+ }
+}

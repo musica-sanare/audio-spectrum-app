@@ -22,25 +22,34 @@ TILT_REFERENCE_FREQUENCY = 1000.0
 class AnalysisSettings(BaseModel):
     """How audio becomes band values. Defaults are the `default` preset's values."""
 
-    model_config = ConfigDict(frozen=True, extra="forbid")
+    # JSON has no infinity, so `inf` (max_frequency) is written as "Infinity", which validation reads back.
+    model_config = ConfigDict(frozen=True, extra="forbid", use_attribute_docstrings=True, ser_json_inf_nan="strings")
 
     fft_size: int = Field(4096, ge=256, le=32768)
     """FFT length in samples, a power of two. Longer resolves low notes better but reacts more slowly."""
     bands: int = Field(512, ge=1, le=8192)
+    """Number of frequency bands, one line or bar each."""
     frequency_scale: FrequencyScale = "log"
+    """"log" spreads low and high frequencies evenly across the width; "linear" gives every Hz the same width."""
     min_frequency: float = Field(30.0, ge=0.0)
+    """Lower edge in Hz."""
     max_frequency: float = Field(16000.0, gt=0.0)
     """Upper edge in Hz; limited to the audio's Nyquist frequency (`inf` means up to Nyquist)."""
     magnitude_scale: MagnitudeScale = "db"
+    """"db" shows levels on a decibel scale down to db_floor; "linear" shows amplitudes directly."""
     db_floor: float = Field(-48.0, lt=0.0)
     """Level shown as zero height on the dB scale; full scale is 0 dB."""
     gain: float = Field(1.0, gt=0.0)
+    """Multiplier on all levels before scaling."""
     tilt_db_per_octave: float = Field(3.0, ge=-24.0, le=24.0)
     """Boost per octave above 1 kHz (and cut below it). Music loses energy toward high frequencies, so a positive tilt
     makes the bands look more even."""
     channel: ChannelMode = "mix"
+    """Which audio to analyze: "mix" of both channels, "left" or "right"."""
     attack_seconds: float = Field(0.01, ge=0.0)
+    """How fast lines rise, in seconds; 0 follows the audio directly."""
     release_seconds: float = Field(0.15, ge=0.0)
+    """How fast lines fall, in seconds; 0 follows the audio directly."""
     low_fft_size: int = Field(0, ge=0, le=32768)
     """0 = off. Otherwise a longer FFT (a power of two above fft_size) for the bands below low_crossover_frequency, so
     single bass notes show as separate peaks instead of one wide hump. Bass lines then react a little earlier and fall

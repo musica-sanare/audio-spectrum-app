@@ -138,3 +138,26 @@ def test_transparent_stills_are_rgba_pngs(tone, tmp_path, capsys):
     expected = render_stills(tone, load_preset("default"), [1.0], WIDTH, HEIGHT, FPS, transparent=True)[0]
     assert np.array_equal(decoded, expected)
     assert decoded[0, 0, 3] == 0
+
+
+def test_preview_frames_equal_render_stills_and_reuse_the_analysis(tone, monkeypatch):
+    from audio_spectrum import Preview, pipeline
+    plain = load_preset("default")
+    glowing = override_preset(plain, ["fx.glow_radius_px=12"])
+    bars = load_preset("bars")
+    looks = (plain, glowing, bars, plain, glowing)
+    expected = [render_stills(tone, preset, [1.0], WIDTH, HEIGHT, FPS)[0] for preset in looks]
+    preview = Preview(tone, FPS)
+    assert abs(preview.duration - 2.0) < 1e-9
+    calls = []
+    real = pipeline.analyze
+    monkeypatch.setattr(pipeline, "analyze", lambda *args: calls.append(1) or real(*args))
+    for preset, frame in zip(looks, expected, strict=True):
+        assert np.array_equal(preview.frames(preset, [1.0], WIDTH, HEIGHT)[0], frame)
+    assert len(calls) == 2  # default and glow share their analysis settings; bars has its own
+
+
+def test_preview_refuses_times_outside_the_song(tone):
+    from audio_spectrum import Preview
+    with pytest.raises(TimeRangeError, match="tone.wav"):
+        Preview(tone, FPS).frames(load_preset("default"), [2.5], WIDTH, HEIGHT)

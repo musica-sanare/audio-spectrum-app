@@ -1,4 +1,4 @@
-English | [日本語](../ja/USER_GUIDE.md) · [Docs index](README.md)
+English | [日本語](../ja/USER_GUIDE.md) | [Español](../es/USER_GUIDE.md) · [Docs index](README.md)
 
 # User guide
 
@@ -17,7 +17,8 @@ uv sync
 uv run audio-spectrum --version
 ```
 
-`uv sync` installs Python 3.13 and the libraries into `.venv/` inside the folder. Nothing else on the system changes.
+`uv sync` installs Python 3.13 and the libraries into `.venv/` inside the folder, including those of the GUI.
+Nothing else on the system changes.
 
 ## 2. Everyday use
 
@@ -53,6 +54,33 @@ uv run audio-spectrum render song.wav --set analysis.min_frequency=40     # the 
 ```
 
 A still is exactly the frame the video shows at that time.
+
+### Using the GUI
+
+The same settings, with previews, are also available in a local web page:
+
+```bash
+uv run audio-spectrum gui
+```
+
+It opens in the default browser and runs until you press Ctrl+C in the terminal. The page is in Japanese, English
+or Spanish, chosen at the top right; the first visit follows the browser's language.
+
+- **Song**: open an audio file with the Finder dialog, or paste its path and press Enter.
+- **Preset**: start from a built-in preset and change any key in the sections below (colors, analysis, look,
+  effects). Every key shows its label and a short help text; ranges are checked as in preset files, and a value out
+  of range is marked next to its field.
+- **Output**: size, frame rate, format, and a transparent background with ProRes 4444. They set the preview's size
+  and frame rate.
+- **Preview**: the frame at the chosen time, updated as settings change, drawn by the same code as the video (a
+  transparent background shows on a checkerboard). "Play 5-second clip" renders five seconds with sound from that
+  time; clips are always shown on the preset's background. Warnings from `presets check` appear below.
+- **Save preset**: saves the current settings under the name in the Preset box as a user preset (section 4). It
+  then appears under "Your presets" in the list, and `--preset NAME` finds it on the command line.
+- **Render**: renders the whole song with the current settings and output options, next to the song or into a
+  folder chosen with "Choose folder…". The progress shows while it runs; "Cancel" stops it and leaves no file.
+  When it is done, "Show in Finder" selects the video. One render runs at a time; stopping the server with Ctrl+C
+  cancels a running render cleanly.
 
 ### Using the video in iMovie
 
@@ -97,7 +125,7 @@ audio-spectrum render AUDIO... [options]
 | `-o, --output FILE` | next to the input | Output file; only with a single input |
 | `--out-dir DIR` | next to each input | Output folder, created if missing. Outputs are named `<input name>_spectrum.mp4` (or `.mov`) |
 | `--overwrite` | off | Replace existing outputs. Without it, an existing output is an error for that file and is left untouched |
-| `--preset NAME_OR_FILE` | `default` | Built-in preset name, or a path to a `.toml` preset file |
+| `--preset NAME_OR_FILE` | `default` | Built-in or user preset name, or a path to a `.toml` preset file |
 | `--set KEY=VALUE` | | Change one preset key, for example `look.max_height=0.4`; repeatable (see section 4) |
 | `--background COLOR` | from the preset | `blue`, `green`, `#RRGGBB`, or `transparent` (needs `--codec prores4444`; see section 2) |
 | `--size SIZE` | `1080p` | `720p`, `1080p`, `1440p`, `2160p` or `WIDTHxHEIGHT` (even numbers) |
@@ -108,6 +136,8 @@ audio-spectrum render AUDIO... [options]
 | `--workers N` | `0` (automatic) | Render processes; `1` renders in a single process |
 | `--progress MODE` | `text` | `text` on stderr, `json` events on stdout, or `none` |
 | `--fail-fast` | off | Stop at the first file that fails; otherwise the remaining files are still rendered |
+| `--start SECONDS` | `0` | Render only part of each song, from this time. The part begins with the frame the full video shows at that time, and the audio is cut to match, so it stays in sync |
+| `--duration SECONDS` | to the end | Length of that part |
 
 ### `still`
 
@@ -130,10 +160,22 @@ video rendered with the same options.
 Exit codes are those of `render`: 1 when an image exists, the audio cannot be decoded or a time is outside the
 audio; 2 for bad options or an invalid preset.
 
+### `gui`
+
+```
+audio-spectrum gui [--port PORT] [--no-browser]
+```
+
+Starts the local web UI (section 2, "Using the GUI") and opens it in the default browser. It needs the `gui` extra,
+which `uv sync` in this folder installs; elsewhere use `uv sync --extra gui` (without it, `gui` exits with code 2
+and says so). The server listens on `127.0.0.1` only, on a free port unless `--port` is given, and stops with
+Ctrl+C. The address it prints carries a session token; other web pages cannot use the server without it.
+`--no-browser` prints the address without opening it.
+
 ### `presets`
 
 ```
-audio-spectrum presets list          # built-in presets
+audio-spectrum presets list          # built-in presets, then user presets
 audio-spectrum presets show NAME     # print a built-in preset as TOML
 audio-spectrum presets check FILE    # validate a preset file
 ```
@@ -173,6 +215,17 @@ Built-in presets:
 | `blocks` | 48 bars split into blocks like an LED meter, rising from a baseline near the bottom |
 | `glow` | `default` with a soft glow; check keying, or use a transparent background (section 4) |
 | `unity-classic` | An approximation of the earlier Unity-based look: tilted perspective, linear frequencies, left channel |
+
+### User presets
+
+Presets saved from the GUI are user presets: TOML files in `~/Library/Application Support/audio-spectrum/presets/`
+(or the folder in the environment variable `AUDIO_SPECTRUM_PRESET_DIR`). They are used by name like the built-in
+ones (`--preset "My look"`) and listed by `presets list` after the built-in names. They hold only the keys that
+differ from `default`. Built-in names are reserved: a user preset cannot be saved as `default`, and a file named
+like a built-in preset is ignored with a warning, so a name such as `default` always means the same look in scripts.
+A preset file can also be copied into the folder by hand.
+
+### Your own preset files
 
 To make your own, start from a built-in one:
 
@@ -276,7 +329,8 @@ With `--progress json`, the CLI prints one JSON object per line on stdout. Error
 | `interrupted` | | The run was interrupted |
 
 Error codes: `decode_failed`, `encode_failed`, `output_exists`, `worker_failed`, `preset_invalid`,
-`ffmpeg_not_found`.
+`ffmpeg_not_found`, `time_out_of_range` (`--start` beyond the end of a song), `backdrop_failed` (API only, see
+below).
 
 ```json
 {"event": "start", "input": "a.wav", "output": "a_spectrum.mp4", "frames": 7644, "index": 1, "count": 2}
@@ -312,7 +366,7 @@ if __name__ == "__main__":  # required, see below
 ```
 
 - `render_video` raises a subclass of `AudioSpectrumError` on failure: `PresetError`, `DecodeError`, `EncodeError`,
-  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, or `Cancelled` when `cancel` returns true. No output
+  `OutputExistsError`, `WorkerError`, `FfmpegNotFoundError`, `BackdropError`, or `Cancelled` when `cancel` returns true. No output
   file is left behind in any of these cases.
 - `override_preset(preset, ["look.max_height=0.4"])` applies overrides like `--set` and returns a new preset. It
   raises `PresetError` for an invalid result.
@@ -320,8 +374,52 @@ if __name__ == "__main__":  # required, see below
   seconds) as `(height, width, 3)` `uint8` RGB arrays, without writing files. It raises `TimeRangeError` (code
   `time_out_of_range`) for a time outside the audio, and the same decoding errors as `render_video`. It draws in the
   calling process. With `transparent=True` it returns `(height, width, 4)` RGBA arrays with straight alpha.
+- `RenderJob(..., start=10.0, duration=5.0)` renders part of a song, like `--start` and `--duration`. The frames
+  are identical to those of the full video, and the audio is cut at the same time.
+- `Preview(audio_path, fps)` decodes a song once; `preview.frames(preset, times, width, height)` then returns frames
+  like `render_stills`, keeping the analysis for the last few analysis settings. A change of the look alone renders a
+  1080p frame in about 20 ms. `preview.duration` is the song's length. Not thread-safe.
+- `preset_to_toml(preset)` returns the preset as TOML with only the keys that differ from `default`
+  (`full=True` writes every key); `load_preset` reads it back to an equal preset.
+- `encode_png(frame)` returns a frame (RGB, or RGBA with alpha) as lossless PNG bytes.
+- `save_user_preset(preset, overwrite=False)` writes a preset into the user folder and returns its path;
+  `user_preset_names()`, `shadowed_user_preset_names()` and `user_preset_folder()` describe the folder.
+  `load_preset(name)` finds user presets by name after the built-in ones.
+- `preset_schema()` returns the JSON schema of a preset: types, ranges, defaults and a description of every key,
+  with colors as `"#RRGGBB"` strings. `preset_warnings(preset)` returns the warnings of `presets check` as a list.
 - A transparent background is an output setting: `EncodeSettings(codec="prores", prores_profile=4, alpha=True)` in
   `RenderJob.encode`. Other codecs with `alpha=True` raise `ValueError`.
+- `RenderJob(..., backdrop=...)` draws the spectrum over pictures that your app supplies instead of the preset's
+  background color, for example a background image with lyrics captions. The backdrop is any object with a method
+  `frame(index, seconds, width, height)` returning a `(height, width, 3)` `uint8` RGB array: `index` is the frame of
+  the whole song and `seconds` its time (`index / fps`), also when only part of the song is rendered. It is sent to
+  every worker process, so it must be picklable: keep paths and settings in it and load pictures lazily.
+  `render_stills` and `Preview.frames` take the same `backdrop`. A backdrop that raises or returns a picture of the
+  wrong size stops the render with a `BackdropError` (code `backdrop_failed`) and leaves no file; it cannot be
+  combined with a transparent background. Example:
+
+```python
+import numpy as np
+import skia
+
+
+class StillImage:
+    """One image file under the whole video, loaded once per worker process."""
+
+    def __init__(self, path):
+        self.path = str(path)
+        self._picture = None
+
+    def frame(self, index, seconds, width, height) -> np.ndarray:
+        if self._picture is None:
+            image = skia.Image.open(self.path).resize(width, height)
+            self._picture = image.toarray(colorType=skia.kRGBA_8888_ColorType)[:, :, :3].copy()
+        return self._picture
+
+
+job = RenderJob(..., backdrop=StillImage("background.png"))
+```
+
 - Frames are drawn in several processes, which re-import the calling script. A script must therefore call the API
   under `if __name__ == "__main__":`. Without it the render fails with a `WorkerError` that says so. Passing
   `workers=1` avoids extra processes.
@@ -336,3 +434,7 @@ if __name__ == "__main__":  # required, see below
 | A preset error naming a key | Fix that key; `presets check FILE` shows all problems at once |
 | Lines look soft or bluish after keying | Try `--codec prores4444` |
 | Colored lines look washed out or bluish | Thin colored lines lose color in H.264: use `--codec prores4444`, or fewer bands with a larger `look.bar_fill` |
+| `the GUI needs the gui extra` | `uv sync --extra gui` |
+| `cannot listen on 127.0.0.1:PORT` | Another program uses that port: leave out `--port` to take a free one |
+| The page says access was refused | The server was restarted, so its token changed: open the address it printed again |
+| The file dialog does not appear | It may be behind the browser window; or paste the file's path into the field and press Enter |

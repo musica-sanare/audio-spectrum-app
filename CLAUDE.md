@@ -33,11 +33,18 @@ If any path does not exist, report it rather than silently inventing its content
 - The CLI options, JSON events, exit codes and the names exported by `audio_spectrum` are a public contract for
   embedding apps ([User guide](docs/en/USER_GUIDE.md) §5). Change them only deliberately and update the guide.
 
+## Documentation
+- Stable docs and the root README also have a Spanish translation (`docs/es/`, `README.es.md`), kept like the
+  Japanese one: same file names, the English blob hash on the first line, a translation notice, updated in the same
+  commit as the English file, and every doc listed in `docs/es/README.md`. Language switchers read
+  `English | 日本語 | Español`. This adds to the shared documentation rule, which covers English and Japanese only.
+- The GUI's page texts are in Japanese, English and Spanish (`src/audio_spectrum/gui/static/i18n/`).
+
 ## Workflow
 - Work in phases: write a plan in `docs/working/PHASE<N>_PLAN.md`, get the owner's approval, then implement, measure and
   propose a commit per milestone. Each phase ends with a report in `docs/working/` (`PHASE0_RESULTS.md`, then
   `PHASE<N>_ACCEPTANCE.md`).
-- Commit on `main` until the owner creates the `dev` branch after the first push.
+- Work and commit on the `dev` branch, which the owner created after the first push.
 
 ## Overrides of shared rules
 None.

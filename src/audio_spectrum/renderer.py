@@ -18,13 +18,16 @@ class FrameRenderer:
         fx = preset.fx
         self._glow = Glow(fx.glow_radius_px, fx.glow_strength) if fx.glow_radius_px > 0 else None
 
-    def render(self, values: np.ndarray) -> np.ndarray:
+    def render(self, values: np.ndarray, under: np.ndarray | None = None) -> np.ndarray:
         """Render one frame of band values. Returns (height, width, 3) uint8 RGB, or (height, width, 4) RGBA with a
-        transparent background."""
+        transparent background. `under` is a (height, width, 3) uint8 RGB picture to draw on instead of the preset's
+        background color; it cannot be combined with a transparent background."""
         quads = quads_for(self.preset.look, values, self.width, self.height)
         quads = quads[_visible(quads, self.width, self.height)]
+        if under is not None and self.transparent:
+            raise ValueError("a picture under the spectrum cannot be combined with a transparent background")
         background = None if self.transparent else self.preset.background
-        return self._rasterizer.draw(quads, background, self.preset.foreground, self._gradient, self._glow)
+        return self._rasterizer.draw(quads, background, self.preset.foreground, self._gradient, self._glow, under)
 
 
 def _visible(quads: np.ndarray, width: int, height: int) -> np.ndarray:

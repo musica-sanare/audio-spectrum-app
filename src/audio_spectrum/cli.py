@@ -23,6 +23,9 @@ from audio_spectrum.presets import (
     override_preset,
     parse_color,
     preset_warnings,
+    shadowed_user_preset_names,
+    user_preset_folder,
+    user_preset_names,
 )
 
 EXIT_OK = 0
@@ -82,6 +85,16 @@ def still_time(text: str) -> float:
     return value
 
 
+def positive_seconds(text: str) -> float:
+    try:
+        value = float(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected a length in seconds, got {text!r}") from None
+    if not 0 < value < math.inf:
+        raise argparse.ArgumentTypeError(f"expected a length above 0 seconds, got {text!r}")
+    return value
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="audio-spectrum",
@@ -111,6 +124,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="text on stderr (default), JSON Lines events on stdout, or nothing",
     )
     render.add_argument("--fail-fast", action="store_true", help="stop at the first file that fails")
+    render.add_argument(
+        "--start", type=still_time, default=0.0, metavar="SECONDS",
+        help="render only part of each song, from this time (default: 0)",
+    )
+    render.add_argument(
+        "--duration", type=positive_seconds, metavar="SECONDS", help="length of that part (default: to the end)"
+    )
 
     still = commands.add_parser("still", help="render single frames of a song as PNG images, to check a look")
     still.add_argument("audio", type=Path, help="input audio file")
@@ -122,9 +142,13 @@ def build_parser() -> argparse.ArgumentParser:
     still.add_argument("--overwrite", action="store_true", help="replace existing images")
     add_look_arguments(still)
 
+    gui = commands.add_parser("gui", help="open the local web UI in the browser (needs the gui extra)")
+    gui.add_argument("--port", type=int, default=0, help="port on 127.0.0.1 (default: a free port)")
+    gui.add_argument("--no-browser", action="store_true", help="print the address instead of opening the browser")
+
     presets = commands.add_parser("presets", help="list, show or check presets")
     preset_commands = presets.add_subparsers(dest="preset_command", required=True)
-    preset_commands.add_parser("list", help="list built-in presets")
+    preset_commands.add_parser("list", help="list built-in presets, then user presets")
     show = preset_commands.add_parser("show", help="print a built-in preset as TOML, to copy and edit")
     show.add_argument("name")
     check = preset_commands.add_parser("check", help="validate a preset file")
@@ -190,7 +214,7 @@ def run_render(args: argparse.Namespace, reporter: "Reporter") -> int:
     for index, (audio, output) in enumerate(zip(args.audio, outputs, strict=True), start=1):
         job = RenderJob(
             audio_path=audio, output_path=output, preset=preset, width=width, height=height, fps=args.fps,
-            encode=encode, workers=args.workers, overwrite=args.overwrite,
+            encode=encode, workers=args.workers, overwrite=args.overwrite, start=args.start, duration=args.duration,
         )
         try:
             result = render_video(job, reporter.progress_for(audio, output, index, len(outputs)))
@@ -312,10 +336,30 @@ class Reporter:
         print(json.dumps(event, ensure_ascii=False), flush=True)
 
 
+def run_gui(args: argparse.Namespace) -> int:
+    try:
+        from audio_spectrum.gui.server import run
+    except ImportError:
+        print("audio-spectrum: the GUI needs the gui extra: uv sync --extra gui", file=sys.stderr)
+        return EXIT_USAGE
+    try:
+        run(port=args.port, open_browser=not args.no_browser)
+    except OSError as error:
+        print(f"audio-spectrum: cannot listen on 127.0.0.1:{args.port}: {error.strerror}", file=sys.stderr)
+        return EXIT_USAGE
+    return EXIT_OK
+
+
 def run_presets(args: argparse.Namespace) -> int:
     if args.preset_command == "list":
-        for name in builtin_preset_names():
+        # One name per line, built-in presets first, so scripts can read the list.
+        for name in builtin_preset_names() + user_preset_names():
             print(name)
+        for name in shadowed_user_preset_names():
+            print(
+                f"warning: user preset {name!r} in {user_preset_folder()} is ignored: built-in names are reserved",
+                file=sys.stderr,
+            )
     elif args.preset_command == "show":
         print(builtin_preset_text(args.name), end="")
     else:
@@ -338,6 +382,8 @@ def main(argv: list[str] | None = None) -> int:
             return run_render(args, reporter)
         if args.command == "still":
             return run_still(args, reporter)
+        if args.command == "gui":
+            return run_gui(args)
         if args.command == "presets":
             return run_presets(args)
     except PresetError as error:

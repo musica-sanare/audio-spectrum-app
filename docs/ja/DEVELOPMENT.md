@@ -1,5 +1,5 @@
-<!-- source: docs/en/DEVELOPMENT.md blob 484013fb57e5be46082ef4991d7849a78c9251dd -->
-[English](../en/DEVELOPMENT.md) | 日本語 · [目次に戻る](README.md)
+<!-- source: docs/en/DEVELOPMENT.md blob 1170f8f2c72718b87f734f4f21443c4158ec58e3 -->
+[English](../en/DEVELOPMENT.md) | 日本語 | [Español](../es/DEVELOPMENT.md) · [目次に戻る](README.md)
 
 > この文書は[英語版](../en/DEVELOPMENT.md)の翻訳です。内容が異なる場合は英語版が優先されます。
 
@@ -16,7 +16,9 @@ uv sync
 ```
 
 Python 3.13 とすべての依存は `uv` で管理しています(`pyproject.toml`、`uv.lock`)。依存は `uv add <package>` で追加します。
-コアの依存は、少なく、広く使われているものに限ります。
+コアの依存は、少なく、広く使われているものに限ります。GUI 用の依存は追加パッケージ `gui` に入れます
+(`uv add --optional gui <package>`)。`dev` グループがこの追加パッケージを含むので、`uv sync` で開発とテストに必要なものが
+すべて入ります。このアプリを組み込むアプリは `dev` グループなしでインストールするので、コアの依存だけが入ります。
 
 ## 2. テスト
 
@@ -38,6 +40,7 @@ uv run pytest
 | `test_cli_contract.py` | JSON イベント、終了コード、上書きのルール、安全な書き出し、キャンセル、Ctrl+C と SIGTERM |
 | `test_stills.py` | `still` と `render_stills`(動画のコマと同一であること)、`--set` と `override_preset` |
 | `test_golden.py` | 組み込みプリセットのコマの基準ハッシュ値。確定した見た目が意図せず変わらないようにする |
+| `test_gui.py` | GUI のサーバー:合言葉と Host の確認、プリセット、スキーマ、警告、ファイル選択(代役で確認)、静止画。コアが GUI 用の依存を読み込まないこと。追加パッケージ `gui` がなければスキップ |
 
 ## 3. 見た目の確認
 
@@ -55,11 +58,27 @@ uv run python bench/render_compare.py song.wav --preset default --bands 256 1024
 見た目を意図して変えたときや、Skia・NumPy の更新でバイト列が変わったときは、まずコマを目で確かめ、そのあとテストが表示する
 ハッシュ値に更新します。
 
-## 4. 規約
+## 4. GUI を動かす
 
-- コード、コメント、コミットメッセージ、文書は英語で書きます。日本語は `docs/ja/` の翻訳と `README.ja.md` だけです。
+```bash
+AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
+```
+
+`--no-browser` を付けると、合言葉付きのアドレスを表示するので、好きなブラウザで開けます。`AUDIO_SPECTRUM_PRESET_DIR` を
+`work/` に向けておくと、試しに保存したプリセットが本来のユーザーフォルダに入りません。自動テストは常に一時フォルダを
+使います(`tests/conftest.py`)。画面にはビルドの手順がないので、`gui/static/` を直して再読み込みするだけです。
+サーバーのエンドポイントは `test_gui.py` で FastAPI のテストクライアントを使って確かめ、画面そのものはブラウザで
+手で確かめます。
+
+## 5. 規約
+
+- コード、コメント、コミットメッセージ、文書は英語で書きます。日本語とスペイン語は、翻訳(`docs/ja/`、`docs/es/`、
+  `README.ja.md`、`README.es.md`)と GUI の画面の文言だけです。
 - [不変条件](ARCHITECTURE.md#3-不変条件)を守ります。
-- 正式な文書は `docs/en/` に置き、`docs/ja/` に日本語版を置きます。日本語版の1行目には、英語版の blob ハッシュを記録します。
-  作業用の文書(計画、結果、設計判断)は `docs/working/` に英語だけで置きます。
+- プリセットに項目を足したら、`src/audio_spectrum/gui/static/i18n/` の `en.json`、`ja.json`、`es.json` のそれぞれに名前と
+  説明を足します。画面の文言を足したときも3つすべてに入れます。足りないと `test_gui.py` が失敗します。
+- 正式な文書は `docs/en/` に置き、`docs/ja/` に日本語版、`docs/es/` にスペイン語版を置きます。どちらの翻訳も1行目に
+  英語版の blob ハッシュを記録し、英語版と同じコミットで更新します。作業用の文書(計画、結果、設計判断)は
+  `docs/working/` に英語だけで置きます。
 - 作業はフェーズ単位で進めます:`docs/working/PHASE<N>_PLAN.md` の計画をオーナーが承認し、マイルストーンごとにコミットして
   実装し、最後に受入報告を書きます。

@@ -86,8 +86,9 @@ these fixes:
   one frame. No lead-in silence by default (the legacy 5-second wait is not needed); an optional lead-in is set in
   whole frames.
 - N2. Determinism: the same input and preset produce the same frames.
-- N3. Performance target: a 4-minute song at 1080p30 renders in no more than its own length on the M1
-  (要確認 after the Phase 0 measurement).
+- N3. Performance target: a 4-minute song at 1080p30 renders in no more than its own length on the M1. Met in every
+  phase so far: 43–61 % of the song's length in H.264, 90 % for transparent ProRes 4444 with glow
+  ([Phase 2 acceptance](PHASE2_ACCEPTANCE.md) §5).
 - N4. Maintainability: few, widely used dependencies; Python managed with `uv`; ffmpeg as an external tool;
   automated tests that need no real songs (synthetic signals only).
 - N5. Extensibility: analysis, rendering and encoding are separate components. New styles, renderers (for example a

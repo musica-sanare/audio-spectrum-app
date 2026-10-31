@@ -1,4 +1,4 @@
-English | [日本語](../ja/DEVELOPMENT.md) · [Docs index](README.md)
+English | [日本語](../ja/DEVELOPMENT.md) | [Español](../es/DEVELOPMENT.md) · [Docs index](README.md)
 
 # Development
 
@@ -13,7 +13,10 @@ uv sync
 ```
 
 Python 3.13 and all dependencies are managed by `uv` (`pyproject.toml`, `uv.lock`). Add a dependency with
-`uv add <package>`; keep the core's dependencies few and widely used.
+`uv add <package>`; keep the core's dependencies few and widely used. GUI dependencies belong to the `gui` extra
+(`uv add --optional gui <package>`). The `dev` group includes that extra, so `uv sync` installs everything needed
+for development and the tests; an app that embeds this one installs it without the `dev` group and gets the core
+dependencies only.
 
 ## 2. Tests
 
@@ -35,6 +38,7 @@ uv run pytest
 | `test_cli_contract.py` | JSON events, exit codes, overwrite rules, safe output, cancellation, Ctrl+C and SIGTERM |
 | `test_stills.py` | `still` and `render_stills` (identical to video frames), `--set` and `override_preset` |
 | `test_golden.py` | Golden hashes of the built-in presets' frames, so a settled look cannot change by accident |
+| `test_gui.py` | GUI server: token and host checks, presets, schema, warnings, dialogs (faked), stills; the core never imports the GUI packages. Skipped without the `gui` extra |
 
 ## 3. Visual checks
 
@@ -53,12 +57,27 @@ example by hashing rendered frames, and say so in the commit message. `tests/tes
 built-in presets on a generated signal. When a look changes on purpose, or a Skia or NumPy upgrade changes the bytes,
 check the frames visually first and then renew the hashes it prints.
 
-## 4. Conventions
+## 4. Running the GUI
 
-- Code, comments, commit messages and docs are in English. Japanese appears only in the `docs/ja/` translations and
-  `README.ja.md`.
+```bash
+AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
+```
+
+`--no-browser` prints the address with its session token, to open in any browser. Pointing
+`AUDIO_SPECTRUM_PRESET_DIR` into `work/` keeps presets saved while trying things out of the real user folder; the
+automated tests always use a temporary folder (`tests/conftest.py`). The page has no build step: edit
+`gui/static/` and reload. The server's endpoints are tested in `test_gui.py` with FastAPI's test client; the page
+itself is checked by hand in a browser.
+
+## 5. Conventions
+
+- Code, comments, commit messages and docs are in English. Japanese and Spanish appear only in the translations
+  (`docs/ja/`, `docs/es/`, `README.ja.md`, `README.es.md`) and in the GUI's page texts.
 - Keep the [invariants](ARCHITECTURE.md#3-invariants).
-- Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` that records the English blob hash on its first
-  line. Working docs (plans, results, decisions) live in `docs/working/` in English only.
+- A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`
+  and `es.json`, and new page texts need an entry in all three; `test_gui.py` fails otherwise.
+- Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` and a Spanish twin in `docs/es/`; each
+  translation records the English blob hash on its first line and is updated in the same commit as the English
+  file. Working docs (plans, results, decisions) live in `docs/working/` in English only.
 - Work proceeds in phases: a plan in `docs/working/PHASE<N>_PLAN.md` approved by the owner, then implementation with a
   commit per milestone, then an acceptance report.
