@@ -1,15 +1,19 @@
-English | [日本語](../ja/README.md) | [Español](../es/README.md) · [Repository README](../../README.md)
+English | [日本語](../ja/README.md) · [Repository README](../../README.md)
 
 # audio-spectrum-app documentation
 
-How the offline audio spectrum video renderer is specified, designed and developed, and the records of each phase.
+Every doc of the offline audio spectrum video renderer, with one line on each. Users start with the user guide;
+developers of embedding apps with the embedding guide; contributors with development and architecture. The working
+docs record requirements, decisions and each phase.
 
 ## Guides
 
 | Document | Description |
 |---|---|
-| [User guide](USER_GUIDE.md) | Setup, everyday use, command reference, presets, and use from other tools (JSON events, Python API). |
+| [User guide](USER_GUIDE.md) | Setup, everyday use, the GUI, output formats, presets, troubleshooting and command reference. |
+| [Embedding guide](EMBEDDING.md) | Use from scripts and other apps: JSON progress events and the Python API, including backdrops. |
 | [Development](DEVELOPMENT.md) | Setup, tests, visual checks and conventions. |
+| [Security policy](../../SECURITY.md) (English only) | How to report a vulnerability privately, and which parts of the app are in scope. |
 
 ## Design
 
@@ -33,3 +37,4 @@ How the offline audio spectrum video renderer is specified, designed and develop
 | [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md) | Phase 3 acceptance report: criteria, requirements coverage, contract changes, measurements, open items. |
 | [Phase 4 plan](../working/PHASE4_PLAN.md) | Drawing the spectrum over frames supplied by another app (a backdrop), for the lyrics video app. |
 | [Phase 4 acceptance](../working/PHASE4_ACCEPTANCE.md) | Phase 4 acceptance report: criteria, contract changes, measurements with a real song, findings. |
+| [Public release checklist](../working/PUBLIC_RELEASE.md) | Every check before the repository goes public, with results and dates, and the owner's steps for the switch and the GitHub settings after it. |

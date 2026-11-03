@@ -1,0 +1,235 @@
+{
+ "language": "Français",
+ "messages": {
+  "app.title": "audio-spectrum",
+  "lang.label": "Langue",
+  "song.heading": "Morceau",
+  "song.open": "Ouvrir un fichier audio…",
+  "song.path": "ou collez un chemin et appuyez sur Entrée",
+  "song.none": "Aucun morceau ouvert.",
+  "song.prompt": "Choisissez un fichier audio",
+  "preset.heading": "Préréglage",
+  "preset.start_from": "Partir de",
+  "output.heading": "Sortie",
+  "output.size": "Taille",
+  "output.fps": "Fréquence d’images",
+  "output.format": "Format",
+  "output.format.h264": "H.264 (.mp4, léger)",
+  "output.format.prores": "ProRes 422 (.mov)",
+  "output.format.prores4444": "ProRes 4444 (.mov, incrustation la plus nette)",
+  "output.transparent": "Fond transparent (ProRes 4444 uniquement)",
+  "section.colors": "Couleurs",
+  "section.analysis": "Analyse",
+  "section.look": "Apparence",
+  "section.fx": "Effets",
+  "colors.add": "Ajouter une couleur",
+  "colors.remove": "Supprimer",
+  "preview.heading": "Aperçu",
+  "preview.time": "Temps (s)",
+  "preview.clip": "Lire un extrait de 5 secondes",
+  "preview.clip_rendering": "Génération de l’extrait…",
+  "preview.clip_opaque": "Les extraits sont affichés sur le fond du préréglage.",
+  "preview.updating": "Mise à jour…",
+  "preview.empty": "Ouvrez un morceau pour voir l’aperçu.",
+  "warnings.heading": "Avertissements",
+  "error.preset_invalid": "Certains réglages ne sont pas valides",
+  "error.decode_failed": "Impossible de lire le fichier audio",
+  "error.time_out_of_range": "Ce temps est en dehors du morceau",
+  "error.dialog_unavailable": "La fenêtre de sélection de fichiers n’est pas disponible",
+  "error.ffmpeg_not_found": "ffmpeg n’est pas installé",
+  "error.encode_failed": "L’encodage a échoué",
+  "error.worker_failed": "Un processus de rendu s’est arrêté",
+  "error.no_song": "Ouvrez d’abord un morceau",
+  "error.busy": "L’extrait précédent est encore en cours de génération",
+  "error.forbidden": "Accès refusé : rouvrez la page depuis l’adresse affichée par audio-spectrum gui",
+  "error.unknown": "Une erreur s’est produite",
+  "preset.save": "Enregistrer le préréglage",
+  "preset.saved": "Enregistré sous {path}",
+  "preset.overwrite": "Un préréglage utilisateur nommé « {name} » existe déjà. Le remplacer ?",
+  "preset.builtin_group": "Intégrés",
+  "preset.user_group": "Vos préréglages",
+  "preset.shadowed": "Préréglages utilisateur ignorés (les noms des préréglages intégrés sont réservés) : {names}",
+  "render.heading": "Exporter",
+  "render.folder": "Dossier de sortie",
+  "render.next_to_song": "À côté du morceau",
+  "render.choose_folder": "Choisir un dossier…",
+  "render.folder_prompt": "Choisissez le dossier de sortie",
+  "render.start": "Exporter la vidéo",
+  "render.cancel": "Annuler",
+  "render.progress": "{frame} / {frames} images ({percent} %)",
+  "render.done": "Terminé en {seconds} s : {output}",
+  "render.cancelled": "Annulé. Aucun fichier n’a été laissé.",
+  "render.reveal": "Afficher dans le Finder",
+  "render.overwrite": "{output} existe déjà. Le remplacer ?",
+  "error.output_exists": "Le fichier existe déjà",
+  "error.usage": "Vérifiez les réglages de sortie",
+  "error.no_output": "Aucune vidéo terminée pour l’instant",
+  "error.preset_not_found": "Préréglage introuvable"
+ },
+ "keys": {
+  "name": {
+   "label": "Nom",
+   "help": "Nom du préréglage."
+  },
+  "background": {
+   "label": "Fond",
+   "help": "Couleur de fond, en général la couleur d’incrustation : bleu ou vert pur."
+  },
+  "foreground": {
+   "label": "Couleur des lignes",
+   "help": "Couleur des lignes quand le remplissage est « solid »."
+  },
+  "analysis.fft_size": {
+   "label": "Taille de FFT",
+   "help": "Longueur de la FFT en échantillons, une puissance de deux. Plus elle est longue, mieux les graves sont séparés, mais plus la réaction est lente."
+  },
+  "analysis.bands": {
+   "label": "Bandes",
+   "help": "Nombre de bandes de fréquence, une ligne ou une barre chacune."
+  },
+  "analysis.frequency_scale": {
+   "label": "Axe des fréquences",
+   "help": "« log » répartit graves et aigus de façon égale sur la largeur ; « linear » donne la même largeur à chaque Hz."
+  },
+  "analysis.min_frequency": {
+   "label": "Fréquence minimale (Hz)",
+   "help": "Limite basse en Hz."
+  },
+  "analysis.max_frequency": {
+   "label": "Fréquence maximale (Hz)",
+   "help": "Limite haute en Hz ; plafonnée à la fréquence de Nyquist de l’audio (inf signifie jusqu’à Nyquist)."
+  },
+  "analysis.magnitude_scale": {
+   "label": "Échelle de niveau",
+   "help": "« db » affiche les niveaux en décibels jusqu’au plancher ; « linear » affiche directement les amplitudes."
+  },
+  "analysis.db_floor": {
+   "label": "Plancher en dB",
+   "help": "Niveau affiché avec une hauteur nulle sur l’échelle en dB ; la pleine échelle vaut 0 dB."
+  },
+  "analysis.gain": {
+   "label": "Gain",
+   "help": "Multiplicateur appliqué à tous les niveaux avant la mise à l’échelle."
+  },
+  "analysis.tilt_db_per_octave": {
+   "label": "Pente (dB par octave)",
+   "help": "Accentuation par octave au-dessus de 1 kHz (et atténuation en dessous), pour que les bandes paraissent plus homogènes."
+  },
+  "analysis.channel": {
+   "label": "Canal",
+   "help": "Audio à analyser : « mix » des deux canaux, « left » (gauche) ou « right » (droite)."
+  },
+  "analysis.attack_seconds": {
+   "label": "Temps de montée (s)",
+   "help": "Vitesse à laquelle les lignes montent, en secondes ; 0 suit directement l’audio."
+  },
+  "analysis.release_seconds": {
+   "label": "Temps de descente (s)",
+   "help": "Vitesse à laquelle les lignes redescendent, en secondes ; 0 suit directement l’audio."
+  },
+  "analysis.low_fft_size": {
+   "label": "Taille de FFT des graves",
+   "help": "0 = désactivé. Une FFT plus longue pour les bandes sous la fréquence de coupure, afin que les notes graves apparaissent comme des pics distincts ; ces lignes réagissent alors un peu plus tôt et retombent un peu plus tard."
+  },
+  "analysis.low_crossover_frequency": {
+   "label": "Coupure des graves (Hz)",
+   "help": "Les bandes en dessous utilisent la FFT des graves ; les deux sont fondues sur une octave autour de cette fréquence."
+  },
+  "look.kind": {
+   "label": "Type d’apparence",
+   "help": "« flat » : lignes ou barres à plat ; « perspective » : en perspective, comme l’ancienne scène Unity."
+  },
+  "look.margin_x": {
+   "label": "Marge latérale",
+   "help": "Espace vide à gauche et à droite, en fraction de la largeur de l’image."
+  },
+  "look.baseline_y": {
+   "label": "Position de la ligne de base",
+   "help": "Position de la ligne de base, en fraction de la hauteur de l’image depuis le haut."
+  },
+  "look.max_height": {
+   "label": "Hauteur",
+   "help": "Hauteur d’une bande à pleine échelle d’un côté de la ligne de base, en fraction de la hauteur de l’image."
+  },
+  "look.mirror": {
+   "label": "Symétrie",
+   "help": "Croître à la fois vers le haut et vers le bas depuis la ligne de base."
+  },
+  "look.bar_fill": {
+   "label": "Épaisseur des lignes",
+   "help": "Part de l’emplacement de chaque bande occupée par sa ligne ; le reste forme l’espace."
+  },
+  "look.min_bar_width_px": {
+   "label": "Épaisseur minimale (px)",
+   "help": "Les lignes ne sont jamais plus fines que cette valeur, en pixels."
+  },
+  "look.min_height_px": {
+   "label": "Hauteur minimale (px)",
+   "help": "Chaque bande a au moins cette hauteur de chaque côté, pour que la ligne de base reste visible."
+  },
+  "look.response": {
+   "label": "Réponse",
+   "help": "Exposant appliqué aux valeurs des bandes : au-dessus de 1, les bandes faibles restent basses et les pics ressortent."
+  },
+  "look.style": {
+   "label": "Style",
+   "help": "« bars » : une ligne ou une barre pleine par bande ; « blocks » : chaque barre découpée en segments, comme un VU-mètre à LED."
+  },
+  "look.block_height_px": {
+   "label": "Hauteur des blocs (px)",
+   "help": "Hauteur d’un segment. Un segment n’apparaît que lorsque la barre atteint toute sa hauteur."
+  },
+  "look.block_gap_px": {
+   "label": "Espace entre blocs (px)",
+   "help": "Espace entre les segments, et autour de la ligne de base en mode symétrique."
+  },
+  "look.first_x": {
+   "label": "Position de la première boîte",
+   "help": "Position de la première boîte sur la rangée, en unités de scène."
+  },
+  "look.spacing": {
+   "label": "Espacement",
+   "help": "Distance entre boîtes voisines, en unités de scène."
+  },
+  "look.box_size": {
+   "label": "Taille des boîtes",
+   "help": "Un peu plus grande que l’espacement, pour que les boîtes voisines se chevauchent sans jointure visible."
+  },
+  "look.depth": {
+   "label": "Profondeur",
+   "help": "Distance de la rangée à l’origine de la scène dans la direction du regard, en unités de scène."
+  },
+  "look.height_scale": {
+   "label": "Échelle de hauteur",
+   "help": "Hauteur d’une boîte pour une valeur de bande de 1, en unités de scène."
+  },
+  "look.camera_position": {
+   "label": "Position de la caméra",
+   "help": "Position de la caméra (x, y, z) en unités de scène."
+  },
+  "look.camera_pitch_degrees": {
+   "label": "Inclinaison de la caméra (°)",
+   "help": "Angle vers le bas de la caméra, en degrés."
+  },
+  "look.vertical_fov_degrees": {
+   "label": "Champ de vision (°)",
+   "help": "Champ de vision vertical de la caméra, en degrés."
+  },
+  "fill.mode": {
+   "label": "Remplissage",
+   "help": "« solid » : la couleur des lignes ; « frequency » : un dégradé de gauche à droite ; « height » : un dégradé de la ligne de base jusqu’à la pointe."
+  },
+  "fill.colors": {
+   "label": "Couleurs du dégradé",
+   "help": "Couleurs du dégradé, réparties régulièrement : au moins deux."
+  },
+  "fx.glow_radius_px": {
+   "label": "Taille du halo (px)",
+   "help": "Étendue du halo doux autour des lignes ; 0 le désactive. Sur une couleur d’incrustation, il se mélange au fond."
+  },
+  "fx.glow_strength": {
+   "label": "Intensité du halo",
+   "help": "Opacité du halo."
+  }
+ }
+}

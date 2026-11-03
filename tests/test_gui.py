@@ -169,7 +169,7 @@ def test_gui_command_reports_a_busy_port(capsys):
 
 
 STATIC = Path(__file__).parent.parent / "src" / "audio_spectrum" / "gui" / "static"
-LANGUAGES = ("en", "ja", "es")
+LANGUAGES = ("en", "ja", "es", "fr")
 
 
 def messages(language: str) -> dict:

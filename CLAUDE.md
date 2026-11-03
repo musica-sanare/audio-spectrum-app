@@ -31,14 +31,10 @@ If any path does not exist, report it rather than silently inventing its content
 - Tests: `uv run pytest`. Automated tests use generated signals only, never real songs. More:
   [Development](docs/en/DEVELOPMENT.md).
 - The CLI options, JSON events, exit codes and the names exported by `audio_spectrum` are a public contract for
-  embedding apps ([User guide](docs/en/USER_GUIDE.md) §5). Change them only deliberately and update the guide.
+  embedding apps ([Embedding guide](docs/en/EMBEDDING.md)). Change them only deliberately and update that guide.
 
 ## Documentation
-- Stable docs and the root README also have a Spanish translation (`docs/es/`, `README.es.md`), kept like the
-  Japanese one: same file names, the English blob hash on the first line, a translation notice, updated in the same
-  commit as the English file, and every doc listed in `docs/es/README.md`. Language switchers read
-  `English | 日本語 | Español`. This adds to the shared documentation rule, which covers English and Japanese only.
-- The GUI's page texts are in Japanese, English and Spanish (`src/audio_spectrum/gui/static/i18n/`).
+- The GUI's page texts are in Japanese, English, Spanish and French (`src/audio_spectrum/gui/static/i18n/`).
 
 ## Workflow
 - Work in phases: write a plan in `docs/working/PHASE<N>_PLAN.md`, get the owner's approval, then implement, measure and

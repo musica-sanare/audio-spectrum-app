@@ -1,4 +1,4 @@
-English | [日本語](../ja/DEVELOPMENT.md) | [Español](../es/DEVELOPMENT.md) · [Docs index](README.md)
+English | [日本語](../ja/DEVELOPMENT.md) · [Docs index](README.md)
 
 # Development
 
@@ -7,16 +7,22 @@ the structure, see the [architecture](ARCHITECTURE.md).
 
 ## 1. Setup
 
+Install the tools once, then install the dependencies:
+
 ```bash
 brew install uv ffmpeg
+```
+
+```bash
 uv sync
 ```
 
-Python 3.13 and all dependencies are managed by `uv` (`pyproject.toml`, `uv.lock`). Add a dependency with
-`uv add <package>`; keep the core's dependencies few and widely used. GUI dependencies belong to the `gui` extra
-(`uv add --optional gui <package>`). The `dev` group includes that extra, so `uv sync` installs everything needed
-for development and the tests; an app that embeds this one installs it without the `dev` group and gets the core
-dependencies only.
+`uv` manages Python 3.13 and all dependencies (`pyproject.toml`, `uv.lock`).
+
+- Add a dependency with `uv add <package>`. Keep the core's dependencies few and widely used.
+- GUI dependencies belong to the `gui` extra: `uv add --optional gui <package>`.
+- The `dev` group includes that extra, so `uv sync` installs everything needed for development and the tests.
+- An app that embeds this one installs it without the `dev` group and gets the core dependencies only.
 
 ## 2. Tests
 
@@ -42,8 +48,11 @@ uv run pytest
 
 ## 3. Visual checks
 
-To look at a preset or a change, render stills with `audio-spectrum still` ([user guide](USER_GUIDE.md) §3).
-`bench/render_compare.py` renders sample frames of several variants side by side and times the renderer:
+To look at a preset or a change, render stills with
+[`audio-spectrum still`](USER_GUIDE.md#still).
+
+To compare variants, `bench/render_compare.py` renders sample frames of several variants side by side and times the
+renderer:
 
 ```bash
 uv run python bench/render_compare.py song.wav --preset default --bands 256 1024 --times 30 60
@@ -52,10 +61,13 @@ uv run python bench/render_compare.py song.wav --preset default --bands 256 1024
 Output goes to `work/render_compare/`. The `work/` folder is ignored by Git; keep songs and rendered videos there or
 outside the repository.
 
-When a change should not alter the look (refactoring), compare frames before and after for the same input, for
-example by hashing rendered frames, and say so in the commit message. `tests/test_golden.py` does this for the
-built-in presets on a generated signal. When a look changes on purpose, or a Skia or NumPy upgrade changes the bytes,
-check the frames visually first and then renew the hashes it prints.
+### Changes that should not alter the look
+
+Compare frames before and after for the same input, and say so in the commit message. Hashing rendered frames is one
+way to compare. `tests/test_golden.py` does this for the built-in presets on a generated signal.
+
+When a look changes on purpose, or a Skia or NumPy upgrade changes the bytes, check the frames visually first. Then
+renew the hashes that `test_golden.py` prints.
 
 ## 4. Running the GUI
 
@@ -63,21 +75,25 @@ check the frames visually first and then renew the hashes it prints.
 AUDIO_SPECTRUM_PRESET_DIR=work/presets uv run audio-spectrum gui --no-browser
 ```
 
-`--no-browser` prints the address with its session token, to open in any browser. Pointing
-`AUDIO_SPECTRUM_PRESET_DIR` into `work/` keeps presets saved while trying things out of the real user folder; the
-automated tests always use a temporary folder (`tests/conftest.py`). The page has no build step: edit
-`gui/static/` and reload. The server's endpoints are tested in `test_gui.py` with FastAPI's test client; the page
-itself is checked by hand in a browser.
+- `--no-browser` prints the address with its session token, to open in any browser.
+- Pointing `AUDIO_SPECTRUM_PRESET_DIR` into `work/` keeps presets saved while trying things out of the real user
+  folder. The automated tests always use a temporary folder (`tests/conftest.py`).
+- The page has no build step: edit `gui/static/` and reload.
+- The server's endpoints are tested in `test_gui.py` with FastAPI's test client. The page itself is checked by hand in
+  a browser.
 
 ## 5. Conventions
 
-- Code, comments, commit messages and docs are in English. Japanese and Spanish appear only in the translations
-  (`docs/ja/`, `docs/es/`, `README.ja.md`, `README.es.md`) and in the GUI's page texts.
+- Code, comments, commit messages and docs are in English. Japanese appears only in the translations (`docs/ja/`,
+  `README.ja.md`) and in the GUI's page texts; Spanish and French only in the GUI's page texts.
 - Keep the [invariants](ARCHITECTURE.md#3-invariants).
-- A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`
-  and `es.json`, and new page texts need an entry in all three; `test_gui.py` fails otherwise.
-- Stable docs live in `docs/en/` with a Japanese twin in `docs/ja/` and a Spanish twin in `docs/es/`; each
-  translation records the English blob hash on its first line and is updated in the same commit as the English
-  file. Working docs (plans, results, decisions) live in `docs/working/` in English only.
-- Work proceeds in phases: a plan in `docs/working/PHASE<N>_PLAN.md` approved by the owner, then implementation with a
-  commit per milestone, then an acceptance report.
+- A new preset key needs a label and a help text in each of `src/audio_spectrum/gui/static/i18n/en.json`, `ja.json`,
+  `es.json` and `fr.json`. New page texts need an entry in all four. `test_gui.py` fails otherwise.
+- Stable docs live in `docs/en/`, with a Japanese twin in `docs/ja/`.
+  - Each translation records the English blob hash on its first line.
+  - Each translation is updated in the same commit as the English file.
+- Working docs (plans, results, decisions) live in `docs/working/` in English only.
+- Work proceeds in phases:
+  1. The owner approves a plan in `docs/working/PHASE<N>_PLAN.md`.
+  2. Implementation follows, with a commit per milestone.
+  3. An acceptance report closes the phase.
