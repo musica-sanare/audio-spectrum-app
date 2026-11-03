@@ -1,4 +1,4 @@
-<!-- source: docs/en/README.md blob 533ec2881bfedb528ca350765826447703e13d0b -->
+<!-- source: docs/en/README.md blob a8134db1ee7a97acf296f02fc189392c246e5a07 -->
 [English](../en/README.md) | 日本語 · [リポジトリの README](../../README.ja.md)
 
 > この文書は[英語版](../en/README.md)の翻訳。内容が異なる場合は英語版が優先する。
@@ -16,6 +16,7 @@
 | [ユーザーガイド](USER_GUIDE.md) | セットアップ、普段の使い方、GUI、出力形式、プリセット、トラブルシューティング、コマンドリファレンス。 |
 | [組み込みガイド](EMBEDDING.md) | スクリプトやほかのアプリからの利用：JSON の進捗イベントと、背景を含む Python API。 |
 | [開発](DEVELOPMENT.md) | セットアップ、テスト、見た目の確認、規約。 |
+| [Security policy](../../SECURITY.md)（英語のみ） | 脆弱性を非公開で報告する方法と、対象になるアプリの部分。 |
 
 ## 設計
 
@@ -39,3 +40,4 @@
 | [Phase 3 acceptance](../working/PHASE3_ACCEPTANCE.md)（英語のみ） | Phase 3 の受入報告：完了条件、要件の充足状況、約束事の変更、測定値、未解決の項目。 |
 | [Phase 4 plan](../working/PHASE4_PLAN.md)（英語のみ） | ほかのアプリが用意したコマ（背景）の上にスペクトラムを描く機能。歌詞動画アプリのため。 |
 | [Phase 4 acceptance](../working/PHASE4_ACCEPTANCE.md)（英語のみ） | Phase 4 の受入報告：完了条件、約束事の変更、実際の曲での測定値、分かったこと。 |
+| [Public release checklist](../working/PUBLIC_RELEASE.md)（英語のみ） | 公開前のすべての確認と結果・日付、公開の切り替えと直後の GitHub 設定のオーナー手順。 |
