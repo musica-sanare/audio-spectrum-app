@@ -2,8 +2,8 @@
 
 # Public release checklist
 
-The repository is private. Making it public is the owner's decision and action. Every item below covers all refs that
-will be visible on GitHub, not only the current tree. The procedure behind each item is the `claude-shared-rules`
+The repository went public on 2026-11-03, switched by the owner. Every item below covers all refs visible on GitHub,
+not only the current tree. The procedure behind each item is the `claude-shared-rules`
 repository's `docs/en/PUBLIC_RELEASE.md`. lyrics-video-app depends on this repository's tag `v0.5.0`, so this
 repository goes public first.
 
@@ -18,7 +18,10 @@ Items marked `要確認` wait for the owner. Results are recorded with their dat
   and the tag `v0.5.0`; there are no other refs to delete.
 - [x] `refs/pull/*`: pull request 1 (`dev` into `main`). Its head `16c242b` is an ancestor of `dev`, so the scan below
   covers it. The merge commit `10869b9` on `main` has the same tree as `16c242b`.
-- [ ] Local branches and tags to publish are pushed. Local `dev` equals `origin/dev`. `origin/main` (`10869b9`) is
+- [x] Local branches and tags to publish are pushed (owner, 2026-11-03). `git ls-remote origin` afterwards: `HEAD`
+  and `refs/heads/main` at the merge commit `bdabfbe`, `refs/heads/dev` (`ae64133`), `refs/pull/1/head` (`16c242b`),
+  `refs/tags/v0.5.0` (`763bdd7`, pointing to `dc7ce4f`). `main` contains `dev` with the same tree. Before the push:
+  local `dev` equaled `origin/dev`. `origin/main` (`10869b9`) is
   not an ancestor of `dev`, so `main` cannot be fast-forwarded to `dev`; the owner merges `dev` into `main` locally with
   a merge commit (section 6, step 1). The tag `v0.5.0` (annotated, on `dc7ce4f`, contained in `main` and `dev`) exists only locally;
   lyrics-video-app needs it on GitHub. The final scan (section 5) runs after these pushes.
@@ -52,9 +55,10 @@ Items marked `要確認` wait for the owner. Results are recorded with their dat
   public (owner decision). A search found no local paths, personal data, song titles or the legacy folder name. They
   mention the owner's Mac (M1) and iMovie workflow. `CLAUDE.local.md` and `.claude/` are ignored
   and were never committed.
-- [ ] GitHub-side data. `要確認` (owner, on GitHub): pull request 1 (title, description, comments) becomes public;
-  check that there are no issues, releases, wiki pages or workflow runs that should not be public. There are no
-  workflow files in the history.
+- [x] GitHub-side data, checked through the public GitHub API without credentials after the switch (2026-11-03):
+  pull request 1 ("Merge dev into main") has no description and no comments; no issues, no releases, wiki off. The
+  only workflow run is GitHub's own Dependabot dependency graph update (successful). There are no workflow files in
+  the history.
 
 ## 4. Presentation
 
@@ -74,7 +78,10 @@ Items marked `要確認` wait for the owner. Results are recorded with their dat
   from FastAPI's test client, test-only). There is no lint configuration and no build step; there is no CI.
 - [x] Dependency audit (2026-11-03): `uv audit --frozen` (uv 0.13.5, built in, experimental; it looks up the locked
   versions in the OSV database): no known vulnerabilities in 29 packages.
-- [ ] Secret scan and audit repeated on the final commit, after the owner's pushes (section 6, step 4).
+- [x] Secret scan and audit repeated after the owner's pushes (2026-11-03, `main` at `bdabfbe`): gitleaks 8.30.1,
+  `gitleaks git --log-opts="--all" --redact .`, 42 commits (44 with the two merge commits), no leaks found. Identities,
+  AI lines and local paths rechecked: unchanged. `uv audit --frozen`: no known vulnerabilities in 29 packages.
+  `uv run pytest`: 237 passed.
 
 ## 6. Switch (owner)
 
@@ -82,14 +89,15 @@ No branch deploys anything; pushes only publish commits.
 
 1. Merge `dev` into `main` locally with a merge commit and push it (no new pull request, so no new
    `refs/pull/*`): `git switch main`, `git merge --ff-only origin/main`, `git merge --no-ff dev`,
-   `git push origin main`, `git switch dev`. Push `dev` too if it gained commits since `f5be472`.
-2. Push the tag: `git push origin v0.5.0`.
+   `git push origin main`, `git switch dev`. Push `dev` too if it gained commits since `f5be472`. Done on
+   2026-11-03.
+2. Push the tag: `git push origin v0.5.0`. Done on 2026-11-03.
 3. Check that `git ls-remote origin` shows only `HEAD`, `main`, `dev`, `refs/pull/*` and `refs/tags/v0.5.0` (plus
-   `v0.5.0^{}`).
-4. Claude reruns the secret scan and the audit on the pushed refs.
+   `v0.5.0^{}`). Checked on 2026-11-03.
+4. Claude reruns the secret scan and the audit on the pushed refs. Done on 2026-11-03 (section 5).
 5. **Settings → General → Danger Zone → Change repository visibility → Make public.**
 
-- [ ] Visibility changed to public on: date.
+- [x] Visibility changed to public on: 2026-11-03 (owner).
 
 ## 7. GitHub settings right after (owner)
 
@@ -111,19 +119,26 @@ repository.
 5. **Settings → General → Features**: turn off Wiki, Projects and Discussions. Issues: off unless you want reports in
    public.
 
-- [ ] Private vulnerability reporting.
-- [ ] Secret scanning push protection.
-- [ ] Dependabot alerts.
-- [ ] Ruleset on the default branch: no force push, no deletion.
-- [ ] Actions disabled.
-- [ ] Unused features turned off.
-- [ ] Setting names checked against GitHub Docs on: 2026-11-01 (for lyrics-video-app); recheck on the settings page.
+Applied by the owner on 2026-11-03, except step 3 (the optional tag ruleset), which was not applied.
+
+- [x] Private vulnerability reporting (the public API reports it enabled).
+- [x] Secret scanning push protection.
+- [x] Dependabot alerts.
+- [x] Ruleset on the default branch: no force push, no deletion.
+- [x] Actions disabled.
+- [x] Unused features turned off: Wiki, Projects, Discussions and Issues are off (public API).
+- [x] Setting names checked against GitHub Docs on 2026-11-01 (for lyrics-video-app) and applied by the owner on the
+  settings pages on 2026-11-03.
 
 ## 8. Verification
 
-- [ ] A signed-out browser shows only `main`, `dev`, the tag `v0.5.0` and the expected files.
-- [ ] The README quick start works from a clean `git clone` over HTTPS without credentials.
-- [ ] `uv pip install "audio-spectrum-app @ git+https://github.com/musica-sanare/audio-spectrum-app@v0.5.0"` resolves
-  without credentials (what lyrics-video-app needs).
-- [ ] No secret scanning alerts under **Security → Secret scanning**.
-- [ ] README status updated.
+- [x] Only the intended refs are public (2026-11-03): the public API without credentials lists the branches `dev` and
+  `main`, the tag `v0.5.0`, visibility `public` and the MIT license. `要確認` (owner): a look in a signed-out browser.
+- [x] The README quick start works from a clean directory without credentials (2026-11-03): `git clone` over HTTPS
+  with no credential helper (`bdabfbe`), `uv sync`, and `audio-spectrum render` on a generated 3-second tone wrote a
+  3.000 s `tone_spectrum.mp4`.
+- [x] `uv pip install "audio-spectrum-app @ git+https://github.com/musica-sanare/audio-spectrum-app@v0.5.0"` into a
+  fresh Python 3.13 environment without credentials installs version 0.5.0 (2026-11-03), as lyrics-video-app needs.
+- [ ] No secret scanning alerts under **Security → Secret scanning**: `要確認` (owner); the alerts are visible only to
+  the owner.
+- [x] README status: still accurate (Phases 1 to 4 accepted, version 0.5.0); no change needed.
